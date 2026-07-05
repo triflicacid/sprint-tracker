@@ -39,6 +39,9 @@ The favicon was sourced from <a href="https://www.flaticon.com/free-icons/run" t
 | `electron`         | Compiles the Electron main/preload scripts and launches the Electron app against the build in `dist/`. |
 | `electron:rebuild` | Rebuilds native modules (`better-sqlite3`) against Electron's Node ABI.                                |
 
+> **NOTE** When running `electron` or `start:server`, you may see errors about conflicting node versions.
+> If you see this, run `electron:rebuild` and re-run the command.
+
 ### Dev use
 
 | Command              | What it does                                                                                                         |
