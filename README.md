@@ -1,0 +1,159 @@
+# Sprint Tracker
+
+A personal tool for tracking sprints, stories and subtasks/branches/pull
+requests outside of Jira.
+
+A sprint contains stories, each linked to a Jira
+issue; each story contains subtasks, and a subtask maps 1:1 to a single git
+branch/pull request.
+
+Built once, and can be run in the web or in Electron.
+
+The favicon was sourced from <a href="https://www.flaticon.com/free-icons/run" title="run icons">Run icons created by srip - Flaticon</a>.
+
+## Features
+
+- Track sprints, stories and subtasks in one place, alongside their linked Jira issues
+- Each subtask follows a clear status workflow from not-started through to released
+- Story progress is worked out automatically from the status of its subtasks
+- Optional Jira integration to pull in an issue's title and labels
+- Full history of every status change, viewable as flow diagrams
+- Calendar views for sprint timelines and day-to-day activity
+- A stats page with charts summarising sprint progress
+- Tagging support, both automatic (by repo) and custom labels
+- Holiday tracking, so calendars can distinguish working days
+- Runs as a browser app or as an Electron desktop app
+
+## Commands
+
+### Prod use
+
+| Command            | What it does                                                                                           |
+|--------------------|--------------------------------------------------------------------------------------------------------|
+| `clean`            | Removes the `dist/` build output.                                                                      |
+| `copy:assets`      | Copies `static/` into `dist/static` (part of the server build).                                        |
+| `build:client`     | Type-checks and builds the React client with Vite into `dist/`.                                        |
+| `build:server`     | Type-checks the server, then runs `copy:assets`.                                                       |
+| `build`            | Runs `build:client` then `build:server` - the full production build.                                   |
+| `start:server`     | Runs the built server (`dist/server/index.js`), serving the built client and API together.             |
+| `electron`         | Compiles the Electron main/preload scripts and launches the Electron app against the build in `dist/`. |
+| `electron:rebuild` | Rebuilds native modules (`better-sqlite3`) against Electron's Node ABI.                                |
+
+### Dev use
+
+| Command              | What it does                                                                                                         |
+|----------------------|----------------------------------------------------------------------------------------------------------------------|
+| `dev:server`         | Runs the Express API with `tsx watch` on http://localhost:4000, restarting on file changes.                          |
+| `dev:client`         | Runs the Vite dev server on http://localhost:5173, proxying `/api` to the Express server.                            |
+| `db:run-sql`         | Applies `data/schema.sql`, then runs a given `.sql` file against the database (`node data/run-sql-file.mjs <file>`). |
+| `db:clear`           | Wipes every table (drops and reapplies the schema) via `data/clear-database.mjs`.                                    |
+| `db:load:test`       | Loads `data/testing_data.sql` - a small, made-up dataset for testing.                                                |
+| `db:load:historical` | Loads `data/existing_history.sql` - real work history from when the project was created.                             |
+| `db:dump`            | Dumps the current database to a timestamped (or named) `.sql` file via `data/dump-database.mjs`.                     |
+
+### Testing
+
+| Command                                       | What it does                                                                                                                                |
+|-----------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------|
+| `test`                                        | Runs unit, integration and e2e test suites in sequence.                                                                                     |
+| `test:unit` / `test:unit:watch`               | Runs (or watches) the Vitest unit suite (`vitest.unit.config.ts`).                                                                          |
+| `test:integration` / `test:integration:watch` | Runs (or watches) the Vitest integration suite (`vitest.integration.config.ts`), covering both server API and React page integration tests. |
+| `test:e2e` / `test:e2e:ui`                    | Runs the Playwright e2e suite headlessly, or with its interactive UI runner.                                                                |
+
+## Quick start
+
+### 1. Set up the database
+
+```bash
+npm install
+npm run db:load:test    # applies data/schema.sql, then loads testing_data.sql
+```
+
+Both `db:run-sql`, `db:clear` and `db:dump` work directly against
+`better-sqlite3` with no build step, and all respect the `DB_PATH`
+environment variable (defaulting to `data/sprint-tracker.sqlite3` when
+unset).
+
+### 2. Run in development
+
+In two terminals:
+
+```bash
+npm run dev:server     # express api on http://localhost:4000
+npm run dev:client     # vite dev server on http://localhost:5173, proxies /api
+```
+
+Open http://localhost:5173 in a browser.
+
+### 3. Build and run in a browser
+
+```bash
+npm run build           # builds the client, then the server
+npm run start:server
+```
+
+Open http://localhost:4000 - the Express server serves the built client
+and API from the same origin.
+
+### 4. Build and run in Electron
+
+```bash
+npm run build
+npm run electron
+```
+
+The Electron main process starts the Express server itself and points the
+database file at Electron's user data directory, so the same code path
+runs whether the app is opened in a browser or as a desktop window.
+
+> **Note:** `better-sqlite3` is a native module compiled against a specific
+> Node ABI. If you switch Node versions (or install fresh) and Electron
+> fails to start with a native module / NODE_MODULE_VERSION mismatch
+> error, run `npm run electron:rebuild` to rebuild it against Electron's
+> bundled Node version, then try `npm run electron` again.
+
+## Jira integration
+
+Set the following environment variables to enable the "refresh from Jira"
+action on a story:
+
+```
+JIRA_BASE_URL=https://yourcompany.atlassian.net
+JIRA_EMAIL=you@example.com
+JIRA_API_TOKEN=your-api-token
+```
+
+When set, `server/services/jiraService.ts` calls the Jira REST API
+(`/rest/api/3/issue/:key`) using basic auth, and the `GET /api/jira/:key`
+route caches the returned title and labels onto the story if a `storyId`
+query param is supplied.
+
+Without these set, the Jira refresh endpoint returns a 404 and the story
+still works fine using the description and Jira link you entered manually.
+
+## Dev notes
+
+See the API schema at [`docs/api.yaml`](docs/api.yaml).
+
+Top-level directories:
+
+- `data/` - database schema, sql datasets, and every db management script
+- `docs/` - `openapi.yaml`, the REST API's OpenAPI/Swagger schema
+- `e2e/` - Playwright end-to-end specs, plus test-db seeding/setup helpers
+- `electron/` - Electron main process and preload script
+- `server/` - Express REST API, sqlite access, business logic, and its tests
+  - `db/` - connection.ts, opens the sqlite db, initSchema()
+  - `services/` - one file per domain concept (sprints, stories, subtasks, tags, status history, status flow, stats, holidays, jira)
+  - `routes/` - thin Express routers, one per resource, delegate to services
+  - `utils/` - small pure helpers (parsing repo names, jira keys)
+  - `testUtils/` - shared setup for the server's own unit/integration tests
+  - `tests/integration/` - supertest-driven API integration tests
+- `shared/` - types shared between the server and the React client (`types.d.ts`)
+- `src/` - React client (Vite)
+  - `api/` - typed fetch client for the REST API
+  - `pages/` - one component per screen/route
+  - `components/` - reusable pieces, grouped by domain (common/, sprints/, stories/, subtasks/, calendar/, stats/, flow/)
+  - `utils/` - shared client-side helpers (e.g. calendar grid/date math)
+  - `testUtils/` - shared setup for the client's own unit/integration tests
+  - `tests/integration/` - React Testing Library integration tests per page
+- `static/` - static resources served by the app, including `statusFlow.json` (the status flow document, see Features above) and the icon

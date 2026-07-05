@@ -1,0 +1,103 @@
+{
+  "states": [
+    {
+      "id": "NEW",
+      "label": "new",
+      "rank": 0,
+      "color": "#6b7280",
+      "description": "Not started yet - no branch has been created for this subtask."
+    },
+    {
+      "id": "WIP",
+      "label": "wip",
+      "rank": 1,
+      "color": "#d95926",
+      "description": "Actively being worked on - a branch exists but there is no pull request yet."
+    },
+    {
+      "id": "IN_PR",
+      "label": "in pr",
+      "rank": 2,
+      "color": "#9085e9",
+      "description": "A pull request is open (in draft/still in progress.)"
+    },
+    {
+      "id": "IN_REVIEW",
+      "label": "in review",
+      "rank": 3,
+      "color": "#c98500",
+      "description": "The pull request is awaiting a PR review."
+    },
+    {
+      "id": "PR_COMMENTS",
+      "label": "pr comments",
+      "rank": 4,
+      "color": "#e66767",
+      "description": "Addressing PR comments left on the PR."
+    },
+    {
+      "id": "CUT_RELEASE",
+      "label": "cut release",
+      "rank": 5,
+      "color": "#d55181",
+      "description": "The pull request has merged and been cut into a release build."
+    },
+    {
+      "id": "TESTING",
+      "label": "testing",
+      "rank": 6,
+      "color": "#3987e5",
+      "description": "The release is being tested (QA) before sign-off."
+    },
+    {
+      "id": "UAT",
+      "label": "uat",
+      "rank": 7,
+      "color": "#199e70",
+      "description": "The release has passed testing and is in user acceptance testing."
+    },
+    {
+      "id": "DONE",
+      "label": "done",
+      "rank": 8,
+      "color": "#008300",
+      "description": "Fully released and accepted - no further work remains."
+    }
+  ],
+  "transitions": [
+    {
+      "from": "NEW",
+      "to": ["WIP"],
+      "requires": [
+        { "field": "branchName", "label": "Branch name", "type": "text", "column": "subtasks.branch_name" }
+      ]
+    },
+    {
+      "from": "WIP",
+      "to": ["IN_PR"],
+      "requires": [
+        { "field": "prUrl", "label": "Pull request URL", "type": "text", "column": "subtasks.url" }
+      ]
+    },
+    {
+      "from": "WIP",
+      "to": ["IN_REVIEW"],
+      "requires": [
+        { "field": "prUrl", "label": "Pull request URL", "type": "text", "column": "subtasks.url" }
+      ]
+    },
+    { "from": "IN_PR", "to": ["IN_REVIEW"] },
+    { "from": "IN_REVIEW", "to": ["PR_COMMENTS", "CUT_RELEASE", "IN_PR"] },
+    { "from": "PR_COMMENTS", "to": ["CUT_RELEASE", "IN_REVIEW"] },
+    {
+      "from": "CUT_RELEASE",
+      "to": ["TESTING"],
+      "requires": [
+        { "field": "releaseVersion", "label": "Release version", "type": "text", "column": "subtasks.release_version" }
+      ]
+    },
+    { "from": "TESTING", "to": ["UAT"] },
+    { "from": "UAT", "to": ["DONE"] },
+    { "from": "DONE", "to": [] }
+  ]
+}

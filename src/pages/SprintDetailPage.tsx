@@ -1,0 +1,162 @@
+import React, { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import type { SprintDetail } from "@shared/types";
+import { api } from "../api/client";
+import { StoryCard } from "../components/stories/StoryCard";
+import { formatIsoDate } from "../utils/calendarGrid";
+
+// a sprint ("/sprints/:id"): its stories, holiday management, and comment.
+export function SprintDetailPage(): React.ReactElement {
+    const { id } = useParams<{ id: string }>();
+    const sprintId: number = Number(id);
+    const [sprint, setSprint] = useState<SprintDetail | null>(null);
+    const [showForm, setShowForm] = useState<boolean>(false);
+    const [jiraUrl, setJiraUrl] = useState<string>("");
+    const [description, setDescription] = useState<string>("");
+    const [editingComment, setEditingComment] = useState<boolean>(false);
+    const [commentDraft, setCommentDraft] = useState<string>("");
+    const [holidays, setHolidays] = useState<string[]>([]);
+    const [newHolidayDate, setNewHolidayDate] = useState<string>("");
+
+    async function loadSprint() {
+        const result: SprintDetail = await api.getSprint(sprintId);
+        setSprint(result);
+    }
+
+    async function loadHolidays(startDate: string, endDate: string | null) {
+        const dates: string[] = await api.listHolidays(startDate, endDate ?? formatIsoDate(new Date()));
+        setHolidays(dates);
+    }
+
+    useEffect(() => {
+        loadSprint();
+    }, [sprintId]);
+
+    useEffect(() => {
+        if (!sprint) {
+            return;
+        }
+        loadHolidays(sprint.startDate, sprint.endDate);
+    }, [sprint?.startDate, sprint?.endDate]);
+
+    function startEditingComment() {
+        setCommentDraft(sprint?.comment ?? "");
+        setEditingComment(true);
+    }
+
+    async function saveComment() {
+        await api.updateSprint(sprintId, { comment: commentDraft.trim() });
+        setEditingComment(false);
+        loadSprint();
+    }
+
+    async function handleAddHoliday() {
+        if (!newHolidayDate || !sprint) {
+            return;
+        }
+        await api.addHoliday(newHolidayDate);
+        setNewHolidayDate("");
+        loadHolidays(sprint.startDate, sprint.endDate);
+    }
+
+    async function handleRemoveHoliday(date: string) {
+        if (!sprint) {
+            return;
+        }
+        await api.removeHoliday(date);
+        loadHolidays(sprint.startDate, sprint.endDate);
+    }
+
+    async function handleCreateStory() {
+        if (!jiraUrl.trim() || !description.trim()) {
+            return;
+        }
+        await api.createStory(sprintId, { jiraUrl: jiraUrl.trim(), description: description.trim() });
+        setJiraUrl("");
+        setDescription("");
+        setShowForm(false);
+        loadSprint();
+    }
+
+    if (!sprint) {
+        return <div className="page">loading...</div>;
+    }
+
+    return (
+        <div className="page">
+            <div className="page-header">
+                <div>
+                    <Link to="/" className="back-link">
+                        back to sprints
+                    </Link>
+                    <h1>{sprint.name}</h1>
+                    <div className="story-meta-row">
+                        <span className="sprint-card-dates">
+                            {sprint.startDate} to {sprint.endDate ?? "present"}
+                        </span>
+                    </div>
+                    {editingComment ? (
+                        <textarea
+                            className="comment-edit"
+                            value={commentDraft}
+                            autoFocus
+                            onChange={(event) => setCommentDraft(event.target.value)}
+                            onBlur={saveComment}
+                        />
+                    ) : (
+                        <p className="sprint-card-comment sprint-card-comment-editable" onClick={startEditingComment}>
+                            {sprint.comment || "add comment"}
+                        </p>
+                    )}
+                </div>
+                <div className="page-header-actions">
+                    <Link to={`/stats?sprintId=${sprint.id}`}>stats</Link>
+                    <button onClick={() => setShowForm(!showForm)}>new story</button>
+                </div>
+            </div>
+
+            <div className="holiday-list">
+                {holidays.map((date) => (
+                    <span key={date} className="holiday-chip">
+                        {date}
+                        <button className="holiday-remove" onClick={() => handleRemoveHoliday(date)}>
+                            x
+                        </button>
+                    </span>
+                ))}
+                <input
+                    type="date"
+                    value={newHolidayDate}
+                    min={sprint.startDate}
+                    max={sprint.endDate ?? undefined}
+                    onChange={(event) => setNewHolidayDate(event.target.value)}
+                />
+                <button onClick={handleAddHoliday}>add holiday</button>
+            </div>
+
+            {showForm && (
+                <div className="new-story-form">
+                    <input
+                        type="text"
+                        placeholder="jira link"
+                        value={jiraUrl}
+                        onChange={(event) => setJiraUrl(event.target.value)}
+                    />
+                    <input
+                        type="text"
+                        placeholder="description"
+                        value={description}
+                        onChange={(event) => setDescription(event.target.value)}
+                    />
+                    <button onClick={handleCreateStory}>create</button>
+                </div>
+            )}
+
+            <div className="story-list">
+                {sprint.stories.map((story) => (
+                    <StoryCard key={story.id} story={story} />
+                ))}
+            </div>
+        </div>
+    );
+}

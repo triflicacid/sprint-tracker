@@ -1,0 +1,794 @@
+openapi: 3.0.3
+info:
+  title: Sprint Tracker API
+  description: Sprint Tracker REST API. Mounted under `/api` in `server/app.ts`.
+  version: "1.0.0"
+servers:
+  - url: /api
+    description: Same-origin, relative to wherever the app is served from.
+
+security: []
+
+tags:
+  - name: Sprints
+  - name: Stories
+  - name: Subtasks
+  - name: Tags
+  - name: Stats
+  - name: Calendar
+  - name: Jira
+  - name: Status flow
+  - name: Holidays
+
+paths:
+  /sprints:
+    get:
+      tags: [Sprints]
+      summary: List all sprints
+      description: Newest-first by start date.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/SprintSummary" }
+    post:
+      tags: [Sprints]
+      summary: Create a sprint
+      description: Backfills the previous sprint's end date with this sprint's start date, if it was still open-ended.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateSprintInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SprintSummary" }
+        "400":
+          description: name or startDate missing
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /sprints/{id}:
+    parameters:
+      - $ref: "#/components/parameters/SprintId"
+    get:
+      tags: [Sprints]
+      summary: Get one sprint, including its stories (but not their subtasks)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SprintDetail" }
+        "404":
+          description: Sprint not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+    patch:
+      tags: [Sprints]
+      summary: Update a sprint's name, dates or comment
+      description: Partial update. No-ops (200, null body) if the sprint doesn't exist.
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateSprintInput" }
+      responses:
+        "200":
+          description: The updated sprint, or null if no sprint with this id exists.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SprintDetail" }
+
+  /sprints/{id}/stories:
+    parameters:
+      - $ref: "#/components/parameters/SprintId"
+    post:
+      tags: [Stories]
+      summary: Create a story under a sprint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateStoryInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StorySummary" }
+        "400":
+          description: jiraUrl or description missing
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /stories/{id}:
+    parameters:
+      - $ref: "#/components/parameters/StoryId"
+    get:
+      tags: [Stories]
+      summary: Get one story, including every subtask
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StoryDetail" }
+        "404":
+          description: Story not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+    patch:
+      tags: [Stories]
+      summary: Set whether a story is awaiting more subtasks
+      description: While true, forces the derived story status to WORK_REMAINING even once every subtask is DONE.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateStoryInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StorySummary" }
+        "404":
+          description: Story not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /stories/{id}/subtasks:
+    parameters:
+      - $ref: "#/components/parameters/StoryId"
+    post:
+      tags: [Subtasks]
+      summary: Create a subtask under a story
+      description: Always created in the NEW state, with no branch/PR yet.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateSubtaskInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Subtask" }
+        "400":
+          description: description missing
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /stories/{id}/tags:
+    parameters:
+      - $ref: "#/components/parameters/StoryId"
+    get:
+      tags: [Tags]
+      summary: List a story's tags (both repo-derived and custom)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Tag" }
+    post:
+      tags: [Tags]
+      summary: Attach a custom tag to a story, creating it first if it doesn't exist
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AddTagInput" }
+      responses:
+        "201":
+          description: Created (or reused, if a tag with this name already existed)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Tag" }
+        "400":
+          description: name missing
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /stories/{id}/tags/{tagId}:
+    parameters:
+      - $ref: "#/components/parameters/StoryId"
+      - name: tagId
+        in: path
+        required: true
+        schema: { type: integer }
+    delete:
+      tags: [Tags]
+      summary: Detach a tag from a story
+      description: Detaches the tag only - the tag itself and other stories' attachments are untouched.
+      responses:
+        "204":
+          description: Detached
+
+  /subtasks/{id}:
+    parameters:
+      - $ref: "#/components/parameters/SubtaskId"
+    get:
+      tags: [Subtasks]
+      summary: Get one subtask
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Subtask" }
+        "404":
+          description: Subtask not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+    patch:
+      tags: [Subtasks]
+      summary: Update a subtask, including moving it through the status flow
+      description: >
+        Plain field updates (description/branchName/complexityRating) don't need `status`.
+        Changing `status` is validated against `static/statusFlow.json`: the destination must be a
+        reachable next state, and any fields its transition `requires` must be present in the body.
+        Supplying `prUrl` also derives/stores the repo name and tags the parent story with it.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateSubtaskInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Subtask" }
+        "400":
+          description: Subtask not found, invalid status transition, or a required field is missing - all reported as 400, not 404.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /subtasks/{id}/history:
+    parameters:
+      - $ref: "#/components/parameters/SubtaskId"
+    get:
+      tags: [Subtasks]
+      summary: Full status-change history for a subtask
+      description: Powers the flow diagram and activity calendar on the subtask detail page.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/StatusHistoryEntry" }
+
+  /tags:
+    get:
+      tags: [Tags]
+      summary: List every tag that exists (repo and custom, across all sprints)
+      description: Backs the repo/tag filter dropdowns on the calendar page.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Tag" }
+
+  /stats/sprint/{id}:
+    parameters:
+      - $ref: "#/components/parameters/SprintId"
+    get:
+      tags: [Stats]
+      summary: Aggregate stats for one sprint
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SprintStats" }
+
+  /stats/status-breakdown/{id}:
+    parameters:
+      - $ref: "#/components/parameters/SprintId"
+      - name: granularity
+        in: query
+        required: false
+        description: Defaults to `subtask` for any value other than `story`.
+        schema: { $ref: "#/components/schemas/StatusBreakdownGranularity" }
+    get:
+      tags: [Stats]
+      summary: Day-by-day status counts for a sprint's stacked bar chart
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/StatusBreakdownPoint" }
+
+  /stats/day-activity/{id}:
+    parameters:
+      - $ref: "#/components/parameters/SprintId"
+    get:
+      tags: [Stats]
+      summary: Per-day activity map for a sprint's calendar view
+      description: Backfills every day a subtask was active (NEW to DONE, or today if unfinished), not just transition days.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DayActivityMap" }
+
+  /calendar:
+    get:
+      tags: [Calendar]
+      summary: List sprints as calendar entries, optionally filtered
+      description: Filters are ANDed together when more than one is supplied.
+      parameters:
+        - name: repo
+          in: query
+          required: false
+          description: Only sprints with a story tagged with this repo name.
+          schema: { type: string }
+        - name: tag
+          in: query
+          required: false
+          description: Only sprints with a story carrying this custom tag.
+          schema: { type: string }
+        - name: storyId
+          in: query
+          required: false
+          schema: { type: integer }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/CalendarEntry" }
+
+  /jira/{key}:
+    get:
+      tags: [Jira]
+      summary: Fetch an issue's title and labels from Jira
+      description: >
+        Requires `JIRA_BASE_URL`, `JIRA_EMAIL` and `JIRA_API_TOKEN` env vars (see README). If
+        `storyId` is given, caches `jiraTitle`/`jiraLabels` onto that story.
+      parameters:
+        - name: key
+          in: path
+          required: true
+          description: Jira issue key, e.g. `PROJ-123`.
+          schema: { type: string }
+        - name: storyId
+          in: query
+          required: false
+          schema: { type: integer }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/JiraInfo" }
+        "404":
+          description: Jira integration not configured, or the issue key wasn't found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /status-flow:
+    get:
+      tags: [Status flow]
+      summary: The full subtask status flow document
+      description: Verbatim `static/statusFlow.json` - the single source of truth for subtask states, transitions, and their required fields.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StatusFlowConfig" }
+
+  /holidays:
+    get:
+      tags: [Holidays]
+      summary: List holiday dates in a range
+      parameters:
+        - name: start
+          in: query
+          required: false
+          description: Defaults to the start of time if omitted.
+          schema: { type: string, format: date }
+        - name: end
+          in: query
+          required: false
+          description: Defaults to the end of time if omitted.
+          schema: { type: string, format: date }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { type: string, format: date }
+    post:
+      tags: [Holidays]
+      summary: Mark a date as a holiday
+      description: Holidays are global, not sprint-scoped. Idempotent.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AddHolidayInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/HolidayEntry" }
+        "400":
+          description: date missing
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /holidays/{date}:
+    delete:
+      tags: [Holidays]
+      summary: Unmark a date as a holiday
+      parameters:
+        - name: date
+          in: path
+          required: true
+          schema: { type: string, format: date }
+      responses:
+        "204":
+          description: Unmarked (whether or not it was previously a holiday)
+
+components:
+  parameters:
+    SprintId:
+      name: id
+      in: path
+      required: true
+      schema: { type: integer }
+    StoryId:
+      name: id
+      in: path
+      required: true
+      schema: { type: integer }
+    SubtaskId:
+      name: id
+      in: path
+      required: true
+      schema: { type: integer }
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error: { type: string }
+
+    SubtaskStatus:
+      type: string
+      enum: [NEW, WIP, IN_PR, IN_REVIEW, PR_COMMENTS, CUT_RELEASE, TESTING, UAT, DONE]
+
+    StoryStatus:
+      type: string
+      description: JIRA_ONLY (no subtasks), WORK_REMAINING (awaiting more subtasks or none started), else the lowest-rank subtask status.
+      enum: [JIRA_ONLY, WORK_REMAINING, NEW, WIP, IN_PR, IN_REVIEW, PR_COMMENTS, CUT_RELEASE, TESTING, UAT, DONE]
+
+    StatusBreakdownGranularity:
+      type: string
+      enum: [subtask, story]
+
+    TagType:
+      type: string
+      enum: [repo, custom]
+
+    EntityType:
+      type: string
+      enum: [story, subtask]
+
+    FlowFieldType:
+      type: string
+      enum: [text, number, date, select]
+
+    FlowField:
+      type: object
+      description: Extra data a transition requires, and the db column it writes to.
+      required: [field, label, type, column]
+      properties:
+        field: { type: string, description: "Request body key, e.g. branchName." }
+        label: { type: string, description: "Form input label, e.g. Branch name." }
+        type: { $ref: "#/components/schemas/FlowFieldType" }
+        options:
+          type: array
+          items: { type: string }
+        column: { type: string, description: "table.column it's persisted to, e.g. subtasks.branch_name." }
+
+    FlowTransition:
+      type: object
+      required: [from, to]
+      properties:
+        from: { type: string }
+        to:
+          type: array
+          items: { type: string }
+        requires:
+          type: array
+          items: { $ref: "#/components/schemas/FlowField" }
+
+    FlowState:
+      type: object
+      required: [id, label, rank, color, description]
+      properties:
+        id: { type: string }
+        label: { type: string }
+        rank: { type: integer }
+        color: { type: string }
+        description: { type: string }
+
+    StatusFlowConfig:
+      type: object
+      required: [states, transitions]
+      properties:
+        states:
+          type: array
+          items: { $ref: "#/components/schemas/FlowState" }
+        transitions:
+          type: array
+          items: { $ref: "#/components/schemas/FlowTransition" }
+
+    Tag:
+      type: object
+      required: [id, name, tagType]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        tagType: { $ref: "#/components/schemas/TagType" }
+
+    StatusHistoryEntry:
+      type: object
+      required: [id, entityType, entityId, status, releaseVersion, changedAt]
+      properties:
+        id: { type: integer }
+        entityType: { $ref: "#/components/schemas/EntityType" }
+        entityId: { type: integer }
+        status: { type: string }
+        releaseVersion: { type: string, nullable: true }
+        changedAt: { type: string, format: date-time }
+
+    Subtask:
+      type: object
+      description: Maps 1:1 to a single git branch/pull request
+      required: [id, storyId, description, branchName, status, url, repoName, complexityRating, releaseVersion, createdAt]
+      properties:
+        id: { type: integer }
+        storyId: { type: integer }
+        description: { type: string }
+        branchName: { type: string }
+        status: { $ref: "#/components/schemas/SubtaskStatus" }
+        url: { type: string, format: uri, nullable: true }
+        repoName: { type: string, nullable: true }
+        complexityRating: { type: integer, nullable: true, minimum: 1, maximum: 5 }
+        releaseVersion: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+
+    CreateSubtaskInput:
+      type: object
+      required: [description]
+      properties:
+        description: { type: string }
+
+    UpdateSubtaskInput:
+      type: object
+      properties:
+        description: { type: string }
+        branchName: { type: string }
+        status: { $ref: "#/components/schemas/SubtaskStatus" }
+        prUrl: { type: string, format: uri }
+        releaseVersion: { type: string }
+        complexityRating: { type: integer, nullable: true, minimum: 1, maximum: 5 }
+
+    StorySummary:
+      type: object
+      required: [id, sprintId, jiraUrl, jiraKey, description, jiraTitle, jiraLabels, status, awaitingMoreSubtasks, tags, prCount]
+      properties:
+        id: { type: integer }
+        sprintId: { type: integer }
+        jiraUrl: { type: string, format: uri }
+        jiraKey: { type: string, nullable: true }
+        description: { type: string }
+        jiraTitle: { type: string, nullable: true }
+        jiraLabels:
+          type: array
+          items: { type: string }
+        status: { $ref: "#/components/schemas/StoryStatus" }
+        awaitingMoreSubtasks: { type: boolean }
+        tags:
+          type: array
+          items: { $ref: "#/components/schemas/Tag" }
+        prCount: { type: integer }
+
+    StoryDetail:
+      allOf:
+        - $ref: "#/components/schemas/StorySummary"
+        - type: object
+          required: [subtasks]
+          properties:
+            subtasks:
+              type: array
+              items: { $ref: "#/components/schemas/Subtask" }
+
+    CreateStoryInput:
+      type: object
+      required: [jiraUrl, description]
+      properties:
+        jiraUrl: { type: string, format: uri }
+        description: { type: string }
+
+    UpdateStoryInput:
+      type: object
+      required: [awaitingMoreSubtasks]
+      properties:
+        awaitingMoreSubtasks: { type: boolean }
+
+    AddTagInput:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string }
+
+    SprintSummary:
+      type: object
+      required: [id, name, startDate, endDate, comment, storyCount, prCount]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        startDate: { type: string, format: date }
+        endDate: { type: string, format: date, nullable: true, description: "null means the sprint is still ongoing." }
+        comment: { type: string, nullable: true }
+        storyCount: { type: integer }
+        prCount: { type: integer }
+
+    SprintDetail:
+      allOf:
+        - $ref: "#/components/schemas/SprintSummary"
+        - type: object
+          required: [stories]
+          properties:
+            stories:
+              type: array
+              items: { $ref: "#/components/schemas/StorySummary" }
+
+    CreateSprintInput:
+      type: object
+      required: [name, startDate]
+      properties:
+        name: { type: string }
+        startDate: { type: string, format: date }
+        endDate: { type: string, format: date, nullable: true }
+        comment: { type: string, nullable: true }
+
+    UpdateSprintInput:
+      type: object
+      properties:
+        name: { type: string }
+        startDate: { type: string, format: date }
+        endDate: { type: string, format: date, nullable: true }
+        comment: { type: string, nullable: true }
+
+    RepoCount:
+      type: object
+      required: [repoName, count, proportion]
+      properties:
+        repoName: { type: string }
+        count: { type: integer }
+        proportion: { type: number }
+
+    StoryTimeEntry:
+      type: object
+      required: [storyId, description, days]
+      properties:
+        storyId: { type: integer }
+        description: { type: string }
+        days: { type: number }
+
+    SprintStats:
+      type: object
+      required: [sprintId, prCount, storyCount, repoCounts, storyTimeDays]
+      properties:
+        sprintId: { type: integer }
+        prCount: { type: integer }
+        storyCount: { type: integer }
+        repoCounts:
+          type: array
+          items: { $ref: "#/components/schemas/RepoCount" }
+        storyTimeDays:
+          type: array
+          items: { $ref: "#/components/schemas/StoryTimeEntry" }
+
+    StatusBreakdownPoint:
+      type: object
+      description: One day's status tally. `counts` is keyed by SubtaskStatus or StoryStatus, depending on the granularity requested.
+      required: [date, counts]
+      properties:
+        date: { type: string, format: date }
+        counts:
+          type: object
+          additionalProperties: { type: integer }
+
+    DayActivityEntry:
+      type: object
+      required: [storyLabel, branchName, status, prUrl]
+      properties:
+        storyLabel: { type: string }
+        branchName: { type: string }
+        status: { $ref: "#/components/schemas/SubtaskStatus" }
+        prUrl: { type: string, format: uri, nullable: true }
+
+    DayActivityMap:
+      type: object
+      description: Keyed by date (YYYY-MM-DD).
+      additionalProperties:
+        type: array
+        items: { $ref: "#/components/schemas/DayActivityEntry" }
+
+    CalendarEntry:
+      type: object
+      required: [sprintId, sprintName, startDate, endDate, repos, tags]
+      properties:
+        sprintId: { type: integer }
+        sprintName: { type: string }
+        startDate: { type: string, format: date }
+        endDate: { type: string, format: date, nullable: true }
+        repos:
+          type: array
+          items: { type: string }
+        tags:
+          type: array
+          items: { type: string }
+
+    JiraInfo:
+      type: object
+      required: [key, title, labels]
+      properties:
+        key: { type: string }
+        title: { type: string }
+        labels:
+          type: array
+          items: { type: string }
+
+    AddHolidayInput:
+      type: object
+      required: [date]
+      properties:
+        date: { type: string, format: date }
+
+    HolidayEntry:
+      type: object
+      properties:
+        date: { type: string, format: date }
