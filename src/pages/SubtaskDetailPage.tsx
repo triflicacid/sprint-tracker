@@ -11,18 +11,23 @@ export function SubtaskDetailPage(): React.ReactElement {
     const { id } = useParams<{ id: string }>();
     const subtaskId: number = Number(id);
     const [subtask, setSubtask] = useState<Subtask | null>(null);
+    const [loadError, setLoadError] = useState<string | null>(null);
     const [flow, setFlow] = useState<StatusFlowConfig | null>(null);
     const [history, setHistory] = useState<StatusHistoryEntry[]>([]);
     const [editingComment, setEditingComment] = useState<boolean>(false);
     const [commentDraft, setCommentDraft] = useState<string>("");
 
     async function loadSubtask() {
-        const [subtaskResult, historyResult] = await Promise.all([
-            api.getSubtask(subtaskId),
-            api.getSubtaskHistory(subtaskId),
-        ]);
-        setSubtask(subtaskResult);
-        setHistory(historyResult);
+        try {
+            const [subtaskResult, historyResult] = await Promise.all([
+                api.getSubtask(subtaskId),
+                api.getSubtaskHistory(subtaskId),
+            ]);
+            setSubtask(subtaskResult);
+            setHistory(historyResult);
+        } catch (error) {
+            setLoadError(error instanceof Error ? error.message : "subtask not found");
+        }
     }
 
     useEffect(() => {
@@ -42,6 +47,17 @@ export function SubtaskDetailPage(): React.ReactElement {
         await api.updateSubtask(subtaskId, { comment: commentDraft.trim() });
         setEditingComment(false);
         loadSubtask();
+    }
+
+    if (loadError) {
+        return (
+            <div className="page">
+                <p>{loadError}</p>
+                <Link to="/" className="back-link">
+                    back to home
+                </Link>
+            </div>
+        );
     }
 
     if (!subtask || !flow) {

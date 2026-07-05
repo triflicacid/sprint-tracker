@@ -10,14 +10,19 @@ export function StoryDetailPage(): React.ReactElement {
     const { id } = useParams<{ id: string }>();
     const storyId: number = Number(id);
     const [story, setStory] = useState<StoryDetail | null>(null);
+    const [loadError, setLoadError] = useState<string | null>(null);
     const [flow, setFlow] = useState<StatusFlowConfig | null>(null);
     const [newSubtaskTitle, setNewSubtaskTitle] = useState<string>("");
     const [newTagName, setNewTagName] = useState<string>("");
     const [jiraLoading, setJiraLoading] = useState<boolean>(false);
 
     async function loadStory() {
-        const result: StoryDetail = await api.getStory(storyId);
-        setStory(result);
+        try {
+            const result: StoryDetail = await api.getStory(storyId);
+            setStory(result);
+        } catch (error) {
+            setLoadError(error instanceof Error ? error.message : "story not found");
+        }
     }
 
     useEffect(() => {
@@ -67,6 +72,17 @@ export function StoryDetailPage(): React.ReactElement {
         } finally {
             setJiraLoading(false);
         }
+    }
+
+    if (loadError) {
+        return (
+            <div className="page">
+                <p>{loadError}</p>
+                <Link to="/" className="back-link">
+                    back to home
+                </Link>
+            </div>
+        );
     }
 
     if (!story || !flow) {
