@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { app, BrowserWindow } from "electron";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -6,7 +7,7 @@ import {pathToFileURL} from "node:url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const isDev: boolean = process.env.NODE_ENV === "development";
-const port: number = 4000;
+const port: number = Number(process.env.PORT) || 4000;
 
 // starts the bundled express server. in dev mode the server is expected
 // to already be running separately via `npm run dev:server`.

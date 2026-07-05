@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { initSchema } from "./db/connection.js";
 import { createApp } from "./app.js";
 

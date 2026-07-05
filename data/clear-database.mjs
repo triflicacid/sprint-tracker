@@ -1,6 +1,7 @@
 // drops every table in the sprint tracker database.
 // set DB_PATH to point at a different database file if needed.
 
+import "dotenv/config";
 import Database from "better-sqlite3";
 import path from "path";
 import { fileURLToPath } from "url";

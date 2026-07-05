@@ -2,6 +2,7 @@
 // a filename with no directory separators is looked up inside data/.
 // set DB_PATH to point at a different database file if needed.
 
+import "dotenv/config";
 import Database from "better-sqlite3";
 import fs from "fs";
 import path from "path";

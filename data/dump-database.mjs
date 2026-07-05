@@ -2,6 +2,7 @@
 // with no argument, the output file is written to data/dump_<timestamp>.sql.
 // set DB_PATH to point at a different database file if needed.
 
+import "dotenv/config";
 import Database from "better-sqlite3";
 import fs from "fs";
 import path from "path";
