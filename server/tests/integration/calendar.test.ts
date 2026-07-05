@@ -10,7 +10,7 @@ describe("GET /api/calendar", () => {
         const story = await request(app)
             .post(`/api/sprints/${sprint.body.id}/stories`)
             .send({ jiraUrl: "https://x/browse/NEB-1", description: "story" });
-        const subtask = await request(app).post(`/api/stories/${story.body.id}/subtasks`).send({ description: "sub" });
+        const subtask = await request(app).post(`/api/stories/${story.body.id}/subtasks`).send({ title: "sub" });
         await request(app)
             .patch(`/api/subtasks/${subtask.body.id}`)
             .send({ status: "WIP", branchName: "feature/x" });

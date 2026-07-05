@@ -1,7 +1,3 @@
--- sample data with entirely made-up sprint, story and repo names.
--- useful as a second, unrelated dataset for testing without reusing
--- the "test sprint" or real example_data.sql naming.
-
 INSERT INTO sprints (name, start_date, end_date, comment) VALUES
     ('Nebula Checkout Sprint 1', '2026-03-02', '2026-03-16', NULL);
 
@@ -23,12 +19,12 @@ INSERT INTO stories (sprint_id, jira_url, jira_key, description) VALUES
      'https://nebula.atlassian.net/browse/NEB-1001', 'NEB-1001',
      'Support saved payment methods at checkout');
 
-INSERT INTO subtasks (story_id, description, branch_name, status, url, repo_name, release_version) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1001'),
      'add saved card list endpoint', 'feature/neb-1001-saved-cards-api', 'DONE',
      'https://github.com/nebula-labs/payments-service/pull/214', 'payments-service', 'v4.12.0');
 
-INSERT INTO subtasks (story_id, description, branch_name, status, url, repo_name, release_version) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1001'),
      'render saved card selector in checkout ui', 'feature/neb-1001-checkout-ui', 'DONE',
      'https://github.com/nebula-labs/checkout-web/pull/588', 'checkout-web', 'v4.12.0');
@@ -45,12 +41,12 @@ INSERT INTO stories (sprint_id, jira_url, jira_key, description) VALUES
      'https://nebula.atlassian.net/browse/NEB-1032', 'NEB-1032',
      'Add regional tax calculation for EU checkout');
 
-INSERT INTO subtasks (story_id, description, branch_name, status, url, repo_name) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1032'),
      'integrate vat rate lookup service', 'feature/neb-1032-vat-lookup', 'IN_REVIEW',
      'https://github.com/nebula-labs/tax-engine/pull/77', 'tax-engine');
 
-INSERT INTO subtasks (story_id, description, branch_name, status) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1032'),
      'surface tax breakdown in order summary', '(unknown)', 'NEW');
 
@@ -60,7 +56,7 @@ INSERT INTO stories (sprint_id, jira_url, jira_key, description) VALUES
      'https://nebula.atlassian.net/browse/NEB-1040', 'NEB-1040',
      'Retry failed webhook deliveries automatically');
 
-INSERT INTO subtasks (story_id, description, branch_name, status, url, repo_name) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1040'),
      'add exponential backoff to webhook dispatcher', 'feature/neb-1040-webhook-retry', 'PR_COMMENTS',
      'https://github.com/nebula-labs/notifications-service/pull/301', 'notifications-service');
@@ -71,7 +67,7 @@ INSERT INTO stories (sprint_id, jira_url, jira_key, description) VALUES
      'https://nebula.atlassian.net/browse/NEB-1058', 'NEB-1058',
      'Allow partial refunds from the support console');
 
-INSERT INTO subtasks (story_id, description, branch_name, status, url, repo_name) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1058'),
      'add partial refund endpoint', 'feature/neb-1058-partial-refund-api', 'CUT_RELEASE',
      'https://github.com/nebula-labs/payments-service/pull/229', 'payments-service');
@@ -81,7 +77,7 @@ INSERT INTO stories (sprint_id, jira_url, jira_key, description) VALUES
      'https://nebula.atlassian.net/browse/NEB-1061', 'NEB-1061',
      'Show refund status timeline to support agents');
 
-INSERT INTO subtasks (story_id, description, branch_name, status, url, repo_name, release_version) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1061'),
      'build refund timeline component', 'feature/neb-1061-refund-timeline', 'UAT',
      'https://github.com/nebula-labs/support-console/pull/142', 'support-console', 'v4.13.0');

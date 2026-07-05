@@ -69,11 +69,14 @@ export interface StatusHistoryEntry {
   changedAt: string;
 }
 
-// a subtask has a branch and a PR
+// a subtask has a branch and a PR. `title` is set on creation; `comment` is
+// an optional freeform note, editable afterwards, shown only on the
+// subtask's own detail page (not in the tile/row view).
 export interface Subtask {
   id: number;
   storyId: number;
-  description: string;
+  title: string;
+  comment: string | null;
   branchName: string;
   status: SubtaskStatus;
   url: string | null;

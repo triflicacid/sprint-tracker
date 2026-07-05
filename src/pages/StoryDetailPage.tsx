@@ -11,7 +11,7 @@ export function StoryDetailPage(): React.ReactElement {
     const storyId: number = Number(id);
     const [story, setStory] = useState<StoryDetail | null>(null);
     const [flow, setFlow] = useState<StatusFlowConfig | null>(null);
-    const [newSubtaskDescription, setNewSubtaskDescription] = useState<string>("");
+    const [newSubtaskTitle, setNewSubtaskTitle] = useState<string>("");
     const [newTagName, setNewTagName] = useState<string>("");
     const [jiraLoading, setJiraLoading] = useState<boolean>(false);
 
@@ -34,11 +34,11 @@ export function StoryDetailPage(): React.ReactElement {
     }
 
     async function handleAddSubtask() {
-        if (!newSubtaskDescription.trim()) {
+        if (!newSubtaskTitle.trim()) {
             return;
         }
-        await api.createSubtask(storyId, { description: newSubtaskDescription.trim() });
-        setNewSubtaskDescription("");
+        await api.createSubtask(storyId, { title: newSubtaskTitle.trim() });
+        setNewSubtaskTitle("");
         loadStory();
     }
 
@@ -137,9 +137,9 @@ export function StoryDetailPage(): React.ReactElement {
             <div className="add-subtask-form">
                 <input
                     type="text"
-                    placeholder="subtask description"
-                    value={newSubtaskDescription}
-                    onChange={(event) => setNewSubtaskDescription(event.target.value)}
+                    placeholder="subtask title"
+                    value={newSubtaskTitle}
+                    onChange={(event) => setNewSubtaskTitle(event.target.value)}
                 />
                 <button onClick={handleAddSubtask}>add subtask</button>
             </div>

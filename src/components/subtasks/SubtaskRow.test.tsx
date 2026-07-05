@@ -30,7 +30,8 @@ const flow: StatusFlowConfig = {
 const baseSubtask: Subtask = {
     id: 1,
     storyId: 10,
-    description: "add endpoint",
+    title: "add endpoint",
+    comment: null,
     branchName: "(unknown)",
     status: "NEW",
     url: null,
@@ -67,11 +68,16 @@ afterEach(() => {
 });
 
 describe("SubtaskRow - rendering", () => {
-    it("shows the branch name, description and current status", () => {
+    it("shows the branch name, title and current status", () => {
         renderRow(baseSubtask);
         expect(screen.getByText("(unknown)")).toBeInTheDocument();
         expect(screen.getByText("add endpoint")).toBeInTheDocument();
         expect(screen.getByText("new")).toBeInTheDocument();
+    });
+
+    it("does not show the comment, even when one is set", () => {
+        renderRow({ ...baseSubtask, comment: "watch out for the flaky test here" });
+        expect(screen.queryByText("watch out for the flaky test here")).not.toBeInTheDocument();
     });
 
     it("shows a muted badge for each allowed next state", () => {

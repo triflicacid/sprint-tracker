@@ -8,7 +8,8 @@ import { tagStoryWithRepo } from "./tagService.js";
 interface SubtaskRow {
     id: number;
     story_id: number;
-    description: string;
+    title: string;
+    comment: string | null;
     branch_name: string;
     status: SubtaskStatus;
     url: string | null;
@@ -19,11 +20,12 @@ interface SubtaskRow {
 }
 
 interface CreateSubtaskInput {
-    description: string;
+    title: string;
 }
 
 interface UpdateSubtaskInput {
-    description?: string;
+    title?: string;
+    comment?: string | null;
     branchName?: string;
     status?: SubtaskStatus;
     prUrl?: string;
@@ -37,7 +39,8 @@ function rowToSubtask(row: SubtaskRow): Subtask {
     return {
         id: row.id,
         storyId: row.story_id,
-        description: row.description,
+        title: row.title,
+        comment: row.comment,
         branchName: row.branch_name,
         status: row.status,
         url: row.url,
@@ -64,8 +67,8 @@ export function getSubtaskById(id: number): Subtask | undefined {
 
 export function createSubtask(storyId: number, input: CreateSubtaskInput): Subtask {
     const result = db
-        .prepare("INSERT INTO subtasks (story_id, description, status) VALUES (?, ?, 'NEW')")
-        .run(storyId, input.description);
+        .prepare("INSERT INTO subtasks (story_id, title, status) VALUES (?, ?, 'NEW')")
+        .run(storyId, input.title);
     const id: number = Number(result.lastInsertRowid);
     recordStatusChange("subtask", id, "NEW", null);
     const created: SubtaskRow = db.prepare("SELECT * FROM subtasks WHERE id = ?").get(id) as SubtaskRow;
@@ -102,11 +105,12 @@ export function updateSubtask(subtaskId: number, input: UpdateSubtaskInput): Sub
 
     db.prepare(
         `UPDATE subtasks
-         SET description = ?, branch_name = ?, status = ?, url = ?, repo_name = ?,
+         SET title = ?, comment = ?, branch_name = ?, status = ?, url = ?, repo_name = ?,
              complexity_rating = ?, release_version = ?
          WHERE id = ?`
     ).run(
-        input.description ?? existing.description,
+        input.title ?? existing.title,
+        input.comment === undefined ? existing.comment : input.comment,
         input.branchName ?? existing.branch_name,
         nextStatus,
         input.prUrl ?? existing.url,

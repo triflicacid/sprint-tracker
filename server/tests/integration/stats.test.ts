@@ -52,7 +52,7 @@ describe("GET /api/stats/day-activity/:id", () => {
         const story = await request(app)
             .post(`/api/sprints/${ongoing.body.id}/stories`)
             .send({ jiraUrl: "https://x/browse/NEB-2", description: "story" });
-        const subtask = await request(app).post(`/api/stories/${story.body.id}/subtasks`).send({ description: "sub" });
+        const subtask = await request(app).post(`/api/stories/${story.body.id}/subtasks`).send({ title: "sub" });
         await request(app).patch(`/api/subtasks/${subtask.body.id}`).send({ status: "WIP", branchName: "feature/x" });
 
         const response = await request(app).get(`/api/stats/day-activity/${ongoing.body.id}`);

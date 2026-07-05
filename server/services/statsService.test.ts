@@ -22,7 +22,7 @@ function insertSubtask(
 ) {
     const result = db
         .prepare(
-            `INSERT INTO subtasks (story_id, description, branch_name, status, url, repo_name)
+            `INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name)
              VALUES (?, 'sub', ?, ?, ?, ?)`
         )
         .run(storyId, fields.branchName ?? "(unknown)", fields.status ?? "NEW", fields.url ?? null, fields.repoName ?? null);

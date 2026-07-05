@@ -21,11 +21,13 @@ CREATE TABLE IF NOT EXISTS stories (
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
--- a subtask is implemented by a single branch/pull request
+-- a subtask is implemented by a single branch/pull request. `title` is set
+-- on creation; `comment` is an optional freeform note, editable afterwards.
 CREATE TABLE IF NOT EXISTS subtasks (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     story_id INTEGER NOT NULL REFERENCES stories(id) ON DELETE CASCADE,
-    description TEXT NOT NULL,
+    title TEXT NOT NULL,
+    comment TEXT,
     branch_name TEXT NOT NULL DEFAULT '(unknown)',
     status TEXT NOT NULL DEFAULT 'NEW',
     url TEXT,

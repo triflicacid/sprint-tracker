@@ -139,7 +139,7 @@ export function SubtaskRow({ subtask, flow, onChanged, disableNavigation }: Subt
                 </div>
             )}
             <div className="subtask-footer">
-                <span className="subtask-description">{subtask.description}</span>
+                <span className="subtask-title">{subtask.title}</span>
                 {subtask.url && (
                     <div className="subtask-complexity-info" onClick={(event) => event.stopPropagation()}>
                         <label className="complexity-label">

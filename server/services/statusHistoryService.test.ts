@@ -10,7 +10,7 @@ function insertSprintStoryAndSubtask() {
         .run(sprintId);
     const storyId = Number(story.lastInsertRowid);
     const subtask = db
-        .prepare("INSERT INTO subtasks (story_id, description) VALUES (?, 'x')")
+        .prepare("INSERT INTO subtasks (story_id, title) VALUES (?, 'x')")
         .run(storyId);
     return { sprintId, storyId, subtaskId: Number(subtask.lastInsertRowid) };
 }
