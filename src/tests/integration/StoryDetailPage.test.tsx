@@ -73,7 +73,8 @@ describe("StoryDetailPage", () => {
                 {
                     id: 5,
                     storyId: 1,
-                    description: "add endpoint",
+                    title: "add endpoint",
+                    comment: null,
                     branchName: "(unknown)",
                     status: "NEW",
                     url: null,
@@ -93,7 +94,8 @@ describe("StoryDetailPage", () => {
         vi.mocked(api.createSubtask).mockResolvedValue({
             id: 1,
             storyId: 1,
-            description: "new subtask",
+            title: "new subtask",
+            comment: null,
             branchName: "(unknown)",
             status: "NEW",
             url: null,
@@ -105,10 +107,10 @@ describe("StoryDetailPage", () => {
         renderPage();
         await screen.findByText("support saved cards");
 
-        await userEvent.type(screen.getByPlaceholderText("subtask description"), "new subtask");
+        await userEvent.type(screen.getByPlaceholderText("subtask title"), "new subtask");
         await userEvent.click(screen.getByText("add subtask"));
 
-        expect(api.createSubtask).toHaveBeenCalledWith(1, { description: "new subtask" });
+        expect(api.createSubtask).toHaveBeenCalledWith(1, { title: "new subtask" });
         expect(api.getStory).toHaveBeenCalledTimes(2);
     });
 

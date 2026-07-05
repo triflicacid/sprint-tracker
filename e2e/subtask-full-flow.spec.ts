@@ -78,7 +78,7 @@ test("subtask flow to done, including the pr comments detour, drives its story t
     // done is a terminal state - no further transitions are offered.
     await expect(page.locator(".subtask-row .status-flow-arrow")).toHaveCount(0);
 
-    await page.click(".subtask-description");
+    await page.click(".subtask-title");
     await expect(page).toHaveURL(new RegExp(`#/subtasks/${subtask.id}$`));
     // this subtask's actual path touched every state, so its "done" node
     // (like all the others) renders at full opacity rather than dimmed.

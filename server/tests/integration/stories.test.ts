@@ -50,12 +50,12 @@ describe("POST /api/stories/:id/subtasks", () => {
         const story = await createStory();
         const response = await request(app)
             .post(`/api/stories/${story.id}/subtasks`)
-            .send({ description: "add endpoint" });
+            .send({ title: "add endpoint" });
         expect(response.status).toBe(201);
-        expect(response.body).toMatchObject({ status: "NEW", storyId: story.id });
+        expect(response.body).toMatchObject({ status: "NEW", storyId: story.id, title: "add endpoint", comment: null });
     });
 
-    it("rejects a missing description with 400", async () => {
+    it("rejects a missing title with 400", async () => {
         const story = await createStory();
         const response = await request(app).post(`/api/stories/${story.id}/subtasks`).send({});
         expect(response.status).toBe(400);

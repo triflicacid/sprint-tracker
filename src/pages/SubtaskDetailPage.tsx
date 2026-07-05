@@ -13,6 +13,8 @@ export function SubtaskDetailPage(): React.ReactElement {
     const [subtask, setSubtask] = useState<Subtask | null>(null);
     const [flow, setFlow] = useState<StatusFlowConfig | null>(null);
     const [history, setHistory] = useState<StatusHistoryEntry[]>([]);
+    const [editingComment, setEditingComment] = useState<boolean>(false);
+    const [commentDraft, setCommentDraft] = useState<string>("");
 
     async function loadSubtask() {
         const [subtaskResult, historyResult] = await Promise.all([
@@ -31,6 +33,17 @@ export function SubtaskDetailPage(): React.ReactElement {
         api.getStatusFlow().then(setFlow);
     }, []);
 
+    function startEditingComment() {
+        setCommentDraft(subtask?.comment ?? "");
+        setEditingComment(true);
+    }
+
+    async function saveComment() {
+        await api.updateSubtask(subtaskId, { comment: commentDraft.trim() });
+        setEditingComment(false);
+        loadSubtask();
+    }
+
     if (!subtask || !flow) {
         return <div className="page">loading...</div>;
     }
@@ -42,7 +55,20 @@ export function SubtaskDetailPage(): React.ReactElement {
                     <Link to={`/stories/${subtask.storyId}`} className="back-link">
                         back to story
                     </Link>
-                    <h1>{subtask.description}</h1>
+                    <h1>{subtask.title}</h1>
+                    {editingComment ? (
+                        <textarea
+                            className="comment-edit"
+                            value={commentDraft}
+                            autoFocus
+                            onChange={(event) => setCommentDraft(event.target.value)}
+                            onBlur={saveComment}
+                        />
+                    ) : (
+                        <p className="subtask-comment subtask-comment-editable" onClick={startEditingComment}>
+                            {subtask.comment || "add comment"}
+                        </p>
+                    )}
                 </div>
             </div>
 

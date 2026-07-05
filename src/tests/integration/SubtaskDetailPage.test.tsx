@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import type { StatusFlowConfig, Subtask } from "@shared/types";
 import { SubtaskDetailPage } from "../../pages/SubtaskDetailPage";
@@ -26,7 +27,8 @@ const flow: StatusFlowConfig = {
 const subtask: Subtask = {
     id: 5,
     storyId: 1,
-    description: "add saved card list endpoint",
+    title: "add saved card list endpoint",
+    comment: null,
     branchName: "feature/x",
     status: "DONE",
     url: "https://github.com/org/repo/pull/1",
@@ -61,7 +63,7 @@ describe("SubtaskDetailPage", () => {
         renderPage();
         expect(screen.getByText("loading...")).toBeInTheDocument();
 
-        // the description renders twice - once as the page <h1>, once inside
+        // the title renders twice - once as the page <h1>, once inside
         // the embedded SubtaskRow - so scope to the heading specifically.
         expect(await screen.findByRole("heading", { name: "add saved card list endpoint" })).toBeInTheDocument();
         expect(screen.getByText("Flow")).toBeInTheDocument();
@@ -80,5 +82,38 @@ describe("SubtaskDetailPage", () => {
         await screen.findByRole("heading", { name: "add saved card list endpoint" });
         expect(api.getSubtask).toHaveBeenCalledWith(5);
         expect(api.getSubtaskHistory).toHaveBeenCalledWith(5);
+    });
+
+    it("shows a prompt to add a comment when none is set", async () => {
+        vi.mocked(api.getSubtask).mockResolvedValue(subtask);
+        renderPage();
+        expect(await screen.findByText("add comment")).toBeInTheDocument();
+    });
+
+    it("shows the existing comment when one is set", async () => {
+        vi.mocked(api.getSubtask).mockResolvedValue({ ...subtask, comment: "waiting on infra team" });
+        renderPage();
+        expect(await screen.findByText("waiting on infra team")).toBeInTheDocument();
+    });
+
+    it("turns into a textarea on click and saves the edit on blur", async () => {
+        vi.mocked(api.getSubtask).mockResolvedValue({ ...subtask, comment: "old note" });
+        vi.mocked(api.updateSubtask).mockResolvedValue({ ...subtask, comment: "old noteupdated" });
+        renderPage();
+
+        await userEvent.click(await screen.findByText("old note"));
+        const textarea = document.querySelector(".comment-edit") as HTMLTextAreaElement;
+        expect(textarea).toHaveValue("old note");
+        await userEvent.type(textarea, "updated");
+        textarea.blur();
+
+        expect(api.updateSubtask).toHaveBeenCalledWith(5, { comment: "old noteupdated" });
+    });
+
+    it("does not show the comment inside the page heading", async () => {
+        vi.mocked(api.getSubtask).mockResolvedValue({ ...subtask, comment: "internal note" });
+        renderPage();
+        await screen.findByText("internal note");
+        expect(screen.queryByRole("heading", { name: "internal note" })).not.toBeInTheDocument();
     });
 });

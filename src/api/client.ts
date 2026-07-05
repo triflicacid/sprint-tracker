@@ -60,13 +60,14 @@ export const api = {
 
     getSubtaskHistory: (id: number): Promise<StatusHistoryEntry[]> => request(`/subtasks/${id}/history`),
 
-    createSubtask: (storyId: number, input: { description: string }): Promise<Subtask> =>
+    createSubtask: (storyId: number, input: { title: string }): Promise<Subtask> =>
         request(`/stories/${storyId}/subtasks`, { method: "POST", body: JSON.stringify(input) }),
 
     updateSubtask: (
         id: number,
         input: {
-            description?: string;
+            title?: string;
+            comment?: string;
             branchName?: string;
             status?: string;
             prUrl?: string;

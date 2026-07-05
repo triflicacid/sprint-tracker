@@ -23,7 +23,7 @@ test("create a sprint, story and subtask, and walk the subtask through the flow"
     await expect(page.getByText("e2e story")).toBeVisible();
     await page.click("text=e2e story");
 
-    await page.fill('input[placeholder="subtask description"]', "e2e subtask");
+    await page.fill('input[placeholder="subtask title"]', "e2e subtask");
     await page.click("text=add subtask");
     await expect(page.getByText("e2e subtask")).toBeVisible();
 
@@ -40,8 +40,25 @@ test("create a sprint, story and subtask, and walk the subtask through the flow"
     await expect(page.locator(".subtask-row .status-badge").first()).toHaveText("in review");
 
     // clicking the row itself (not a control) navigates to the detail page
-    await page.click(".subtask-description");
+    await page.click(".subtask-title");
     await expect(page).toHaveURL(/#\/subtasks\/\d+/);
     await expect(page.locator(".flow-diagram")).toBeVisible();
     await expect(page.getByText("Activity calendar")).toBeVisible();
+
+    // the comment is not shown until you're on the subtask's own detail
+    // page, and clicking it turns it into an editable textarea.
+    await expect(page.getByText("add comment")).toBeVisible();
+    await page.click("text=add comment");
+    await page.fill(".comment-edit", "waiting on infra approval");
+    await page.click("h1");
+    await expect(page.getByText("waiting on infra approval")).toBeVisible();
+
+    await page.reload();
+    await expect(page.getByText("waiting on infra approval")).toBeVisible();
+
+    // the comment stays off the tile view back on the story page.
+    await page.click("text=back to story");
+    await expect(page).toHaveURL(/#\/stories\/\d+$/);
+    await expect(page.locator(".subtask-title")).toHaveText("e2e subtask");
+    await expect(page.locator(".subtask-comment")).toHaveCount(0);
 });

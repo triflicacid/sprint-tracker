@@ -167,7 +167,7 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Subtask" }
         "400":
-          description: description missing
+          description: title missing
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
@@ -242,7 +242,7 @@ paths:
       tags: [Subtasks]
       summary: Update a subtask, including moving it through the status flow
       description: >
-        Plain field updates (description/branchName/complexityRating) don't need `status`.
+        Plain field updates (title/comment/branchName/complexityRating) don't need `status`.
         Changing `status` is validated against `static/statusFlow.json`: the destination must be a
         reachable next state, and any fields its transition `requires` must be present in the body.
         Supplying `prUrl` also derives/stores the repo name and tags the parent story with it.
@@ -584,11 +584,12 @@ components:
     Subtask:
       type: object
       description: Maps 1:1 to a single git branch/pull request
-      required: [id, storyId, description, branchName, status, url, repoName, complexityRating, releaseVersion, createdAt]
+      required: [id, storyId, title, comment, branchName, status, url, repoName, complexityRating, releaseVersion, createdAt]
       properties:
         id: { type: integer }
         storyId: { type: integer }
-        description: { type: string }
+        title: { type: string, description: "Set on creation." }
+        comment: { type: string, nullable: true, description: "Freeform note, editable afterwards. Shown only on the subtask's own detail page, not in tile/row views." }
         branchName: { type: string }
         status: { $ref: "#/components/schemas/SubtaskStatus" }
         url: { type: string, format: uri, nullable: true }
@@ -599,14 +600,15 @@ components:
 
     CreateSubtaskInput:
       type: object
-      required: [description]
+      required: [title]
       properties:
-        description: { type: string }
+        title: { type: string }
 
     UpdateSubtaskInput:
       type: object
       properties:
-        description: { type: string }
+        title: { type: string }
+        comment: { type: string, nullable: true }
         branchName: { type: string }
         status: { $ref: "#/components/schemas/SubtaskStatus" }
         prUrl: { type: string, format: uri }

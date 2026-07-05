@@ -38,10 +38,10 @@ export async function seedStory(
 export async function seedSubtask(
     request: APIRequestContext,
     storyId: number,
-    description = "e2e subtask"
+    title = "e2e subtask"
 ): Promise<{ id: number }> {
     const response = await request.post(`${API_BASE}/stories/${storyId}/subtasks`, {
-        data: { description },
+        data: { title },
     });
     return response.json();
 }

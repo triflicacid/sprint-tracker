@@ -14,7 +14,7 @@ beforeEach(async () => {
 });
 
 async function createSubtask(): Promise<{ id: number }> {
-    const response = await request(app).post(`/api/stories/${storyId}/subtasks`).send({ description: "sub" });
+    const response = await request(app).post(`/api/stories/${storyId}/subtasks`).send({ title: "sub" });
     return response.body;
 }
 
@@ -104,5 +104,21 @@ describe("PATCH /api/subtasks/:id - full lifecycle", () => {
         const response = await request(app).patch(`/api/subtasks/${subtask.id}`).send({ complexityRating: 5 });
         expect(response.status).toBe(200);
         expect(response.body.complexityRating).toBe(5);
+    });
+
+    it("updates the comment without requiring a status", async () => {
+        const subtask = await createSubtask();
+        const response = await request(app).patch(`/api/subtasks/${subtask.id}`).send({ comment: "watch out for X" });
+        expect(response.status).toBe(200);
+        expect(response.body.comment).toBe("watch out for X");
+        expect(response.body.title).toBe("sub");
+    });
+
+    it("clears the comment when updated to an empty string", async () => {
+        const subtask = await createSubtask();
+        await request(app).patch(`/api/subtasks/${subtask.id}`).send({ comment: "temporary" });
+        const response = await request(app).patch(`/api/subtasks/${subtask.id}`).send({ comment: "" });
+        expect(response.status).toBe(200);
+        expect(response.body.comment).toBe("");
     });
 });
