@@ -72,7 +72,7 @@ npm run db:load:test    # applies data/schema.sql, then loads testing_data.sql
 Both `db:run-sql`, `db:clear` and `db:dump` work directly against
 `better-sqlite3` with no build step, and all respect the `DB_PATH`
 environment variable (defaulting to `data/sprint-tracker.sqlite3` when
-unset).
+unset) - see [Environment variables](#environment-variables) below.
 
 ### 2. Run in development
 
@@ -112,16 +112,23 @@ runs whether the app is opened in a browser or as a desktop window.
 > error, run `npm run electron:rebuild` to rebuild it against Electron's
 > bundled Node version, then try `npm run electron` again.
 
+## Environment variables
+
+Copy [`example.env`](example.env) to `.env` and fill in whichever values you
+need - every variable the app reads is documented there with a comment and
+an example value, so it doubles as the reference.
+
+`.env` is loaded automatically by the Express server
+(`server/index.ts`), the Electron main process, and the `data/*.mjs` db
+scripts. The one exception is
+`VITE_API_PROXY_TARGET`, which the Vite dev client (`dev:client`) loads
+itself, independently of `dotenv`.
+
 ## Jira integration
 
-Set the following environment variables to enable the "refresh from Jira"
-action on a story:
-
-```
-JIRA_BASE_URL=https://yourcompany.atlassian.net
-JIRA_EMAIL=you@example.com
-JIRA_API_TOKEN=your-api-token
-```
+Optional - enables the "refresh from Jira" action on a story. Set
+`JIRA_BASE_URL`, `JIRA_EMAIL` and `JIRA_API_TOKEN` (see
+[`example.env`](example.env) for what each one does and an example value).
 
 When set, `server/services/jiraService.ts` calls the Jira REST API
 (`/rest/api/3/issue/:key`) using basic auth, and the `GET /api/jira/:key`
