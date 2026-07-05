@@ -10,6 +10,7 @@ export function SprintDetailPage(): React.ReactElement {
     const { id } = useParams<{ id: string }>();
     const sprintId: number = Number(id);
     const [sprint, setSprint] = useState<SprintDetail | null>(null);
+    const [loadError, setLoadError] = useState<string | null>(null);
     const [showForm, setShowForm] = useState<boolean>(false);
     const [jiraUrl, setJiraUrl] = useState<string>("");
     const [description, setDescription] = useState<string>("");
@@ -19,8 +20,12 @@ export function SprintDetailPage(): React.ReactElement {
     const [newHolidayDate, setNewHolidayDate] = useState<string>("");
 
     async function loadSprint() {
-        const result: SprintDetail = await api.getSprint(sprintId);
-        setSprint(result);
+        try {
+            const result: SprintDetail = await api.getSprint(sprintId);
+            setSprint(result);
+        } catch (error) {
+            setLoadError(error instanceof Error ? error.message : "sprint not found");
+        }
     }
 
     async function loadHolidays(startDate: string, endDate: string | null) {
@@ -76,6 +81,17 @@ export function SprintDetailPage(): React.ReactElement {
         setDescription("");
         setShowForm(false);
         loadSprint();
+    }
+
+    if (loadError) {
+        return (
+            <div className="page">
+                <p>{loadError}</p>
+                <Link to="/" className="back-link">
+                    back to home
+                </Link>
+            </div>
+        );
     }
 
     if (!sprint) {
