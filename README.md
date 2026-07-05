@@ -40,7 +40,8 @@ The favicon was sourced from <a href="https://www.flaticon.com/free-icons/run" t
 | `electron:rebuild` | Rebuilds native modules (`better-sqlite3`) against Electron's Node ABI.                                |
 
 > **NOTE** When running `electron` or `start:server`, you may see errors about conflicting node versions.
-> If you see this, run `electron:rebuild` and re-run the command.
+> If you see this after running `electron`, run `electron:rebuild` and retry.
+> If you see this for `start:server`, run `npm rebuild better-sqlite3 --update-binary` and retry.
 
 ### Dev use
 
