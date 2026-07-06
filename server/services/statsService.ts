@@ -24,6 +24,7 @@ interface RepoCountRow {
 interface StoryTimeRow {
     id: number;
     description: string;
+    jira_key: string | null;
     created_at: string;
     last_activity: string | null;
 }
@@ -63,7 +64,8 @@ export function getSprintStats(sprintId: number) {
 
     const storyRows = db
         .prepare(
-            `SELECT stories.id AS id, stories.description AS description, stories.created_at AS created_at,
+            `SELECT stories.id AS id, stories.description AS description, stories.jira_key AS jira_key,
+                stories.created_at AS created_at,
                 (SELECT MAX(status_history.changed_at) FROM status_history
                     JOIN subtasks ON subtasks.id = status_history.entity_id
                         AND status_history.entity_type = 'subtask'
@@ -76,7 +78,12 @@ export function getSprintStats(sprintId: number) {
         const start: Date = new Date(row.created_at);
         const end: Date = row.last_activity ? new Date(row.last_activity) : new Date();
         const days: number = Math.max(0, (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-        return { storyId: row.id, description: row.description, days: Math.round(days * 10) / 10 };
+        return {
+            storyId: row.id,
+            storyLabel: row.jira_key ?? `#${row.id}`,
+            description: row.description,
+            days: Math.round(days * 10) / 10,
+        };
     });
 
     return { sprintId, prCount, storyCount, repoCounts, storyTimeDays } as SprintStats;

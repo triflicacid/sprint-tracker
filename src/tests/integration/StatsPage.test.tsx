@@ -37,7 +37,7 @@ const stats = {
     prCount: 3,
     storyCount: 2,
     repoCounts: [{ repoName: "checkout-web", count: 3, proportion: 1 }],
-    storyTimeDays: [{ storyId: 1, description: "a story", days: 4 }],
+    storyTimeDays: [{ storyId: 1, storyLabel: "NEB-1", description: "a story", days: 4 }],
 };
 
 beforeEach(() => {

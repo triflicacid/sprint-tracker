@@ -125,7 +125,7 @@ export interface SprintStats {
   prCount: number;
   storyCount: number;
   repoCounts: { repoName: string; count: number; proportion: number }[];
-  storyTimeDays: { storyId: number; description: string; days: number }[];
+  storyTimeDays: { storyId: number; storyLabel: string; description: string; days: number }[];
 }
 
 // one day's status tally: `counts` is keyed by SubtaskStatus or

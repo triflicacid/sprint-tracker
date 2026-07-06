@@ -278,8 +278,11 @@ export function StatsPage() {
                             <BarChart data={stats.storyTimeDays} layout="vertical">
                                 <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
                                 <XAxis type="number" stroke="#9ca3af" />
-                                <YAxis type="category" dataKey="description" stroke="#9ca3af" width={220} />
-                                <Tooltip contentStyle={{ backgroundColor: "#1a1a1a", border: "1px solid #333" }} />
+                                <YAxis type="category" dataKey="storyLabel" stroke="#9ca3af" width={100} />
+                                <Tooltip
+                                    contentStyle={{ backgroundColor: "#1a1a1a", border: "1px solid #333" }}
+                                    labelFormatter={(_, payload) => payload?.[0]?.payload?.description ?? ""}
+                                />
                                 <Bar dataKey="days" fill="#2563eb" />
                             </BarChart>
                         </ResponsiveContainer>
