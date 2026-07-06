@@ -67,6 +67,16 @@ The favicon was sourced from <a href="https://www.flaticon.com/free-icons/run" t
 | `test:integration` / `test:integration:watch` | Runs (or watches) the Vitest integration suite (`vitest.integration.config.ts`), covering both server API and React page integration tests. |
 | `test:e2e` / `test:e2e:ui`                    | Runs the Playwright e2e suite headlessly, or with its interactive UI runner.                                                                |
 
+### Scripts (`scripts/`)
+
+Standalone PowerShell scripts, run directly rather than through `npm run`:
+
+| Script                        | What it does                                                                                                                                                                                                                                      |
+|-------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `scripts/kill-dev-ports.ps1`  | Kills whatever is listening on the dev ports (`4000`, `5173` by default - pass `-Ports` to override), e.g. `.\scripts\kill-dev-ports.ps1`.                                                                                                        |
+| `scripts/run-checks.ps1`      | Runs typecheck (client/server/electron), unit and integration tests in one go. Add `-E2e` to also run the full e2e suite, or `-E2eSpec <path>` for just one e2e spec file, e.g. `.\scripts\run-checks.ps1 -E2eSpec e2e\story-pdf-export.spec.ts`. |
+| `scripts/clean-reinstall.ps1` | Used to clean install all node modules.                                                                                                                                                                                                           |
+
 ## Quick start
 
 ### 1. Set up the database
