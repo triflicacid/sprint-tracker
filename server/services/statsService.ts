@@ -26,6 +26,7 @@ interface StoryTimeRow {
     description: string;
     jira_key: string | null;
     created_at: string;
+    first_activity: string | null;
     last_activity: string | null;
 }
 
@@ -66,6 +67,10 @@ export function getSprintStats(sprintId: number) {
         .prepare(
             `SELECT stories.id AS id, stories.description AS description, stories.jira_key AS jira_key,
                 stories.created_at AS created_at,
+                (SELECT MIN(status_history.changed_at) FROM status_history
+                    JOIN subtasks ON subtasks.id = status_history.entity_id
+                        AND status_history.entity_type = 'subtask'
+                    WHERE subtasks.story_id = stories.id) AS first_activity,
                 (SELECT MAX(status_history.changed_at) FROM status_history
                     JOIN subtasks ON subtasks.id = status_history.entity_id
                         AND status_history.entity_type = 'subtask'
@@ -75,9 +80,9 @@ export function getSprintStats(sprintId: number) {
         .all(sprintId) as StoryTimeRow[];
 
     const storyTimeDays = storyRows.map((row) => {
-        const start: Date = new Date(row.created_at);
-        const end: Date = row.last_activity ? new Date(row.last_activity) : new Date();
-        const days: number = Math.max(0, (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+        const start = row.first_activity ? new Date(row.first_activity) : new Date(row.created_at);
+        const end = row.last_activity ? new Date(row.last_activity) : new Date();
+        const days = Math.max(0, (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
         return {
             storyId: row.id,
             storyLabel: row.jira_key ?? `#${row.id}`,

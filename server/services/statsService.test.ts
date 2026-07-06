@@ -55,7 +55,7 @@ describe("getSprintStats", () => {
         );
     });
 
-    it("computes story time in days from creation to last activity", () => {
+    it("computes story time in days from its first recorded activity to its last", () => {
         const sprintId = insertSprint("2026-01-01", "2026-01-31");
         const storyId = insertStory(sprintId);
         const subtaskId = insertSubtask(storyId);
@@ -64,9 +64,33 @@ describe("getSprintStats", () => {
 
         const stats = getSprintStats(sprintId);
         expect(stats.storyTimeDays).toHaveLength(1);
-        // created_at defaults to "now", not a fixed date, so only shape/presence
-        // is asserted here - day-count arithmetic is covered by getDayActivity below.
         expect(stats.storyTimeDays[0].storyId).toBe(storyId);
+        expect(stats.storyTimeDays[0].days).toBe(2);
+    });
+
+    it("is unaffected by the story row's own created_at, which can postdate its subtasks' history entirely", () => {
+        // e.g. bulk-imported/seeded data, where the story row is created "now"
+        // but its status history reaches back months - created_at must not be
+        // used as the start of the measured window in that case.
+        const sprintId = insertSprint("2026-01-01", "2026-12-31");
+        const storyId = insertStory(sprintId);
+        const subtaskId = insertSubtask(storyId);
+        insertHistory(subtaskId, "WIP", "2026-01-03 10:00:00");
+        insertHistory(subtaskId, "DONE", "2026-01-10 10:00:00");
+
+        const stats = getSprintStats(sprintId);
+        const story = stats.storyTimeDays.find((entry) => entry.storyId === storyId);
+        expect(story?.days).toBe(7);
+    });
+
+    it("falls back to created_at (0 days) for a story with no subtask activity yet", () => {
+        const sprintId = insertSprint("2026-01-01", "2026-01-31");
+        const storyId = insertStory(sprintId);
+        insertSubtask(storyId); // NEW, no status_history beyond none inserted here
+
+        const stats = getSprintStats(sprintId);
+        const story = stats.storyTimeDays.find((entry) => entry.storyId === storyId);
+        expect(story?.days).toBe(0);
     });
 
     it("labels a story by its jira key, falling back to its id when there is none", () => {
