@@ -155,6 +155,20 @@ describe("getDayActivity", () => {
         const activity = getDayActivity(sprintId);
         expect(activity["2026-01-02"][0].prUrl).toBe("https://github.com/org/repo/pull/9");
     });
+
+    it("uses the LAST transition of a day when several happen on the same day", () => {
+        const sprintId = insertSprint("2026-01-01", "2026-01-10");
+        const storyId = insertStory(sprintId);
+        const subtaskId = insertSubtask(storyId);
+        insertHistory(subtaskId, "NEW", "2026-01-01 09:00:00");
+        insertHistory(subtaskId, "WIP", "2026-01-01 09:10:00");
+        insertHistory(subtaskId, "PR_COMMENTS", "2026-01-05 10:00:00");
+        insertHistory(subtaskId, "IN_REVIEW", "2026-01-05 17:00:00");
+        insertHistory(subtaskId, "CUT_RELEASE", "2026-01-05 19:00:00");
+
+        const activity = getDayActivity(sprintId);
+        expect(activity["2026-01-05"][0].status).toBe("CUT_RELEASE");
+    });
 });
 
 describe("getCalendarEntries", () => {

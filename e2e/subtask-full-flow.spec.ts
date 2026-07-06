@@ -80,7 +80,20 @@ test("subtask flow to done, including the pr comments detour, drives its story t
 
     await page.click(".subtask-title");
     await expect(page).toHaveURL(new RegExp(`#/subtasks/${subtask.id}$`));
-    // this subtask's actual path touched every state, so its "done" node
-    // (like all the others) renders at full opacity rather than dimmed.
-    await expect(page.locator(".flow-node", { hasText: "done" })).toHaveCSS("opacity", "1");
+    // the flow chain is linear and shows one lozenge per real transition -
+    // "in review" was visited twice (once before, once after the pr comments
+    // detour), so it renders as two separate lozenges, not one shared/looped
+    // node.
+    const lozenges = page.locator(".flow-chain .flow-node");
+    await expect(lozenges).toHaveText([
+        "new",
+        "wip",
+        "in review",
+        "pr comments",
+        "in review",
+        "cut release",
+        "testing",
+        "uat",
+        "done",
+    ]);
 });

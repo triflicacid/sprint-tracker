@@ -10,7 +10,7 @@ export default defineConfig({
             {
                 test: {
                     name: "server-unit",
-                    include: ["server/**/*.test.ts"],
+                    include: ["server/**/*.test.ts", "shared/**/*.test.ts"],
                     exclude: ["server/tests/integration/**", "node_modules/**"],
                     environment: "node",
                     setupFiles: ["server/testUtils/vitestSetup.ts"],

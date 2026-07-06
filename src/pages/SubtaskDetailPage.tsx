@@ -4,6 +4,7 @@ import type { Subtask, StatusFlowConfig, StatusHistoryEntry } from "@shared/type
 import { api } from "../api/client";
 import { SubtaskRow } from "../components/subtasks/SubtaskRow";
 import { SubtaskFlowDiagram } from "../components/subtasks/SubtaskFlowDiagram";
+import { SubtaskTransitionsTable } from "../components/subtasks/SubtaskTransitionsTable";
 import { SubtaskActivityCalendar } from "../components/calendar/SubtaskActivityCalendar";
 
 // a subtask ("/subtasks/:id"): its row, flow diagram, and activity calendar.
@@ -91,7 +92,8 @@ export function SubtaskDetailPage(): React.ReactElement {
             <SubtaskRow subtask={subtask} flow={flow} onChanged={loadSubtask} disableNavigation />
 
             <h2>Flow</h2>
-            <SubtaskFlowDiagram flow={flow} history={history} />
+            <SubtaskFlowDiagram history={history} />
+            <SubtaskTransitionsTable history={history} />
 
             <h2>Activity calendar</h2>
             <SubtaskActivityCalendar history={history} prUrl={subtask.url} />

@@ -10,6 +10,7 @@ import type {
 } from "../../shared/types.js";
 import { computeStoryStatus } from "./storyService.js";
 import { getStatusFlow } from "./statusFlowService.js";
+import { statusAsOf } from "../../shared/statusHistory.js";
 
 const SUBTASK_STATUSES = getStatusFlow().states.map((state) => state.id) as SubtaskStatus[];
 
@@ -109,17 +110,8 @@ export function getStatusBreakdown(sprintId: number, granularity: StatusBreakdow
         historyBySubtask.set(row.id, entries.map((entry) => ({ status: entry.status, changedAt: entry.changed_at })));
     }
 
-    function subtaskStatusAsOf(subtaskId: number, dateString: string) {
-        const entries = historyBySubtask.get(subtaskId) ?? [];
-        let status: SubtaskStatus = "NEW";
-        for (const entry of entries) {
-            if (entry.changedAt.slice(0, 10) <= dateString) {
-                status = entry.status;
-            } else {
-                break;
-            }
-        }
-        return status;
+    function subtaskStatusAsOf(subtaskId: number, dateString: string): SubtaskStatus {
+        return statusAsOf(historyBySubtask.get(subtaskId) ?? [], dateString);
     }
 
     const storiesForBreakdown: { id: number; awaiting_more_subtasks: number }[] =
@@ -215,17 +207,7 @@ export function getDayActivity(sprintId: number): DayActivityMap {
             continue;
         }
 
-        function statusAsOf(dateString: string): SubtaskStatus {
-            let status: SubtaskStatus = "NEW";
-            for (const entry of entries) {
-                if (entry.changed_at.slice(0, 10) <= dateString) {
-                    status = entry.status;
-                } else {
-                    break;
-                }
-            }
-            return status;
-        }
+        const historyForStatusAsOf = entries.map((entry) => ({ status: entry.status, changedAt: entry.changed_at }));
 
         const storyLabel: string = subtask.jira_key ?? `#${subtask.story_id}`;
         for (
@@ -234,7 +216,7 @@ export function getDayActivity(sprintId: number): DayActivityMap {
             cursor.setDate(cursor.getDate() + 1)
         ) {
             const dateString = cursor.toISOString().slice(0, 10);
-            const status = statusAsOf(dateString);
+            const status = statusAsOf(historyForStatusAsOf, dateString) as SubtaskStatus;
             (result[dateString] ??= []).push({
                 storyLabel,
                 branchName: subtask.branch_name,

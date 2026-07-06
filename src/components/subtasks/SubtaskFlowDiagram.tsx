@@ -1,36 +1,44 @@
 import React from "react";
-import type { StatusFlowConfig, StatusHistoryEntry } from "@shared/types";
-import { STATUS_LABELS } from "../StatusBadge";
-import { FlowDiagram, type FlowEdge } from "../flow/FlowDiagram";
+import type { StatusHistoryEntry } from "@shared/types";
+import { STATUS_COLORS, STATUS_LABELS } from "../StatusBadge";
+import { buildTransitionRows, formatDateTime } from "../../utils/subtaskTiming";
 
 interface SubtaskFlowDiagramProps {
-    flow: StatusFlowConfig;
     history: StatusHistoryEntry[];
 }
 
-// shows a subtask's path through its flow
-// similar to the FlowDiagram, but only for a given task, not all statuses
-export function SubtaskFlowDiagram({ flow, history }: SubtaskFlowDiagramProps): React.ReactElement {
-    const reachedStatuses = new Set(history.map((entry) => entry.status));
+// a subtask's actual path through its statuses, drawn as a strictly linear
+// chain - one lozenge per real transition, in chronological order. Unlike
+// the general FlowDiagram (a fixed graph of every possible transition, used
+// by TransitionsInfoPage as a reference), going BACK to an earlier status
+// (e.g. IN_REVIEW -> PR_COMMENTS -> IN_REVIEW) draws a brand new lozenge each
+// time rather than looping an arc back to one shared node - the point is to
+// show what actually happened, in order, not the graph of what's possible.
+export function SubtaskFlowDiagram({ history }: SubtaskFlowDiagramProps): React.ReactElement {
+    // a genuine no-op (two consecutive rows with the identical status, which
+    // the app itself never writes - subtaskService only records history when
+    // status actually changes) is collapsed away rather than drawn as a
+    // redundant repeated lozenge.
+    const rows = buildTransitionRows(history).filter((row, i, all) => i === 0 || row.status !== all[i - 1].status);
 
-    const sortedHistory = [...history].sort(
-        (a, b) => new Date(a.changedAt).getTime() - new Date(b.changedAt).getTime()
-    );
-
-    const edges: FlowEdge[] = [];
-    for (let i = 1; i < sortedHistory.length; i++) {
-        const from: string = sortedHistory[i - 1].status;
-        const to: string = sortedHistory[i].status;
-        if (from === to) {
-            continue;
-        }
-        edges.push({
-            id: `${from}-${to}-${i}`,
-            from,
-            to,
-            title: `${STATUS_LABELS[from] ?? from} → ${STATUS_LABELS[to] ?? to} on ${sortedHistory[i].changedAt.slice(0, 10)}`,
-        });
+    if (rows.length === 0) {
+        return <p className="flow-chain-empty">not started yet.</p>;
     }
 
-    return <FlowDiagram flow={flow} edges={edges} reachedStatuses={reachedStatuses} />;
+    return (
+        <div className="flow-chain">
+            {rows.map((row, i) => (
+                <React.Fragment key={row.id}>
+                    {i > 0 && <span className="flow-chain-arrow">&rarr;</span>}
+                    <span
+                        className="flow-node"
+                        style={{ backgroundColor: STATUS_COLORS[row.status] ?? "#6b7280" }}
+                        title={`${formatDateTime(row.changedAt)} — ${STATUS_LABELS[row.status] ?? row.status.toLowerCase()}`}
+                    >
+                        {STATUS_LABELS[row.status] ?? row.status.toLowerCase()}
+                    </span>
+                </React.Fragment>
+            ))}
+        </div>
+    );
 }

@@ -42,7 +42,7 @@ test("create a sprint, story and subtask, and walk the subtask through the flow"
     // clicking the row itself (not a control) navigates to the detail page
     await page.click(".subtask-title");
     await expect(page).toHaveURL(/#\/subtasks\/\d+/);
-    await expect(page.locator(".flow-diagram")).toBeVisible();
+    await expect(page.locator(".flow-chain")).toBeVisible();
     await expect(page.getByText("Activity calendar")).toBeVisible();
 
     // the comment is not shown until you're on the subtask's own detail
