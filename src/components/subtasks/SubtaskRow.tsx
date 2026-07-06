@@ -73,6 +73,7 @@ export function SubtaskRow({ subtask, flow, onChanged, disableNavigation }: Subt
         .flatMap((transition) => transition.to) as SubtaskStatus[];
     const pendingFields: FlowField[] = pendingStatus ? requiredFields(subtask.status, pendingStatus) : [];
     const githubBranchUrl: string | null = branchUrl(subtask);
+    const complexityLocked = flow.states.find((state) => state.id === subtask.status)?.locksComplexity ?? false;
 
     return (
         <div
@@ -148,6 +149,8 @@ export function SubtaskRow({ subtask, flow, onChanged, disableNavigation }: Subt
                                 value={subtask.complexityRating ?? ""}
                                 onChange={(event) => handleComplexityChange(event.target.value)}
                                 className="complexity-select"
+                                disabled={complexityLocked}
+                                title={complexityLocked ? "complexity is locked once a subtask has passed cut release" : undefined}
                             >
                                 <option value="">-</option>
                                 {[1, 2, 3, 4, 5].map((value) => (

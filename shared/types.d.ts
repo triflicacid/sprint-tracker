@@ -42,6 +42,8 @@ export interface FlowState {
   rank: number;
   color: string;
   description: string;
+  // once a subtask reaches this state, its complexity rating is frozen
+  locksComplexity?: boolean;
 }
 
 // statusFlow.json

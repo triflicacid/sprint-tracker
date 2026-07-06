@@ -5,6 +5,7 @@ import {
     getRequiredFields,
     isTransitionAllowed,
     rankOf,
+    locksComplexityRating,
 } from "./statusFlowService.js";
 
 describe("getStatusFlow", () => {
@@ -76,5 +77,19 @@ describe("rankOf", () => {
 
     it("throws for an unknown status", () => {
         expect(() => rankOf("NOT_A_STATUS" as never)).toThrow(/unknown status/);
+    });
+});
+
+describe("locksComplexityRating", () => {
+    it("is unlocked for every state up to and including in review / pr comments", () => {
+        for (const status of ["NEW", "WIP", "IN_PR", "IN_REVIEW", "PR_COMMENTS"] as const) {
+            expect(locksComplexityRating(status)).toBe(false);
+        }
+    });
+
+    it("is locked from cut release onward", () => {
+        for (const status of ["CUT_RELEASE", "TESTING", "UAT", "DONE"] as const) {
+            expect(locksComplexityRating(status)).toBe(true);
+        }
     });
 });

@@ -1,7 +1,7 @@
 import { db } from "../db/connection.js";
 import type { Subtask, SubtaskStatus } from "../../shared/types.js";
 import { recordStatusChange } from "./statusHistoryService.js";
-import { isTransitionAllowed, getRequiredFields } from "./statusFlowService.js";
+import { isTransitionAllowed, getRequiredFields, locksComplexityRating } from "./statusFlowService.js";
 import { extractRepoName } from "../utils/githubUrl.js";
 import { tagStoryWithRepo } from "./tagService.js";
 
@@ -99,6 +99,11 @@ export function updateSubtask(subtaskId: number, input: UpdateSubtaskInput): Sub
                 throw new SubtaskUpdateError(`${field.label} is required for this transition`);
             }
         }
+    }
+
+    const complexityChanging = input.complexityRating !== undefined && input.complexityRating !== existing.complexity_rating;
+    if (complexityChanging && locksComplexityRating(nextStatus)) {
+        throw new SubtaskUpdateError("cannot change complexity once a subtask has passed cut release");
     }
 
     const repoName: string | null = input.prUrl ? extractRepoName(input.prUrl) : existing.repo_name;
