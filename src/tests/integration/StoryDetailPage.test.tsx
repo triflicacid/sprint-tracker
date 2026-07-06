@@ -2,10 +2,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import type { StatusFlowConfig, StoryDetail } from "@shared/types";
+import type { StatusFlowConfig, StoryDetail, Subtask } from "@shared/types";
 import { StoryDetailPage } from "../../pages/StoryDetailPage";
 import { ToastProvider } from "../../components/Toast";
 import { api } from "../../api/client";
+import { exportSectionsAsPdf } from "../../utils/pdfExport";
 
 vi.mock("../../api/client", () => ({
     api: {
@@ -17,7 +18,12 @@ vi.mock("../../api/client", () => ({
         addStoryTag: vi.fn(),
         removeStoryTag: vi.fn(),
         getJiraInfo: vi.fn(),
+        getSubtaskHistory: vi.fn(),
     },
+}));
+
+vi.mock("../../utils/pdfExport", () => ({
+    exportSectionsAsPdf: vi.fn(),
 }));
 
 const flow: StatusFlowConfig = {
@@ -43,7 +49,23 @@ const story: StoryDetail = {
 beforeEach(() => {
     Object.values(api).forEach((fn) => vi.mocked(fn).mockReset());
     vi.mocked(api.getStatusFlow).mockResolvedValue(flow);
+    vi.mocked(exportSectionsAsPdf).mockReset();
 });
+
+function subtask(overrides: Partial<Subtask> & { id: number; title: string }): Subtask {
+    return {
+        storyId: 1,
+        comment: null,
+        branchName: "(unknown)",
+        status: "NEW",
+        url: null,
+        repoName: null,
+        complexityRating: null,
+        releaseVersion: null,
+        createdAt: "2026-01-01",
+        ...overrides,
+    };
+}
 
 function renderPage() {
     return render(
@@ -147,5 +169,73 @@ describe("StoryDetailPage", () => {
         await screen.findByText("support saved cards");
         await userEvent.click(screen.getByRole("checkbox"));
         expect(api.updateStory).toHaveBeenCalledWith(1, { awaitingMoreSubtasks: true });
+    });
+
+    it("exports a pdf with one section per subtask plus a summary section, fetching each subtask's history first", async () => {
+        vi.mocked(api.getStory).mockResolvedValue({
+            ...story,
+            subtasks: [
+                subtask({
+                    id: 5,
+                    title: "add endpoint",
+                    branchName: "feature/add-endpoint",
+                    url: "https://github.com/acme/repo/pull/7",
+                }),
+                subtask({ id: 6, title: "wire up client" }),
+            ],
+        });
+        vi.mocked(api.getSubtaskHistory).mockImplementation((id) =>
+            Promise.resolve(
+                id === 5
+                    ? [
+                          { id: 1, entityType: "subtask", entityId: 5, status: "NEW", releaseVersion: null, changedAt: "2026-01-01T00:00:00.000Z" },
+                          { id: 2, entityType: "subtask", entityId: 5, status: "WIP", releaseVersion: null, changedAt: "2026-01-03T00:00:00.000Z" },
+                      ]
+                    : []
+            )
+        );
+
+        renderPage();
+        await screen.findByText("support saved cards");
+        await userEvent.click(screen.getByRole("button", { name: "export pdf" }));
+
+        expect(api.getSubtaskHistory).toHaveBeenCalledWith(5);
+        expect(api.getSubtaskHistory).toHaveBeenCalledWith(6);
+
+        await vi.waitFor(() => expect(exportSectionsAsPdf).toHaveBeenCalledTimes(1));
+        const [sections, filename] = vi.mocked(exportSectionsAsPdf).mock.calls[0];
+
+        expect(sections).toHaveLength(3);
+        expect(sections[0].title).toBe("support saved cards");
+        expect(sections[0].lines).toEqual(
+            expect.arrayContaining([
+                { text: "Jira: NEB-1", url: story.jiraUrl },
+                "Subtasks: 2",
+                "Pull requests: 0",
+                "Tags: payments",
+            ])
+        );
+        expect(sections[0].element).toBeInstanceOf(HTMLElement);
+
+        // subtask pages are text-only: no flow-diagram screenshot, but a pr
+        // link line up front when the subtask has one.
+        expect(sections[1].title).toBe("add endpoint (feature/add-endpoint)");
+        expect(sections[1].element).toBeUndefined();
+        expect(sections[1].lines).toEqual(
+            expect.arrayContaining([
+                { text: "Pull request: https://github.com/acme/repo/pull/7", url: "https://github.com/acme/repo/pull/7" },
+                "Transitions:",
+                "2026-01-01: new",
+                "2026-01-03: wip (2 days in new)",
+            ])
+        );
+
+        expect(sections[2].element).toBeUndefined();
+        expect(sections[2].lines).not.toEqual(expect.arrayContaining([expect.objectContaining({ url: expect.anything() })]));
+
+        expect(sections[2].title).toBe("wire up client");
+        expect(sections[2].lines).toEqual(["No status history recorded yet."]);
+
+        expect(filename).toMatch(/^story-1-export-\d{4}-\d{2}-\d{2}\.pdf$/);
     });
 });

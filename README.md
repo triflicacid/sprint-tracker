@@ -23,6 +23,8 @@ The favicon was sourced from <a href="https://www.flaticon.com/free-icons/run" t
 - Tagging support, both automatic (by repo) and custom labels
 - Holiday tracking, so calendars can distinguish working days
 - Export any set of sprints to a markdown file, with a picker for which story/subtask fields to include
+- Export the stats page (or any single chart/calendar on it) to a PDF report
+- Export a story to a PDF report
 - Runs as a browser app or as an Electron desktop app
 
 ## Commands
