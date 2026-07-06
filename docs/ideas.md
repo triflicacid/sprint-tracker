@@ -1,0 +1,9 @@
+- Add support for multiple 'organisations', or similarly worded thing like 'namespaces' - switch between collections of sprints, essentially. This could use different databases and would need an env variable to specify which org to use. Each database should be for an org, and no org should know of any others. 
+- Past sprints are locked and cannot be edited
+- Export sprint stats as a PDF - ability to export each component (chart, calendar) as a PDF, or all together (multi-paged PDF)
+- subtask transition history - include dates below arrows. Include table of transitions too below the flow chart.
+- `/transitions` - all as SVG and separated arrows so they are legible
+- Code: avoid amending the URL if possible, use internal state
+- A subtask can be of a given type - feature, bugfix, tech-debt, spike
+- Auto-generate subtask's branch name based of subtask name (all lowercase and spaces are dashes), name is e.g., `tech-debt/NEB-1234-my-title-here` (this is auto-filled in the textbox and highlighted, so can be replaced by the user)[sprint-export-2026-07-05.md](../../../Downloads/sprint-export-2026-07-05.md)
+- Subtasks: comment below tile.
