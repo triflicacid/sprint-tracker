@@ -263,7 +263,7 @@ paths:
         "400":
           description: >
             Subtask not found, invalid status transition, a required field is missing, or
-            complexityRating was changed after the subtask locked it - all reported as 400, not 404.
+            complexityRating was changed after the subtask locked it.
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
