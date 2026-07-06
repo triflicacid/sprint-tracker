@@ -94,13 +94,14 @@ export function getStatusBreakdown(sprintId: number, granularity: StatusBreakdow
 
     const subtaskRows = db
         .prepare(
-            `SELECT subtasks.id AS id, subtasks.story_id AS story_id FROM subtasks
+            `SELECT subtasks.id AS id, subtasks.story_id AS story_id, subtasks.status AS status FROM subtasks
              JOIN stories ON stories.id = subtasks.story_id
              WHERE stories.sprint_id = ?`
         )
-        .all(sprintId) as { id: number; story_id: number }[];
+        .all(sprintId) as { id: number; story_id: number; status: SubtaskStatus }[];
 
     const historyBySubtask: Map<number, { status: SubtaskStatus; changedAt: string }[]> = new Map();
+    const currentStatusBySubtask: Map<number, SubtaskStatus> = new Map();
     for (const row of subtaskRows) {
         const entries = db
             .prepare(
@@ -108,10 +109,15 @@ export function getStatusBreakdown(sprintId: number, granularity: StatusBreakdow
             )
             .all(row.id) as { status: SubtaskStatus; changed_at: string }[];
         historyBySubtask.set(row.id, entries.map((entry) => ({ status: entry.status, changedAt: entry.changed_at })));
+        currentStatusBySubtask.set(row.id, row.status);
     }
 
     function subtaskStatusAsOf(subtaskId: number, dateString: string): SubtaskStatus {
-        return statusAsOf(historyBySubtask.get(subtaskId) ?? [], dateString);
+        return statusAsOf(
+            historyBySubtask.get(subtaskId) ?? [],
+            dateString,
+            currentStatusBySubtask.get(subtaskId) ?? "NEW"
+        );
     }
 
     const storiesForBreakdown: { id: number; awaiting_more_subtasks: number }[] =
@@ -174,12 +180,20 @@ export function getDayActivity(sprintId: number): DayActivityMap {
     const subtaskRows = db
         .prepare(
             `SELECT subtasks.id AS id, subtasks.branch_name AS branch_name,
-                    stories.jira_key AS jira_key, stories.id AS story_id, subtasks.url AS url
+                    stories.jira_key AS jira_key, stories.id AS story_id, subtasks.url AS url,
+                    subtasks.status AS status
              FROM subtasks
              JOIN stories ON stories.id = subtasks.story_id
              WHERE stories.sprint_id = ?`
         )
-        .all(sprintId) as { id: number; branch_name: string; jira_key: string | null; story_id: number; url: string | null }[];
+        .all(sprintId) as {
+            id: number;
+            branch_name: string;
+            jira_key: string | null;
+            story_id: number;
+            url: string | null;
+            status: SubtaskStatus;
+        }[];
 
     const sprintStart = sprint.start_date.slice(0, 10);
     const sprintEnd = (sprint.end_date ? new Date(sprint.end_date) : new Date()).toISOString().slice(0, 10);
@@ -194,11 +208,13 @@ export function getDayActivity(sprintId: number): DayActivityMap {
             .all(subtask.id) as { status: SubtaskStatus; changed_at: string }[];
 
         const firstActiveEntry = entries.find((entry) => entry.status !== "NEW");
-        if (!firstActiveEntry) {
+        // if no history but non-NEW, imply active to not render as NEW
+        const impliedActive = entries.length === 0 && subtask.status !== "NEW";
+        if (!firstActiveEntry && !impliedActive) {
             continue;
         }
         const doneEntry = entries.find((entry) => entry.status === "DONE");
-        const firstActive = firstActiveEntry.changed_at.slice(0, 10);
+        const firstActive = firstActiveEntry ? firstActiveEntry.changed_at.slice(0, 10) : sprintStart;
         const lastActive = doneEntry ? doneEntry.changed_at.slice(0, 10) : sprintEnd;
 
         const rangeStart = firstActive > sprintStart ? firstActive : sprintStart;
@@ -216,7 +232,7 @@ export function getDayActivity(sprintId: number): DayActivityMap {
             cursor.setDate(cursor.getDate() + 1)
         ) {
             const dateString = cursor.toISOString().slice(0, 10);
-            const status = statusAsOf(historyForStatusAsOf, dateString) as SubtaskStatus;
+            const status = statusAsOf(historyForStatusAsOf, dateString, subtask.status) as SubtaskStatus;
             (result[dateString] ??= []).push({
                 storyLabel,
                 branchName: subtask.branch_name,

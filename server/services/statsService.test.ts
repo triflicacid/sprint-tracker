@@ -100,6 +100,18 @@ describe("getStatusBreakdown", () => {
     it("returns an empty list for a missing sprint", () => {
         expect(getStatusBreakdown(999999, "subtask")).toEqual([]);
     });
+
+    it("deduces the current status for a subtask with no history at all, rather than assuming NEW", () => {
+        const sprintId = insertSprint("2026-01-01", "2026-01-05");
+        const storyId = insertStory(sprintId);
+        insertSubtask(storyId, { status: "DONE" }); // no status_history rows inserted
+
+        const points = getStatusBreakdown(sprintId, "subtask");
+        const byDate = Object.fromEntries(points.map((point) => [point.date, point.counts]));
+        expect(byDate["2026-01-01"].DONE).toBe(1);
+        expect(byDate["2026-01-01"].NEW).toBe(0);
+        expect(byDate["2026-01-05"].DONE).toBe(1);
+    });
 });
 
 describe("getDayActivity", () => {
@@ -168,6 +180,27 @@ describe("getDayActivity", () => {
 
         const activity = getDayActivity(sprintId);
         expect(activity["2026-01-05"][0].status).toBe("CUT_RELEASE");
+    });
+
+    it("deduces the current status for a subtask with no history at all, rather than assuming NEW", () => {
+        const sprintId = insertSprint("2026-01-01", "2026-01-10");
+        const storyId = insertStory(sprintId, "NEB-1");
+        insertSubtask(storyId, { branchName: "feature/x", status: "WIP" }); // no status_history rows inserted
+
+        const activity = getDayActivity(sprintId);
+        for (const date of ["2026-01-01", "2026-01-05", "2026-01-10"]) {
+            expect(activity[date]).toBeDefined();
+            expect(activity[date][0]).toMatchObject({ storyLabel: "NEB-1", branchName: "feature/x", status: "WIP" });
+        }
+    });
+
+    it("still contributes nothing for a subtask with no history at all that is still in NEW", () => {
+        const sprintId = insertSprint("2026-01-01", "2026-01-10");
+        const storyId = insertStory(sprintId);
+        insertSubtask(storyId); // status defaults to NEW, no status_history rows inserted
+
+        const activity = getDayActivity(sprintId);
+        expect(Object.keys(activity)).toHaveLength(0);
     });
 });
 
