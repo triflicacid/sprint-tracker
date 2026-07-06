@@ -87,9 +87,6 @@ export function StoryDetailPage(): React.ReactElement {
         }
     }
 
-    // fetches every subtask's history, which mounts the hidden bar chart +
-    // flow diagrams below (see the effect that watches exportSnapshot) so
-    // they can be screenshotted once rendered.
     async function handleExportPdf() {
         if (!story) {
             return;

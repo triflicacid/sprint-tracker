@@ -108,10 +108,8 @@ export function StatsPage() {
         }
     }
 
-    // builds the written report content for each section - real computed
-    // stats as text, not just the chart/calendar screenshot, so the pdf
-    // reads as a report rather than a set of captured images.
-    function buildReportSections(): PdfSection[] {
+    // builds the written report content for each section
+    function buildReportSections() {
         if (!stats || !selectedSprint || !sprintEndDate) {
             return [];
         }
@@ -183,7 +181,7 @@ export function StatsPage() {
                     `${activeDayCount} day${activeDayCount === 1 ? "" : "s"} had subtask activity`,
                 ],
             },
-        ];
+        ] as PdfSection[];
     }
 
     function handleExportSection(index: number, section: string) {
@@ -197,9 +195,8 @@ export function StatsPage() {
         exportSectionsAsPdf(buildReportSections(), `sprint-stats-${formatIsoDate(new Date())}.pdf`);
     }
 
-    const totalWeekdays: number =
-        selectedSprint && sprintEndDate ? countWeekdays(selectedSprint.startDate, sprintEndDate) : 0;
-    const holidayWeekdays: number = Array.from(holidays).filter(isWeekday).length;
+    const totalWeekdays = selectedSprint && sprintEndDate ? countWeekdays(selectedSprint.startDate, sprintEndDate) : 0;
+    const holidayWeekdays = Array.from(holidays).filter(isWeekday).length;
 
     return (
         <div className="page">

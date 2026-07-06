@@ -138,8 +138,6 @@ describe("StatsPage", () => {
             expect.arrayContaining(["a story: 4 days", "Average: 4.0 days across 1 story"])
         );
 
-        // only one status-breakdown day was seeded, so it reads as a single
-        // snapshot rather than a start/end comparison.
         const statusSection = sections[3];
         expect(statusSection.lines).toEqual(["2026-03-10: new: 1, wip: 1"]);
 
