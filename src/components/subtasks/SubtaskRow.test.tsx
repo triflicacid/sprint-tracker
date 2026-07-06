@@ -19,11 +19,13 @@ const flow: StatusFlowConfig = {
         { id: "NEW", label: "new", rank: 0, color: "#6b7280", description: "" },
         { id: "WIP", label: "wip", rank: 1, color: "#d95926", description: "" },
         { id: "IN_PR", label: "in pr", rank: 2, color: "#9085e9", description: "" },
+        { id: "CUT_RELEASE", label: "cut release", rank: 3, color: "#d55181", description: "", locksComplexity: true },
     ],
     transitions: [
         { from: "NEW", to: ["WIP"], requires: [{ field: "branchName", label: "Branch name", type: "text", column: "subtasks.branch_name" }] },
         { from: "WIP", to: ["IN_PR"] },
-        { from: "IN_PR", to: [] },
+        { from: "IN_PR", to: ["CUT_RELEASE"] },
+        { from: "CUT_RELEASE", to: [] },
     ],
 };
 
@@ -151,6 +153,21 @@ describe("SubtaskRow - status transitions", () => {
         await userEvent.selectOptions(screen.getByRole("combobox"), "4");
         expect(api.updateSubtask).toHaveBeenCalledWith(1, { complexityRating: 4 });
         expect(onChanged).toHaveBeenCalledOnce();
+    });
+
+    it("disables the complexity select once the subtask is in a state that locks it", () => {
+        renderRow({
+            ...baseSubtask,
+            status: "CUT_RELEASE",
+            url: "https://github.com/org/repo/pull/1",
+            complexityRating: 3,
+        });
+        expect(screen.getByRole("combobox")).toBeDisabled();
+    });
+
+    it("leaves the complexity select enabled for states that don't lock it", () => {
+        renderRow({ ...baseSubtask, status: "IN_PR", url: "https://github.com/org/repo/pull/1" });
+        expect(screen.getByRole("combobox")).toBeEnabled();
     });
 });
 

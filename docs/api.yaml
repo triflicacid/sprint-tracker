@@ -247,6 +247,8 @@ paths:
         Changing `status` is validated against `static/statusFlow.json`: the destination must be a
         reachable next state, and any fields its transition `requires` must be present in the body.
         Supplying `prUrl` also derives/stores the repo name and tags the parent story with it.
+        `complexityRating` cannot be changed once the subtask's (post-update) status is a state
+        flagged `locksComplexity` in `static/statusFlow.json`.
       requestBody:
         required: true
         content:
@@ -259,7 +261,9 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Subtask" }
         "400":
-          description: Subtask not found, invalid status transition, or a required field is missing - all reported as 400, not 404.
+          description: >
+            Subtask not found, invalid status transition, a required field is missing, or
+            complexityRating was changed after the subtask locked it.
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
@@ -573,6 +577,9 @@ components:
         rank: { type: integer }
         color: { type: string }
         description: { type: string }
+        locksComplexity:
+          type: boolean
+          description: When true, a subtask's complexityRating can no longer be changed once it reaches this state.
 
     StatusFlowConfig:
       type: object

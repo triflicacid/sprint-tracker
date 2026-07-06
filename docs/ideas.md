@@ -10,7 +10,6 @@
 - Subtasks: comment below tile.
 - Stats: time per story, only show numbers, e.g., NEB-1234, on y-axis
 - Past sprints are locked and cannot be edited
-- Cannot change complexity of work once it is past CUT_RELEASE. As statuses are data-driven, include this as a flag or something in statusFlow.json.
 - Exporting an entire sprint grants one page to each sub-task. Add an export button on the subtask's page to export just that subtask.
 
 ## Tech Debt

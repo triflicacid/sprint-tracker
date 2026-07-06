@@ -155,3 +155,57 @@ describe("updateSubtask - status transitions", () => {
         expect(getHistoryForEntity("subtask", subtask.id)).toHaveLength(1);
     });
 });
+
+describe("updateSubtask - complexity locking", () => {
+    function moveToCutRelease(): number {
+        const subtask = createSubtask(storyId, { title: "x" });
+        updateSubtask(subtask.id, { status: "WIP", branchName: "feature/x" });
+        updateSubtask(subtask.id, { status: "IN_REVIEW", prUrl: "https://github.com/org/repo/pull/1" });
+        updateSubtask(subtask.id, { status: "CUT_RELEASE" });
+        return subtask.id;
+    }
+
+    it("allows changing complexity before cut release", () => {
+        const subtask = createSubtask(storyId, { title: "x" });
+        updateSubtask(subtask.id, { status: "WIP", branchName: "feature/x" });
+        const updated = updateSubtask(subtask.id, { complexityRating: 2 });
+        expect(updated.complexityRating).toBe(2);
+    });
+
+    it("rejects changing complexity once a subtask has reached cut release", () => {
+        const subtaskId = moveToCutRelease();
+        expect(() => updateSubtask(subtaskId, { complexityRating: 5 })).toThrow(/cannot change complexity/i);
+    });
+
+    it("rejects changing complexity in later locked states too (testing, uat, done)", () => {
+        const subtaskId = moveToCutRelease();
+        updateSubtask(subtaskId, { status: "TESTING", releaseVersion: "v1.0.0" });
+        expect(() => updateSubtask(subtaskId, { complexityRating: 5 })).toThrow(/cannot change complexity/i);
+    });
+
+    it("rejects setting complexity in the same request that transitions into a locked state", () => {
+        const subtask = createSubtask(storyId, { title: "x" });
+        updateSubtask(subtask.id, { status: "WIP", branchName: "feature/x" });
+        updateSubtask(subtask.id, { status: "IN_REVIEW", prUrl: "https://github.com/org/repo/pull/1" });
+        expect(() => updateSubtask(subtask.id, { status: "CUT_RELEASE", complexityRating: 5 })).toThrow(
+            /cannot change complexity/i
+        );
+    });
+
+    it("does not throw when the complexity value is resubmitted unchanged while locked", () => {
+        const subtask = createSubtask(storyId, { title: "x" });
+        updateSubtask(subtask.id, { status: "WIP", branchName: "feature/x" });
+        updateSubtask(subtask.id, { complexityRating: 3 });
+        updateSubtask(subtask.id, { status: "IN_REVIEW", prUrl: "https://github.com/org/repo/pull/1" });
+        updateSubtask(subtask.id, { status: "CUT_RELEASE" });
+
+        const updated = updateSubtask(subtask.id, { complexityRating: 3 });
+        expect(updated.complexityRating).toBe(3);
+    });
+
+    it("allows other field updates (e.g. title) once complexity is locked", () => {
+        const subtaskId = moveToCutRelease();
+        const updated = updateSubtask(subtaskId, { title: "renamed" });
+        expect(updated.title).toBe("renamed");
+    });
+});

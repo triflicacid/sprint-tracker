@@ -121,4 +121,21 @@ describe("PATCH /api/subtasks/:id - full lifecycle", () => {
         expect(response.status).toBe(200);
         expect(response.body.comment).toBe("");
     });
+
+    it("rejects changing complexity rating over the API once a subtask has reached cut release", async () => {
+        const subtask = await createSubtask();
+        await request(app).patch(`/api/subtasks/${subtask.id}`).send({ status: "WIP", branchName: "feature/x" });
+        await request(app)
+            .patch(`/api/subtasks/${subtask.id}`)
+            .send({ status: "IN_REVIEW", prUrl: "https://github.com/org/repo/pull/1" });
+        await request(app).patch(`/api/subtasks/${subtask.id}`).send({ status: "CUT_RELEASE" });
+
+        const response = await request(app).patch(`/api/subtasks/${subtask.id}`).send({ complexityRating: 5 });
+        expect(response.status).toBe(400);
+        expect(response.body.error).toMatch(/cannot change complexity/i);
+
+        // and confirm it wasn't persisted
+        const fetched = await request(app).get(`/api/subtasks/${subtask.id}`);
+        expect(fetched.body.complexityRating).toBeNull();
+    });
 });

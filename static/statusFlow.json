@@ -40,28 +40,32 @@
       "label": "cut release",
       "rank": 5,
       "color": "#d55181",
-      "description": "The pull request has merged and been cut into a release build."
+      "description": "The pull request has merged and been cut into a release build.",
+      "locksComplexity": true
     },
     {
       "id": "TESTING",
       "label": "testing",
       "rank": 6,
       "color": "#3987e5",
-      "description": "The release is being tested (QA) before sign-off."
+      "description": "The release is being tested (QA) before sign-off.",
+      "locksComplexity": true
     },
     {
       "id": "UAT",
       "label": "uat",
       "rank": 7,
       "color": "#199e70",
-      "description": "The release has passed testing and is in user acceptance testing."
+      "description": "The release has passed testing and is in user acceptance testing.",
+      "locksComplexity": true
     },
     {
       "id": "DONE",
       "label": "done",
       "rank": 8,
       "color": "#008300",
-      "description": "Fully released and accepted - no further work remains."
+      "description": "Fully released and accepted - no further work remains.",
+      "locksComplexity": true
     }
   ],
   "transitions": [

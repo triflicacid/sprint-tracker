@@ -33,6 +33,12 @@ export function isTransitionAllowed(from: SubtaskStatus, to: SubtaskStatus): boo
     return from === to || getAllowedNextStates(from).includes(to);
 }
 
+// once a subtask is in a "locksComplexity" state, its complexity rating can
+// no longer be edited
+export function locksComplexityRating(status: SubtaskStatus): boolean {
+    return config.states.find((entry) => entry.id === status)?.locksComplexity ?? false;
+}
+
 // the rank of a status is used to determine the status of a collection of statuses
 export function rankOf(status: SubtaskStatus) {
     const state = config.states.find((entry) => entry.id === status);
