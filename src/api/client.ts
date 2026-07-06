@@ -13,6 +13,7 @@ import type {
     JiraInfo,
     StatusFlowConfig,
     StatusHistoryEntry,
+    MarkdownExportFields,
 } from "@shared/types";
 
 const BASE_URL: string = "/api";
@@ -32,6 +33,20 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
         return undefined as T;
     }
     return (await response.json()) as T;
+}
+
+// like request(), but for endpoints that return a raw text body (the
+// markdown export) rather than JSON.
+async function requestText(path: string, options?: RequestInit): Promise<string> {
+    const response = await fetch(`${BASE_URL}${path}`, {
+        headers: { "Content-Type": "application/json" },
+        ...options,
+    });
+    if (!response.ok) {
+        const body = await response.json().catch(() => ({ error: response.statusText }));
+        throw new Error(body.error ?? "request failed");
+    }
+    return response.text();
 }
 
 
@@ -121,4 +136,7 @@ export const api = {
 
     updateSprint: (id: number, input: { comment?: string }): Promise<SprintDetail> =>
         request(`/sprints/${id}`, { method: "PATCH", body: JSON.stringify(input) }),
+
+    exportMarkdown: (sprintIds: number[], fields: MarkdownExportFields): Promise<string> =>
+        requestText("/export/markdown", { method: "POST", body: JSON.stringify({ sprintIds, fields }) }),
 };

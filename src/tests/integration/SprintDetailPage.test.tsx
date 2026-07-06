@@ -3,7 +3,9 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { SprintDetailPage } from "../../pages/SprintDetailPage";
+import { ToastProvider } from "../../components/Toast";
 import { api } from "../../api/client";
+import { downloadTextFile } from "../../utils/download";
 
 vi.mock("../../api/client", () => ({
     api: {
@@ -13,7 +15,12 @@ vi.mock("../../api/client", () => ({
         removeHoliday: vi.fn(),
         createStory: vi.fn(),
         updateSprint: vi.fn(),
+        exportMarkdown: vi.fn(),
     },
+}));
+
+vi.mock("../../utils/download", () => ({
+    downloadTextFile: vi.fn(),
 }));
 
 const sprint = {
@@ -43,6 +50,7 @@ const sprint = {
 
 beforeEach(() => {
     Object.values(api).forEach((fn) => vi.mocked(fn).mockReset());
+    vi.mocked(downloadTextFile).mockReset();
     vi.mocked(api.getSprint).mockResolvedValue(sprint);
     vi.mocked(api.listHolidays).mockResolvedValue([]);
 });
@@ -50,9 +58,11 @@ beforeEach(() => {
 function renderPage() {
     return render(
         <MemoryRouter initialEntries={["/sprints/9"]}>
-            <Routes>
-                <Route path="/sprints/:id" element={<SprintDetailPage />} />
-            </Routes>
+            <ToastProvider>
+                <Routes>
+                    <Route path="/sprints/:id" element={<SprintDetailPage />} />
+                </Routes>
+            </ToastProvider>
         </MemoryRouter>
     );
 }
@@ -90,6 +100,17 @@ describe("SprintDetailPage", () => {
             jiraUrl: "https://x/browse/NEB-2",
             description: "another story",
         });
+    });
+
+    it("downloads a markdown export for just this sprint when 'export' is clicked", async () => {
+        vi.mocked(api.exportMarkdown).mockResolvedValue("# Sprint 9\n");
+        renderPage();
+        await screen.findByText("a story");
+
+        await userEvent.click(screen.getByText("export"));
+
+        expect(api.exportMarkdown).toHaveBeenCalledWith([9], expect.any(Object));
+        expect(downloadTextFile).toHaveBeenCalledWith(expect.stringMatching(/^sprint-export-.*\.md$/), "# Sprint 9\n");
     });
 
     it("saves an edited comment on blur", async () => {

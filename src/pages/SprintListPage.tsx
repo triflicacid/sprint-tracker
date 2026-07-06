@@ -41,6 +41,7 @@ export function SprintListPage(): React.ReactElement {
                     <Link to="/stats">stats</Link>
                     <Link to="/calendar">calendar</Link>
                     <Link to="/transitions">transitions</Link>
+                    <Link to="/export">export</Link>
                     <button onClick={() => setShowForm(!showForm)}>new sprint</button>
                 </div>
             </div>

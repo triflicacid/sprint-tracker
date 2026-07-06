@@ -4,6 +4,9 @@ import type { SprintDetail } from "@shared/types";
 import { api } from "../api/client";
 import { StoryCard } from "../components/stories/StoryCard";
 import { formatIsoDate } from "../utils/calendarGrid";
+import { loadExportFields } from "../utils/exportFields";
+import { downloadTextFile } from "../utils/download";
+import { useToast } from "../components/Toast";
 
 // a sprint ("/sprints/:id"): its stories, holiday management, and comment.
 export function SprintDetailPage(): React.ReactElement {
@@ -18,6 +21,7 @@ export function SprintDetailPage(): React.ReactElement {
     const [commentDraft, setCommentDraft] = useState<string>("");
     const [holidays, setHolidays] = useState<string[]>([]);
     const [newHolidayDate, setNewHolidayDate] = useState<string>("");
+    const { showError } = useToast();
 
     async function loadSprint() {
         try {
@@ -70,6 +74,15 @@ export function SprintDetailPage(): React.ReactElement {
         }
         await api.removeHoliday(date);
         loadHolidays(sprint.startDate, sprint.endDate);
+    }
+
+    async function handleQuickExport() {
+        try {
+            const markdown = await api.exportMarkdown([sprintId], loadExportFields());
+            downloadTextFile(`sprint-export-${formatIsoDate(new Date())}.md`, markdown);
+        } catch (error) {
+            showError(error instanceof Error ? error.message : "failed to generate export");
+        }
     }
 
     async function handleCreateStory() {
@@ -127,6 +140,7 @@ export function SprintDetailPage(): React.ReactElement {
                 </div>
                 <div className="page-header-actions">
                     <Link to={`/stats?sprintId=${sprint.id}`}>stats</Link>
+                    <button onClick={handleQuickExport}>export</button>
                     <button onClick={() => setShowForm(!showForm)}>new story</button>
                 </div>
             </div>

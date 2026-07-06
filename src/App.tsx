@@ -7,6 +7,7 @@ import { SubtaskDetailPage } from "./pages/SubtaskDetailPage";
 import { StatsPage } from "./pages/StatsPage";
 import { CalendarPage } from "./pages/CalendarPage";
 import { TransitionsInfoPage } from "./pages/TransitionsInfoPage";
+import { ExportPage } from "./pages/ExportPage";
 import { ToastProvider } from "./components/Toast";
 
 export function App(): React.ReactElement {
@@ -20,6 +21,7 @@ export function App(): React.ReactElement {
                 <Route path="/stats" element={<StatsPage />} />
                 <Route path="/calendar" element={<CalendarPage />} />
                 <Route path="/transitions" element={<TransitionsInfoPage />} />
+                <Route path="/export" element={<ExportPage />} />
             </Routes>
         </ToastProvider>
     );

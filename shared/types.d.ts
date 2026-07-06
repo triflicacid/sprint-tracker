@@ -160,3 +160,29 @@ export interface JiraInfo {
   title: string;
   labels: string[];
 }
+
+// which story/subtask properties to include in a markdown export
+export interface MarkdownExportStoryFields {
+  jiraKey: boolean;
+  title: boolean;
+  status: boolean;
+  tags: boolean;
+  awaitingMoreSubtasks: boolean;
+}
+
+export interface MarkdownExportSubtaskFields {
+  title: boolean;
+  comment: boolean;
+  branchName: boolean;
+  prUrl: boolean;
+  status: boolean;
+  repoName: boolean;
+  complexityRating: boolean;
+  releaseVersion: boolean;
+  createdAt: boolean;
+}
+
+export interface MarkdownExportFields {
+  story: MarkdownExportStoryFields;
+  subtask: MarkdownExportSubtaskFields;
+}

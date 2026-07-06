@@ -19,6 +19,7 @@ tags:
   - name: Jira
   - name: Status flow
   - name: Holidays
+  - name: Export
 
 paths:
   /sprints:
@@ -467,6 +468,28 @@ paths:
         "204":
           description: Unmarked (whether or not it was previously a holiday)
 
+  /export/markdown:
+    post:
+      tags: [Export]
+      summary: Export one or more sprints to a markdown document
+      description: Builds one markdown document covering every given sprint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MarkdownExportRequest" }
+      responses:
+        "200":
+          description: OK
+          content:
+            text/markdown:
+              schema: { type: string }
+        "400":
+          description: sprintIds missing/empty, or fields missing
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
 components:
   parameters:
     SprintId:
@@ -794,3 +817,44 @@ components:
       type: object
       properties:
         date: { type: string, format: date }
+
+    MarkdownExportStoryFields:
+      type: object
+      description: Every field defaults to true on the client (src/utils/exportFields.ts).
+      required: [jiraKey, title, status, tags, awaitingMoreSubtasks]
+      properties:
+        jiraKey: { type: boolean }
+        title: { type: boolean }
+        status: { type: boolean }
+        tags: { type: boolean }
+        awaitingMoreSubtasks: { type: boolean }
+
+    MarkdownExportSubtaskFields:
+      type: object
+      required: [title, comment, branchName, prUrl, status, repoName, complexityRating, releaseVersion, createdAt]
+      properties:
+        title: { type: boolean }
+        comment: { type: boolean }
+        branchName: { type: boolean }
+        prUrl: { type: boolean }
+        status: { type: boolean }
+        repoName: { type: boolean }
+        complexityRating: { type: boolean }
+        releaseVersion: { type: boolean }
+        createdAt: { type: boolean }
+
+    MarkdownExportFields:
+      type: object
+      required: [story, subtask]
+      properties:
+        story: { $ref: "#/components/schemas/MarkdownExportStoryFields" }
+        subtask: { $ref: "#/components/schemas/MarkdownExportSubtaskFields" }
+
+    MarkdownExportRequest:
+      type: object
+      required: [sprintIds, fields]
+      properties:
+        sprintIds:
+          type: array
+          items: { type: integer }
+        fields: { $ref: "#/components/schemas/MarkdownExportFields" }
