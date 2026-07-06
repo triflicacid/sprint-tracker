@@ -466,12 +466,24 @@ select {
 }
 
 .calendar-day {
+    position: relative;
     display: block;
     min-height: 64px;
     border: 1px solid var(--border);
     border-radius: 6px;
     padding: 4px 6px;
     font-size: 11px;
+    overflow: hidden;
+}
+
+.calendar-day-segments {
+    position: absolute;
+    inset: 0;
+    display: flex;
+}
+
+.calendar-day-segment {
+    height: 100%;
 }
 
 .calendar-day-link {
@@ -487,6 +499,8 @@ select {
 }
 
 .calendar-day-number {
+    position: relative;
+    z-index: 1;
     display: block;
     font-size: 12px;
     color: var(--text-dim);
@@ -598,6 +612,48 @@ select {
     position: relative;
     padding-bottom: 140px;
     margin-top: 12px;
+}
+
+.flow-chain {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin-top: 12px;
+}
+
+.flow-chain-arrow {
+    color: var(--text-dim);
+}
+
+.flow-chain-empty {
+    color: var(--text-dim);
+    font-size: 13px;
+    margin-top: 12px;
+}
+
+.transitions-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+    font-size: 13px;
+}
+
+.transitions-table th,
+.transitions-table td {
+    text-align: left;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+}
+
+.transitions-table th {
+    color: var(--text-dim);
+    font-weight: 500;
+    text-transform: lowercase;
+}
+
+.transitions-table tbody tr:last-child td {
+    border-bottom: none;
 }
 
 .flow-nodes {

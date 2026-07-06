@@ -1,11 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { seedSprint, seedStory, seedSubtask } from "./seed.js";
 
-// Drives a subtask through every state in static/statusFlow.json,
-// including the pr-comments rework detour, to done - and checks the parent
-// story only flips to DONE once its subtask is DONE and "awaiting more
-// prs" is unchecked. sprint-lifecycle.spec.ts covers new -> wip -> in
-// review; this covers the rest, plus the required-field validation error.
 test("subtask flow to done, including the pr comments detour, drives its story to done", async ({
     page,
     request,
@@ -17,9 +12,7 @@ test("subtask flow to done, including the pr comments detour, drives its story t
     await page.goto(`/#/stories/${story.id}`);
     await expect(page.getByText("e2e full-flow subtask")).toBeVisible();
 
-    // rejects an incomplete transition: NEW -> WIP requires a branch name,
-    // and leaving it blank must surface the server's validation error as a
-    // toast rather than silently advancing the status.
+    // rejects an incomplete transition: NEW -> WIP requires a branch name
     await page.click(".subtask-row .status-flow >> text=wip");
     await page.click("text=confirm");
     await expect(page.locator(".toast-error")).toHaveText("Branch name is required for this transition");
@@ -38,8 +31,7 @@ test("subtask flow to done, including the pr comments detour, drives its story t
     await page.selectOption(".complexity-select", "3");
     await expect(page.locator(".complexity-select")).toHaveValue("3");
 
-    // Confirm is required even for transitions with no field to fill in -
-    // it's shown whenever a transition is pending, not just when a field is.
+    // Confirm is required even for transitions with no field to fill in
     await page.click(".subtask-row .status-flow >> text=pr comments");
     await page.click("text=confirm");
     await expect(page.locator(".subtask-row .status-badge").first()).toHaveText("pr comments");
@@ -80,7 +72,16 @@ test("subtask flow to done, including the pr comments detour, drives its story t
 
     await page.click(".subtask-title");
     await expect(page).toHaveURL(new RegExp(`#/subtasks/${subtask.id}$`));
-    // this subtask's actual path touched every state, so its "done" node
-    // (like all the others) renders at full opacity rather than dimmed.
-    await expect(page.locator(".flow-node", { hasText: "done" })).toHaveCSS("opacity", "1");
+    const lozenges = page.locator(".flow-chain .flow-node");
+    await expect(lozenges).toHaveText([
+        "new",
+        "wip",
+        "in review",
+        "pr comments",
+        "in review",
+        "cut release",
+        "testing",
+        "uat",
+        "done",
+    ]);
 });

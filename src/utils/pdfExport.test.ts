@@ -116,8 +116,70 @@ describe("exportSectionsAsPdf", () => {
         expect(pdfInstance.text).toHaveBeenCalledWith(["Status: new"], expect.any(Number), expect.any(Number));
 
         // color set to the accent color for the link, then reset to black
+        // immediately after (renderSection also resets to black once up front,
+        // before the title, so the accent call isn't necessarily first overall).
         const colorCalls = pdfInstance.setTextColor.mock.calls;
-        expect(colorCalls[0]).toEqual([217, 119, 6]);
-        expect(colorCalls[1]).toEqual([0, 0, 0]);
+        const accentCallIndex = colorCalls.findIndex((call) => call[0] === 217 && call[1] === 119 && call[2] === 6);
+        expect(accentCallIndex).toBeGreaterThanOrEqual(0);
+        expect(colorCalls[accentCallIndex + 1]).toEqual([0, 0, 0]);
+    });
+
+    it("draws a real table (not a screenshot), coloring each cell independently and resetting to black afterwards", async () => {
+        const sections: PdfSection[] = [
+            {
+                title: "add card deletion endpoint",
+                table: {
+                    headers: ["date/time", "state", "time in previous"],
+                    columnWidths: [50, 50, 50],
+                    rows: [
+                        [{ text: "2026-03-05 10:00" }, { text: "pr comments", color: [230, 103, 103] }, { text: "-" }],
+                        [{ text: "2026-03-05 17:00" }, { text: "in review", color: [201, 133, 0] }, { text: "0d 7h 0m" }],
+                    ],
+                },
+            },
+        ];
+
+        await exportSectionsAsPdf(sections, "table.pdf");
+
+        expect(html2canvas).not.toHaveBeenCalled();
+        // headers drawn in the dim gray, not black or a status color
+        expect(pdfInstance.text).toHaveBeenCalledWith("date/time", expect.any(Number), expect.any(Number));
+        expect(pdfInstance.text).toHaveBeenCalledWith("state", expect.any(Number), expect.any(Number));
+
+        // every cell's actual text is drawn as real pdf text (searchable),
+        // not baked into an image
+        expect(pdfInstance.text).toHaveBeenCalledWith("2026-03-05 10:00", expect.any(Number), expect.any(Number));
+        expect(pdfInstance.text).toHaveBeenCalledWith("pr comments", expect.any(Number), expect.any(Number));
+        expect(pdfInstance.text).toHaveBeenCalledWith("in review", expect.any(Number), expect.any(Number));
+        expect(pdfInstance.text).toHaveBeenCalledWith("0d 7h 0m", expect.any(Number), expect.any(Number));
+
+        // each status cell's own color was applied before drawing it
+        const colorCalls = pdfInstance.setTextColor.mock.calls;
+        expect(colorCalls).toContainEqual([230, 103, 103]);
+        expect(colorCalls).toContainEqual([201, 133, 0]);
+        // and reset back to black for any plain (uncolored) cell/text after
+        expect(colorCalls).toContainEqual([0, 0, 0]);
+    });
+
+    it("positions table columns using the given columnWidths, left to right", async () => {
+        const sections: PdfSection[] = [
+            {
+                title: "Subtask",
+                table: {
+                    headers: ["a", "b"],
+                    columnWidths: [30, 40],
+                    rows: [[{ text: "cell-a" }, { text: "cell-b" }]],
+                },
+            },
+        ];
+
+        await exportSectionsAsPdf(sections, "columns.pdf");
+
+        const cellACall = pdfInstance.text.mock.calls.find((call) => call[0] === "cell-a");
+        const cellBCall = pdfInstance.text.mock.calls.find((call) => call[0] === "cell-b");
+        expect(cellACall).toBeDefined();
+        expect(cellBCall).toBeDefined();
+        // cell-b's x position is 30mm (column a's width) to the right of cell-a's
+        expect(cellBCall![1]).toBe(cellACall![1] + 30);
     });
 });

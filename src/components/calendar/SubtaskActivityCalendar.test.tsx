@@ -18,6 +18,15 @@ const done: StatusHistoryEntry[] = [
     { id: 3, entityType: "subtask", entityId: 1, status: "DONE", releaseVersion: null, changedAt: "2026-03-05" },
 ];
 
+const multiTransitionDay: StatusHistoryEntry[] = [
+    { id: 1, entityType: "subtask", entityId: 1, status: "NEW", releaseVersion: null, changedAt: "2026-03-01" },
+    { id: 2, entityType: "subtask", entityId: 1, status: "WIP", releaseVersion: null, changedAt: "2026-03-04 09:00:00" },
+    { id: 3, entityType: "subtask", entityId: 1, status: "PR_COMMENTS", releaseVersion: null, changedAt: "2026-03-05 10:00:00" },
+    { id: 4, entityType: "subtask", entityId: 1, status: "IN_REVIEW", releaseVersion: null, changedAt: "2026-03-05 17:00:00" },
+    { id: 5, entityType: "subtask", entityId: 1, status: "CUT_RELEASE", releaseVersion: null, changedAt: "2026-03-05 19:00:00" },
+    { id: 6, entityType: "subtask", entityId: 1, status: "DONE", releaseVersion: null, changedAt: "2026-03-06 09:00:00" },
+];
+
 describe("SubtaskActivityCalendar", () => {
     it("shows a message instead of a calendar when the subtask never left NEW", () => {
         render(<SubtaskActivityCalendar history={notStarted} />);
@@ -49,5 +58,35 @@ describe("SubtaskActivityCalendar", () => {
         const dayAfterDone = screen.getByText("6").closest(".calendar-day");
         expect(dayAfterDone?.tagName).toBe("DIV");
         expect(dayAfterDone).toHaveClass("calendar-day-muted");
+    });
+
+    it("renders a plain solid background (no segment strips) for a day with only one status", () => {
+        const { container } = render(<SubtaskActivityCalendar history={done} />);
+        const day = screen.getByText("2").closest(".calendar-day") as HTMLElement;
+        expect(day.style.backgroundColor).not.toBe("");
+        expect(day.querySelector(".calendar-day-segments")).toBeNull();
+        expect(container.querySelectorAll(".calendar-day-segment")).toHaveLength(0);
+    });
+
+    it("splits a day with multiple transitions into proportional-width segment strips", () => {
+        render(<SubtaskActivityCalendar history={multiTransitionDay} />);
+        const day = screen.getByText("5").closest(".calendar-day") as HTMLElement;
+        // background has strips in it rather than one flat colour
+        expect(day.style.backgroundColor).toBe("");
+        const segments = day.querySelectorAll(".calendar-day-segment");
+        expect(segments).toHaveLength(4);
+        // proportional to time held: wip carries over from the day before
+        // until 10:00 (10h), then 10:00->17:00 (7h), 17:00->19:00 (2h),
+        // 19:00->midnight (5h)
+        expect((segments[0] as HTMLElement).style.flexGrow).toBe(String(10 * 60 * 60 * 1000));
+        expect((segments[1] as HTMLElement).style.flexGrow).toBe(String(7 * 60 * 60 * 1000));
+        expect((segments[2] as HTMLElement).style.flexGrow).toBe(String(2 * 60 * 60 * 1000));
+        expect((segments[3] as HTMLElement).style.flexGrow).toBe(String(5 * 60 * 60 * 1000));
+    });
+
+    it("lists every status the day held, in order, in the cell's tooltip title", () => {
+        render(<SubtaskActivityCalendar history={multiTransitionDay} />);
+        const day = screen.getByText("5").closest(".calendar-day") as HTMLElement;
+        expect(day).toHaveAttribute("title", "2026-03-05 — wip → pr comments → in review → cut release");
     });
 });

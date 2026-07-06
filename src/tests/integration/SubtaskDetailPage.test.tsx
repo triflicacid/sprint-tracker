@@ -63,8 +63,6 @@ describe("SubtaskDetailPage", () => {
         renderPage();
         expect(screen.getByText("loading...")).toBeInTheDocument();
 
-        // the title renders twice - once as the page <h1>, once inside
-        // the embedded SubtaskRow - so scope to the heading specifically.
         expect(await screen.findByRole("heading", { name: "add saved card list endpoint" })).toBeInTheDocument();
         expect(screen.getByText("Flow")).toBeInTheDocument();
         expect(screen.getByText("Activity calendar")).toBeInTheDocument();
@@ -115,5 +113,39 @@ describe("SubtaskDetailPage", () => {
         renderPage();
         await screen.findByText("internal note");
         expect(screen.queryByRole("heading", { name: "internal note" })).not.toBeInTheDocument();
+    });
+
+    it("lists every transition in the table, including several on the same day", async () => {
+        vi.mocked(api.getSubtask).mockResolvedValue(subtask);
+        vi.mocked(api.getSubtaskHistory).mockResolvedValue([
+            { id: 1, entityType: "subtask", entityId: 5, status: "NEW", releaseVersion: null, changedAt: "2026-03-01 09:00:00" },
+            { id: 2, entityType: "subtask", entityId: 5, status: "WIP", releaseVersion: null, changedAt: "2026-03-01 09:10:00" },
+            { id: 3, entityType: "subtask", entityId: 5, status: "PR_COMMENTS", releaseVersion: null, changedAt: "2026-03-05 10:00:00" },
+            { id: 4, entityType: "subtask", entityId: 5, status: "IN_REVIEW", releaseVersion: null, changedAt: "2026-03-05 17:00:00" },
+            { id: 5, entityType: "subtask", entityId: 5, status: "CUT_RELEASE", releaseVersion: null, changedAt: "2026-03-05 19:00:00" },
+        ]);
+        renderPage();
+        await screen.findByRole("heading", { name: "add saved card list endpoint" });
+
+        const table = document.querySelector(".transitions-table") as HTMLTableElement;
+        expect(table).toBeInTheDocument();
+        const rows = table.querySelectorAll("tbody tr");
+        expect(rows).toHaveLength(5);
+        expect(rows[0]).toHaveTextContent("2026-03-01 09:00");
+        expect(rows[0]).toHaveTextContent("-"); // no "time in previous" for the first row
+        expect(rows[2]).toHaveTextContent("2026-03-05 10:00");
+        expect(rows[2]).toHaveTextContent("pr comments");
+        expect(rows[3]).toHaveTextContent("in review");
+        expect(rows[3]).toHaveTextContent("0d 7h 0m"); // 10:00 -> 17:00
+        expect(rows[4]).toHaveTextContent("cut release");
+        expect(rows[4]).toHaveTextContent("0d 2h 0m"); // 17:00 -> 19:00
+    });
+
+    it("renders nothing for the transitions table when there is no history yet", async () => {
+        vi.mocked(api.getSubtask).mockResolvedValue(subtask);
+        vi.mocked(api.getSubtaskHistory).mockResolvedValue([]);
+        renderPage();
+        await screen.findByRole("heading", { name: "add saved card list endpoint" });
+        expect(document.querySelector(".transitions-table")).not.toBeInTheDocument();
     });
 });
