@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { StatsPage } from "../../pages/StatsPage";
 import { api } from "../../api/client";
+import { exportSectionsAsPdf } from "../../utils/pdfExport";
 
 vi.mock("../../api/client", () => ({
     api: {
@@ -15,6 +16,10 @@ vi.mock("../../api/client", () => ({
         addHoliday: vi.fn(),
         removeHoliday: vi.fn(),
     },
+}));
+
+vi.mock("../../utils/pdfExport", () => ({
+    exportSectionsAsPdf: vi.fn(),
 }));
 
 const sprint = {
@@ -40,8 +45,9 @@ beforeEach(() => {
     vi.mocked(api.listSprints).mockResolvedValue([sprint]);
     vi.mocked(api.getSprintStats).mockResolvedValue(stats);
     vi.mocked(api.getDayActivity).mockResolvedValue({});
-    vi.mocked(api.getStatusBreakdown).mockResolvedValue([]);
+    vi.mocked(api.getStatusBreakdown).mockResolvedValue([{ date: "2026-03-10", counts: { NEW: 1, WIP: 1 } }]);
     vi.mocked(api.listHolidays).mockResolvedValue([]);
+    vi.mocked(exportSectionsAsPdf).mockReset();
 });
 
 function renderPage() {
@@ -86,5 +92,81 @@ describe("StatsPage", () => {
 
         await userEvent.click(screen.getByText("5"));
         expect(api.addHoliday).toHaveBeenCalledWith("2026-03-05");
+    });
+
+    it("exports a single section as a pdf with real written stats when its own export button is clicked", async () => {
+        renderPage();
+        await userEvent.selectOptions(await screen.findByRole("combobox"), "1");
+        await screen.findByText("pull requests");
+
+        const exportButtons = screen.getAllByRole("button", { name: "export pdf" });
+        await userEvent.click(exportButtons[0]);
+
+        expect(exportSectionsAsPdf).toHaveBeenCalledTimes(1);
+        const [sections, filename] = vi.mocked(exportSectionsAsPdf).mock.calls[0];
+        expect(sections).toHaveLength(1);
+        expect(sections[0].title).toMatch(/^Summary/);
+        expect(sections[0].element).toBeUndefined();
+        expect(sections[0].lines).toEqual(
+            expect.arrayContaining(["Pull requests: 3", "Stories: 2", "Repos touched: 1"])
+        );
+        expect(filename).toMatch(/^sprint-stats-summary-\d{4}-\d{2}-\d{2}\.pdf$/);
+    });
+
+    it("exports every section as one multi-page pdf via the header button, with charts and written stats", async () => {
+        renderPage();
+        await userEvent.selectOptions(await screen.findByRole("combobox"), "1");
+        await screen.findByText("pull requests");
+
+        await userEvent.click(screen.getByRole("button", { name: "export all as pdf" }));
+
+        expect(exportSectionsAsPdf).toHaveBeenCalledTimes(1);
+        const [sections, filename] = vi.mocked(exportSectionsAsPdf).mock.calls[0];
+        expect(sections).toHaveLength(5);
+
+        // summary is text-only; the rest pair a chart/calendar screenshot with
+        // written stats underneath.
+        expect(sections[0].element).toBeUndefined();
+        sections.slice(1).forEach((section) => expect(section.element).toBeInstanceOf(HTMLElement));
+
+        const repoSection = sections[1];
+        expect(repoSection.title).toBe("Repo distribution");
+        expect(repoSection.lines).toEqual(["checkout-web: 3 PRs (100%)"]);
+
+        const timeSection = sections[2];
+        expect(timeSection.lines).toEqual(
+            expect.arrayContaining(["a story: 4 days", "Average: 4.0 days across 1 story"])
+        );
+
+        // only one status-breakdown day was seeded, so it reads as a single
+        // snapshot rather than a start/end comparison.
+        const statusSection = sections[3];
+        expect(statusSection.lines).toEqual(["2026-03-10: new: 1, wip: 1"]);
+
+        expect(filename).toMatch(/^sprint-stats-\d{4}-\d{2}-\d{2}\.pdf$/);
+    });
+
+    it("describes the status breakdown as a start-vs-end comparison when it spans more than one day", async () => {
+        vi.mocked(api.getStatusBreakdown).mockResolvedValue([
+            { date: "2026-03-02", counts: { NEW: 2 } },
+            { date: "2026-03-08", counts: { NEW: 1, WIP: 1 } },
+            { date: "2026-03-16", counts: { WIP: 1, DONE: 1 } },
+        ]);
+        renderPage();
+        await userEvent.selectOptions(await screen.findByRole("combobox"), "1");
+        await screen.findByText("pull requests");
+
+        await userEvent.click(screen.getByRole("button", { name: "export all as pdf" }));
+
+        const [sections] = vi.mocked(exportSectionsAsPdf).mock.calls[0];
+        expect(sections[3].lines).toEqual([
+            "Start (2026-03-02): new: 2",
+            "End (2026-03-16): wip: 1, done: 1",
+        ]);
+    });
+
+    it("does not show the header export-all button until a sprint is selected", () => {
+        renderPage();
+        expect(screen.queryByRole("button", { name: "export all as pdf" })).not.toBeInTheDocument();
     });
 });
