@@ -161,9 +161,7 @@ export interface JiraInfo {
   labels: string[];
 }
 
-// which story/subtask properties to include in a markdown export - every
-// field is independently toggleable, all default to true (see
-// src/utils/exportFields.ts on the client).
+// which story/subtask properties to include in a markdown export
 export interface MarkdownExportStoryFields {
   jiraKey: boolean;
   title: boolean;

@@ -1,11 +1,9 @@
-import type { MarkdownExportFields, StoryDetail, Subtask } from "../../shared/types.js";
+import type { MarkdownExportFields, StoryDetail, StoryStatus, Subtask } from "../../shared/types.js";
 import { getSprintDetail } from "./sprintService.js";
 import { getStoryDetail } from "./storyService.js";
 import { getStatusFlow } from "./statusFlowService.js";
 
-// mirrors StatusBadge.tsx's STATUS_LABELS on the client: statusFlow.json's
-// states plus the two story-only statuses it isn't aware of.
-function labelOf(status: string): string {
+function labelOf(status: StoryStatus): string {
     const state = getStatusFlow().states.find((entry) => entry.id === status);
     if (state) {
         return state.label;
@@ -19,16 +17,14 @@ function labelOf(status: string): string {
     return status.toLowerCase();
 }
 
-function formatSubtask(subtask: Subtask, fields: MarkdownExportFields["subtask"]): string {
+function formatSubtask(subtask: Subtask, fields: MarkdownExportFields["subtask"]) {
     const identity = fields.title ? subtask.title : `Subtask ${subtask.id}`;
     let heading = `- ${identity}`;
     if (fields.status) {
         heading += ` [${labelOf(subtask.status)}]`;
     }
 
-    // branch and PR link share one sub-bullet ("branch @ pr link") rather
-    // than two, since they're really one piece of information (where the
-    // work happened); everything else gets its own sub-bullet.
+    // branch and PR link share one sub-bullet ("branch @ pr link")
     const detailLines: string[] = [];
     if (fields.branchName) {
         const branch = fields.prUrl && subtask.url ? `${subtask.branchName} @ ${subtask.url}` : subtask.branchName;
@@ -56,7 +52,7 @@ function formatSubtask(subtask: Subtask, fields: MarkdownExportFields["subtask"]
     return lines.join("\n");
 }
 
-function formatStory(story: StoryDetail, fields: MarkdownExportFields): string {
+function formatStory(story: StoryDetail, fields: MarkdownExportFields) {
     const identityParts: string[] = [];
     if (fields.story.jiraKey) {
         identityParts.push(story.jiraKey ?? story.jiraUrl);
@@ -83,9 +79,8 @@ function formatStory(story: StoryDetail, fields: MarkdownExportFields): string {
     return [...lines, "", ...subtaskLines].join("\n");
 }
 
-// builds one markdown document covering every given sprint, in the order
-// given. unknown sprint ids are silently skipped.
-export function buildMarkdownExport(sprintIds: number[], fields: MarkdownExportFields): string {
+// builds one markdown document covering every given sprint in the order given
+export function buildMarkdownExport(sprintIds: number[], fields: MarkdownExportFields) {
     const sections: string[] = [];
     for (const sprintId of sprintIds) {
         const sprint = getSprintDetail(sprintId);

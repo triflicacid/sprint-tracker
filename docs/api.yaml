@@ -472,12 +472,7 @@ paths:
     post:
       tags: [Export]
       summary: Export one or more sprints to a markdown document
-      description: >
-        Builds one markdown document covering every given sprint (unknown sprint ids are silently
-        skipped), one `#` heading per sprint and one `##` heading per story with its subtasks as a
-        bullet list underneath. Every story/subtask property is independently omittable via
-        `fields` - see `MarkdownExportFields`. Returned as a raw `text/markdown` body with a
-        `Content-Disposition: attachment` header, not JSON.
+      description: Builds one markdown document covering every given sprint
       requestBody:
         required: true
         content:
