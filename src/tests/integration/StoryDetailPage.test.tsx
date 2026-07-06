@@ -217,20 +217,27 @@ describe("StoryDetailPage", () => {
         );
         expect(sections[0].element).toBeInstanceOf(HTMLElement);
 
-        // subtask pages are text-only: no flow-diagram screenshot, but a pr
-        // link line up front when the subtask has one.
+        // subtask pages are a real drawn table (no flow-diagram screenshot),
+        // plus a pr link line up front when the subtask has one.
         expect(sections[1].title).toBe("add endpoint (feature/add-endpoint)");
         expect(sections[1].element).toBeUndefined();
+        expect(sections[1].table).toEqual({
+            headers: ["date/time", "state", "time in previous"],
+            columnWidths: [55, 45, 55],
+            rows: [
+                [{ text: "2026-01-01 00:00" }, { text: "new", color: [107, 114, 128] }, { text: "-" }],
+                [{ text: "2026-01-03 00:00" }, { text: "wip", color: [217, 89, 38] }, { text: "2d 0h 0m" }],
+            ],
+        });
         expect(sections[1].lines).toEqual(
             expect.arrayContaining([
                 { text: "Pull request: https://github.com/acme/repo/pull/7", url: "https://github.com/acme/repo/pull/7" },
-                "Transitions:",
-                "2026-01-01: new",
-                "2026-01-03: wip (2 days in new)",
+                "Total time in each phase:",
             ])
         );
 
         expect(sections[2].element).toBeUndefined();
+        expect(sections[2].table).toBeUndefined();
         expect(sections[2].lines).not.toEqual(expect.arrayContaining([expect.objectContaining({ url: expect.anything() })]));
 
         expect(sections[2].title).toBe("wire up client");

@@ -476,8 +476,6 @@ select {
     overflow: hidden;
 }
 
-/* a day with several status transitions splits into proportional-width
-   vertical strips instead of one solid color - see computeDaySegments. */
 .calendar-day-segments {
     position: absolute;
     inset: 0;

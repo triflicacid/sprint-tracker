@@ -7,18 +7,15 @@ interface SubtaskTransitionsTableProps {
     history: StatusHistoryEntry[];
 }
 
-function formatTimeInPrevious(ms: number | null): string {
+function formatTimeInPrevious(ms: number | null) {
     if (ms === null) {
         return "-";
     }
     return formatDurationDHM(ms);
 }
 
-// a dated list of every transition a subtask has been through, one row per
-// transition even when several land on the same calendar day - the activity
-// calendar collapses same-day transitions down to just the last one, this
-// table is where every individual change is visible.
-export function SubtaskTransitionsTable({ history }: SubtaskTransitionsTableProps): React.ReactElement | null {
+// a dated list of every transition a subtask has been through
+export function SubtaskTransitionsTable({ history }: SubtaskTransitionsTableProps) {
     const rows = buildTransitionRows(history);
     if (rows.length === 0) {
         return null;

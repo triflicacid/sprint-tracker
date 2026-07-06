@@ -63,8 +63,6 @@ describe("SubtaskDetailPage", () => {
         renderPage();
         expect(screen.getByText("loading...")).toBeInTheDocument();
 
-        // the title renders twice - once as the page <h1>, once inside
-        // the embedded SubtaskRow - so scope to the heading specifically.
         expect(await screen.findByRole("heading", { name: "add saved card list endpoint" })).toBeInTheDocument();
         expect(screen.getByText("Flow")).toBeInTheDocument();
         expect(screen.getByText("Activity calendar")).toBeInTheDocument();
@@ -132,15 +130,11 @@ describe("SubtaskDetailPage", () => {
         const table = document.querySelector(".transitions-table") as HTMLTableElement;
         expect(table).toBeInTheDocument();
         const rows = table.querySelectorAll("tbody tr");
-        // 5 history entries -> 5 rows, even though 3 of them share 2026-03-05 -
-        // the day the calendar would collapse down to just "cut release".
         expect(rows).toHaveLength(5);
         expect(rows[0]).toHaveTextContent("2026-03-01 09:00");
         expect(rows[0]).toHaveTextContent("-"); // no "time in previous" for the first row
         expect(rows[2]).toHaveTextContent("2026-03-05 10:00");
         expect(rows[2]).toHaveTextContent("pr comments");
-        // same-day transitions - the whole point of this test - now show an
-        // hours/minutes breakdown instead of collapsing to "0 days".
         expect(rows[3]).toHaveTextContent("in review");
         expect(rows[3]).toHaveTextContent("0d 7h 0m"); // 10:00 -> 17:00
         expect(rows[4]).toHaveTextContent("cut release");

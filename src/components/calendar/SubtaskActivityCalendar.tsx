@@ -13,10 +13,7 @@ interface SubtaskActivityCalendarProps {
 
 const DAY_HEADERS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-// one subtask's day-by-day activity, on its detail page. StatusHistoryEntry's
-// `status` is a plain string (the history table is shared with stories too,
-// even though only subtasks write to it today) - narrowed to SubtaskStatus
-// here since this component is only ever fed one subtask's own history.
+// one subtask's day-by-day activity, on its detail page
 export function SubtaskActivityCalendar({ history, prUrl }: SubtaskActivityCalendarProps) {
     const sortedHistory: StatusHistoryLike[] = [...history]
         .sort((a, b) => new Date(a.changedAt).getTime() - new Date(b.changedAt).getTime())
@@ -66,22 +63,16 @@ export function SubtaskActivityCalendar({ history, prUrl }: SubtaskActivityCalen
                                     const dateString = formatIsoDate(date);
                                     const isActive = dateString >= startDate && dateString <= endDate;
                                     const segments = isActive ? computeDaySegments(sortedHistory, dateString) : [];
-                                    // the day's final status (what a single-color cell would show) is
-                                    // just the last segment's status - the two were computed from the
-                                    // same underlying data, no need for a second pass over history.
                                     const lastStatus = segments[segments.length - 1]?.status ?? "";
                                     const baseTitle = isActive
                                         ? `${dateString} — ${segments
                                               .map((segment) => STATUS_LABELS[segment.status] ?? segment.status.toLowerCase())
                                               .join(" → ")}`
                                         : "";
-                                    // most days hold one status throughout - keep those as a plain solid
-                                    // background. Only a day with several transitions gets the
-                                    // proportional-width segment strips.
-                                    const cellStyle =
-                                        isActive && segments.length <= 1
-                                            ? { backgroundColor: STATUS_COLORS[lastStatus] }
-                                            : undefined;
+                                    // only a day with several transitions gets the proportional-width segment strips.
+                                    const cellStyle = isActive && segments.length <= 1
+                                        ? { backgroundColor: STATUS_COLORS[lastStatus] }
+                                        : undefined;
                                     const segmentsOverlay =
                                         segments.length > 1 ? (
                                             <div className="calendar-day-segments">

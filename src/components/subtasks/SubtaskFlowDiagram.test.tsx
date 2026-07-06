@@ -35,8 +35,6 @@ describe("SubtaskFlowDiagram", () => {
         ];
         const { container } = render(<SubtaskFlowDiagram history={history} />);
         const nodes = container.querySelectorAll(".flow-node");
-        // "in review" appears twice, as two distinct lozenges - not deduped
-        // into one shared node.
         expect(Array.from(nodes).map((n) => n.textContent)).toEqual([
             "new",
             "wip",

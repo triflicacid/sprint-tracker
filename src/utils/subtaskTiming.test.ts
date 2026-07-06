@@ -1,5 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { computeSubtaskTiming, buildTransitionRows, formatDurationDHM, formatDateTime } from "./subtaskTiming";
+import {
+    computeSubtaskTiming,
+    buildTransitionRows,
+    formatDurationDHM,
+    formatDateTime,
+    buildTransitionsPdfTable,
+    buildPhaseTotalsLines,
+} from "./subtaskTiming";
 import type { StatusHistoryEntry } from "@shared/types";
 
 let nextId = 1;
@@ -171,5 +178,69 @@ describe("computeSubtaskTiming", () => {
             "Total time in each phase:",
             "new: 2 days, wip: 0 days (ongoing)",
         ]);
+    });
+});
+
+describe("buildTransitionsPdfTable", () => {
+    it("returns the same 3 headers and column widths as the on-page table's columns", () => {
+        const table = buildTransitionsPdfTable([]);
+        expect(table.headers).toEqual(["date/time", "state", "time in previous"]);
+        expect(table.rows).toEqual([]);
+    });
+
+    it("draws one row per transition, with the state cell colored to match its status", () => {
+        const history = [
+            entry("NEW", "2026-03-05T09:00:00.000Z"),
+            entry("WIP", "2026-03-05T09:10:00.000Z"),
+        ];
+
+        const table = buildTransitionsPdfTable(history);
+
+        expect(table.rows).toHaveLength(2);
+        expect(table.rows[0]).toEqual([
+            { text: "2026-03-05 09:00" },
+            { text: "new", color: [107, 114, 128] }, // #6b7280
+            { text: "-" },
+        ]);
+        expect(table.rows[1]).toEqual([
+            { text: "2026-03-05 09:10" },
+            { text: "wip", color: [217, 89, 38] }, // #d95926
+            { text: "0d 0h 10m" },
+        ]);
+    });
+
+    it("keeps every same-day transition as its own row - the exact gap this table exists to close", () => {
+        const history = [
+            entry("PR_COMMENTS", "2026-03-05T10:00:00.000Z"),
+            entry("IN_REVIEW", "2026-03-05T17:00:00.000Z"),
+            entry("CUT_RELEASE", "2026-03-05T19:00:00.000Z"),
+        ];
+
+        const table = buildTransitionsPdfTable(history);
+
+        expect(table.rows).toHaveLength(3);
+        expect(table.rows.map((row) => row[1].text)).toEqual(["pr comments", "in review", "cut release"]);
+        expect(table.rows[1][2]).toEqual({ text: "0d 7h 0m" });
+        expect(table.rows[2][2]).toEqual({ text: "0d 2h 0m" });
+    });
+});
+
+describe("buildPhaseTotalsLines", () => {
+    it("returns nothing for empty history", () => {
+        expect(buildPhaseTotalsLines([])).toEqual([]);
+    });
+
+    it("matches computeSubtaskTiming's own totals summary exactly", () => {
+        const history = [
+            entry("NEW", "2026-07-01T00:00:00.000Z"),
+            entry("WIP", "2026-07-02T00:00:00.000Z"),
+            entry("DONE", "2026-07-05T00:00:00.000Z"),
+        ];
+        const now = new Date("2026-07-20T00:00:00.000Z");
+
+        expect(buildPhaseTotalsLines(history, now)).toEqual(["Total time in each phase:", "new: 1 day, wip: 3 days"]);
+        // and computeSubtaskTiming's full report still ends with the exact
+        // same two lines, proving the extraction didn't change either one.
+        expect(computeSubtaskTiming(history, now).lines.slice(-2)).toEqual(buildPhaseTotalsLines(history, now));
     });
 });

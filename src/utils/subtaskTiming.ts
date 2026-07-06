@@ -1,5 +1,6 @@
 import type { StatusHistoryEntry } from "@shared/types";
-import { STATUS_LABELS, SUBTASK_STATUSES } from "../components/StatusBadge";
+import { STATUS_LABELS, STATUS_COLORS, SUBTASK_STATUSES } from "../components/StatusBadge";
+import type { PdfTable } from "./pdfExport";
 
 export interface SubtaskTiming {
     // total days from the first history entry to the last
@@ -83,30 +84,24 @@ export function buildTransitionRows(history: StatusHistoryEntry[]): TransitionRo
     });
 }
 
-// builds the "transitions + total time per phase" report for one subtask's
-// status history
-export function computeSubtaskTiming(history: StatusHistoryEntry[], now: Date = new Date()) {
-    const rows = buildTransitionRows(history);
+interface PhaseTotals {
+    totalDays: number;
+    // ["Total time in each phase:", "<comma-joined per-status totals>"] - or
+    // [] when there's no history at all to summarize.
+    lines: string[];
+}
+
+// the "total time per phase" summary shared by computeSubtaskTiming's
+// flat-text report and the pdf table's post-table summary line.
+function computePhaseTotals(rows: TransitionRow[], now: Date): PhaseTotals {
     if (rows.length === 0) {
-        return { totalDays: 0, lines: ["No status history recorded yet."] } as SubtaskTiming;
+        return { totalDays: 0, lines: [] };
     }
 
     const totalsByStatus: Record<string, number> = {};
-    const transitionLines: string[] = [];
-
-    for (let i = 0; i < rows.length; i += 1) {
-        const row = rows[i];
-        const date = row.changedAt.slice(0, 10);
-        const label = STATUS_LABELS[row.status] ?? row.status.toLowerCase();
-        if (i === 0) {
-            transitionLines.push(`${date}: ${label}`);
-            continue;
-        }
+    for (let i = 1; i < rows.length; i += 1) {
         const previousStatus = rows[i - 1].status;
-        const previousLabel = STATUS_LABELS[previousStatus] ?? previousStatus.toLowerCase();
-        const days = row.daysInPrevious ?? 0;
-        transitionLines.push(`${date}: ${label} (${formatDays(days)} in ${previousLabel})`);
-        totalsByStatus[previousStatus] = (totalsByStatus[previousStatus] ?? 0) + days;
+        totalsByStatus[previousStatus] = (totalsByStatus[previousStatus] ?? 0) + (rows[i].daysInPrevious ?? 0);
     }
 
     const last = rows[rows.length - 1];
@@ -123,6 +118,63 @@ export function computeSubtaskTiming(history: StatusHistoryEntry[], now: Date = 
 
     return {
         totalDays: daysBetween(rows[0].changedAt, isTerminal ? last.changedAt : now.toISOString()),
-        lines: ["Transitions:", ...transitionLines, "", "Total time in each phase:", totalParts.join(", ")],
+        lines: ["Total time in each phase:", totalParts.join(", ")],
+    };
+}
+
+// builds the "transitions + total time per phase" report for one subtask's
+// status history, as flat text lines.
+export function computeSubtaskTiming(history: StatusHistoryEntry[], now: Date = new Date()) {
+    const rows = buildTransitionRows(history);
+    if (rows.length === 0) {
+        return { totalDays: 0, lines: ["No status history recorded yet."] } as SubtaskTiming;
+    }
+
+    const transitionLines = rows.map((row, i) => {
+        const date = row.changedAt.slice(0, 10);
+        const label = STATUS_LABELS[row.status] ?? row.status.toLowerCase();
+        if (i === 0) {
+            return `${date}: ${label}`;
+        }
+        const previousLabel = STATUS_LABELS[rows[i - 1].status] ?? rows[i - 1].status.toLowerCase();
+        return `${date}: ${label} (${formatDays(row.daysInPrevious ?? 0)} in ${previousLabel})`;
+    });
+
+    const totals = computePhaseTotals(rows, now);
+
+    return {
+        totalDays: totals.totalDays,
+        lines: ["Transitions:", ...transitionLines, "", ...totals.lines],
     } as SubtaskTiming;
+}
+
+function hexToRgb(hex: string): [number, number, number] {
+    const clean = hex.replace("#", "");
+    return [parseInt(clean.slice(0, 2), 16), parseInt(clean.slice(2, 4), 16), parseInt(clean.slice(4, 6), 16)];
+}
+
+// the transitions table, drawn as real pdf text (not a screenshot) with the
+// state column colored to match the on-screen status badge - mirrors
+// SubtaskTransitionsTable.tsx exactly, one row per real transition.
+export function buildTransitionsPdfTable(history: StatusHistoryEntry[]): PdfTable {
+    const rows = buildTransitionRows(history);
+    return {
+        headers: ["date/time", "state", "time in previous"],
+        columnWidths: [55, 45, 55],
+        rows: rows.map((row) => [
+            { text: formatDateTime(row.changedAt) },
+            {
+                text: STATUS_LABELS[row.status] ?? row.status.toLowerCase(),
+                color: hexToRgb(STATUS_COLORS[row.status] ?? "#6b7280"),
+            },
+            { text: row.msInPrevious === null ? "-" : formatDurationDHM(row.msInPrevious) },
+        ]),
+    };
+}
+
+// the "total time per phase" summary alone, as flat text lines - used
+// alongside buildTransitionsPdfTable so the pdf still gets that summary
+// without repeating the full "Transitions:" text list the table replaces.
+export function buildPhaseTotalsLines(history: StatusHistoryEntry[], now: Date = new Date()): string[] {
+    return computePhaseTotals(buildTransitionRows(history), now).lines;
 }

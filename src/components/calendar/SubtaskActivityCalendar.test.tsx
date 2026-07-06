@@ -18,9 +18,6 @@ const done: StatusHistoryEntry[] = [
     { id: 3, entityType: "subtask", entityId: 1, status: "DONE", releaseVersion: null, changedAt: "2026-03-05" },
 ];
 
-// wip carries over from 03-04 (so 03-05 doesn't also inherit a NEW sliver),
-// then three more transitions land on 2026-03-05 itself, and a DONE the next
-// day bounds the rendered calendar to a single month for a stable query.
 const multiTransitionDay: StatusHistoryEntry[] = [
     { id: 1, entityType: "subtask", entityId: 1, status: "NEW", releaseVersion: null, changedAt: "2026-03-01" },
     { id: 2, entityType: "subtask", entityId: 1, status: "WIP", releaseVersion: null, changedAt: "2026-03-04 09:00:00" },
@@ -74,14 +71,13 @@ describe("SubtaskActivityCalendar", () => {
     it("splits a day with multiple transitions into proportional-width segment strips", () => {
         render(<SubtaskActivityCalendar history={multiTransitionDay} />);
         const day = screen.getByText("5").closest(".calendar-day") as HTMLElement;
-        // the cell itself no longer carries a single flat background color -
-        // that's now expressed as four child strips instead.
+        // background has strips in it rather than one flat colour
         expect(day.style.backgroundColor).toBe("");
         const segments = day.querySelectorAll(".calendar-day-segment");
         expect(segments).toHaveLength(4);
         // proportional to time held: wip carries over from the day before
         // until 10:00 (10h), then 10:00->17:00 (7h), 17:00->19:00 (2h),
-        // 19:00->midnight (5h) - flexGrow carries the relative proportion.
+        // 19:00->midnight (5h)
         expect((segments[0] as HTMLElement).style.flexGrow).toBe(String(10 * 60 * 60 * 1000));
         expect((segments[1] as HTMLElement).style.flexGrow).toBe(String(7 * 60 * 60 * 1000));
         expect((segments[2] as HTMLElement).style.flexGrow).toBe(String(2 * 60 * 60 * 1000));

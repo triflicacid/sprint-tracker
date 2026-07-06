@@ -3,8 +3,8 @@ import { computeDaySegments } from "./dayStatusSegments";
 import type { StatusHistoryLike } from "@shared/statusHistory";
 import type { SubtaskStatus } from "@shared/types";
 
-function entry(status: SubtaskStatus, changedAt: string): StatusHistoryLike {
-    return { status, changedAt };
+function entry(status: SubtaskStatus, changedAt: string) {
+    return { status, changedAt } as StatusHistoryLike;
 }
 
 const HOUR_MS = 60 * 60 * 1000;

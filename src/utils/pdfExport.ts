@@ -10,13 +10,30 @@ const LINE_HEIGHT_MM = 5.5;
 // a plain line of text, or a clickable hyperlink rendered as one.
 export type PdfLine = string | { text: string; url: string };
 
+// one cell of a PdfTable row - plain black text, or colored text (an rgb
+// triple, e.g. to match a status pill's color) when `color` is given.
+export interface PdfTableCell {
+    text: string;
+    color?: [number, number, number];
+}
+
+// a real, drawn pdf table (not a screenshot) - a header row plus data rows,
+// each cell independently colorable. `columnWidths` (mm) default to an equal
+// split of the page's content width if omitted.
+export interface PdfTable {
+    headers: string[];
+    rows: PdfTableCell[][];
+    columnWidths?: number[];
+}
+
 // one page of the report: a heading, an optional chart/calendar screenshot,
-// and optional written-out stats rendered as real pdf text below it (not
-// part of the screenshot) - so the numbers are selectable/searchable text,
-// not just pixels in an image.
+// an optional drawn table, and optional written-out stats rendered as real
+// pdf text below it (not part of the screenshot) - so the numbers are
+// selectable/searchable text, not just pixels in an image.
 export interface PdfSection {
     title: string;
     element?: HTMLElement;
+    table?: PdfTable;
     lines?: PdfLine[];
 }
 
@@ -38,6 +55,37 @@ function drawImage(pdf: jsPDF, canvas: HTMLCanvasElement, y: number, maxHeightMm
 
     pdf.addImage(canvas.toDataURL("image/png"), "PNG", MARGIN_MM, y, finalWidthMm, finalHeightMm);
     return y + finalHeightMm + 8;
+}
+
+// draws a header row (dim gray, matching the on-page table's <th>) then each
+// data row, positioning cells at fixed column offsets and coloring each
+// cell's text independently. Returns the y position below the table.
+function drawTable(pdf: jsPDF, table: PdfTable, y: number): number {
+    const columnWidths = table.columnWidths ?? table.headers.map(() => CONTENT_WIDTH_MM / table.headers.length);
+    let cursor = y;
+
+    pdf.setFontSize(10);
+    pdf.setTextColor(156, 163, 175); // --text-dim
+    let x = MARGIN_MM;
+    table.headers.forEach((header, i) => {
+        pdf.text(header, x, cursor);
+        x += columnWidths[i];
+    });
+    cursor += LINE_HEIGHT_MM + 2;
+
+    pdf.setFontSize(10);
+    for (const row of table.rows) {
+        x = MARGIN_MM;
+        row.forEach((cell, i) => {
+            pdf.setTextColor(...(cell.color ?? [0, 0, 0]));
+            pdf.text(cell.text, x, cursor);
+            x += columnWidths[i];
+        });
+        cursor += LINE_HEIGHT_MM;
+    }
+
+    pdf.setTextColor(0, 0, 0);
+    return cursor + 4;
 }
 
 // writes each line as real (wrapped) pdf text - link lines are drawn in the
@@ -68,6 +116,7 @@ async function renderSection(pdf: jsPDF, section: PdfSection, isFirstPage: boole
 
     let y = MARGIN_MM + 4;
     pdf.setFontSize(16);
+    pdf.setTextColor(0, 0, 0);
     pdf.text(section.title, MARGIN_MM, y);
     y += 10;
 
@@ -78,14 +127,18 @@ async function renderSection(pdf: jsPDF, section: PdfSection, isFirstPage: boole
         y = drawImage(pdf, canvas, y, maxHeightMm);
     }
 
+    if (section.table) {
+        y = drawTable(pdf, section.table, y);
+    }
+
     if (section.lines && section.lines.length > 0) {
         drawLines(pdf, section.lines, y);
     }
 }
 
 // renders each section onto its own page (screenshotting section.element,
-// where given, then writing section.lines as real text underneath) into a
-// single pdf with one page per section.
+// where given, drawing section.table, then writing section.lines as real
+// text underneath) into a single pdf with one page per section.
 export async function exportSectionsAsPdf(sections: PdfSection[], filename: string): Promise<void> {
     const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
     for (let i = 0; i < sections.length; i += 1) {
