@@ -18,6 +18,7 @@
 - Code: avoid amending the URL if possible, use internal state
 - [?] Add code auto-formatter to project
 - There are several identical functions duplicated in FE/BE. As `@shared/*` exists, we can move them here. Example: load statuses and append JIRA_ONLY and WORK_REMAINING.
+- globalo.css is getting pretty beefy. Split styles up by components, pages etc. (question: store in code next to the component, or in styles/?)
 
 ## Bugs
 - Stats: assume latest is NEW, even when status is not NEW. No transition for it, but should be deducible.
