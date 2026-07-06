@@ -743,9 +743,12 @@ components:
 
     StoryTimeEntry:
       type: object
-      required: [storyId, description, days]
+      required: [storyId, storyLabel, description, days]
       properties:
         storyId: { type: integer }
+        storyLabel:
+          type: string
+          description: Short display label for chart axes - the story's jira key, or "#<storyId>" when it has none.
         description: { type: string }
         days: { type: number }
 

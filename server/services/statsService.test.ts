@@ -68,6 +68,17 @@ describe("getSprintStats", () => {
         // is asserted here - day-count arithmetic is covered by getDayActivity below.
         expect(stats.storyTimeDays[0].storyId).toBe(storyId);
     });
+
+    it("labels a story by its jira key, falling back to its id when there is none", () => {
+        const sprintId = insertSprint("2026-01-01", "2026-01-31");
+        const storyWithKey = insertStory(sprintId, "NEB-42");
+        const storyWithoutKey = insertStory(sprintId);
+
+        const stats = getSprintStats(sprintId);
+        const byId = Object.fromEntries(stats.storyTimeDays.map((story) => [story.storyId, story.storyLabel]));
+        expect(byId[storyWithKey]).toBe("NEB-42");
+        expect(byId[storyWithoutKey]).toBe(`#${storyWithoutKey}`);
+    });
 });
 
 describe("getStatusBreakdown", () => {
