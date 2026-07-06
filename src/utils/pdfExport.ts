@@ -7,6 +7,9 @@ const MARGIN_MM = 14;
 const CONTENT_WIDTH_MM = PAGE_WIDTH_MM - MARGIN_MM * 2;
 const LINE_HEIGHT_MM = 5.5;
 
+// a plain line of text, or a clickable hyperlink rendered as one.
+export type PdfLine = string | { text: string; url: string };
+
 // one page of the report: a heading, an optional chart/calendar screenshot,
 // and optional written-out stats rendered as real pdf text below it (not
 // part of the screenshot) - so the numbers are selectable/searchable text,
@@ -14,7 +17,7 @@ const LINE_HEIGHT_MM = 5.5;
 export interface PdfSection {
     title: string;
     element?: HTMLElement;
-    lines?: string[];
+    lines?: PdfLine[];
 }
 
 async function captureElement(element: HTMLElement): Promise<HTMLCanvasElement> {
@@ -37,15 +40,23 @@ function drawImage(pdf: jsPDF, canvas: HTMLCanvasElement, y: number, maxHeightMm
     return y + finalHeightMm + 8;
 }
 
-// writes each line as real (wrapped) pdf text, returns the y position
-// immediately below the last line.
-function drawLines(pdf: jsPDF, lines: string[], y: number): number {
+// writes each line as real (wrapped) pdf text - link lines are drawn in the
+// app's accent color as an actual clickable pdf annotation, not just text
+// that happens to look like a url. Returns the y position below the last line.
+function drawLines(pdf: jsPDF, lines: PdfLine[], y: number): number {
     pdf.setFontSize(11);
     let cursor = y;
     for (const line of lines) {
-        const wrapped: string[] = pdf.splitTextToSize(line, CONTENT_WIDTH_MM);
-        pdf.text(wrapped, MARGIN_MM, cursor);
-        cursor += wrapped.length * LINE_HEIGHT_MM + 2;
+        if (typeof line === "string") {
+            const wrapped: string[] = pdf.splitTextToSize(line, CONTENT_WIDTH_MM);
+            pdf.text(wrapped, MARGIN_MM, cursor);
+            cursor += wrapped.length * LINE_HEIGHT_MM + 2;
+        } else {
+            pdf.setTextColor(217, 119, 6); // --accent (#d97706), matching the app's on-screen link color
+            pdf.textWithLink(line.text, MARGIN_MM, cursor, { url: line.url });
+            pdf.setTextColor(0, 0, 0);
+            cursor += LINE_HEIGHT_MM + 2;
+        }
     }
     return cursor;
 }

@@ -1,9 +1,18 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import type { StoryDetail, StatusFlowConfig } from "@shared/types";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import type { StoryDetail, StatusFlowConfig, StatusHistoryEntry } from "@shared/types";
 import { api } from "../api/client";
-import { StatusBadge } from "../components/StatusBadge";
+import { StatusBadge, STATUS_LABELS } from "../components/StatusBadge";
 import { SubtaskRow } from "../components/subtasks/SubtaskRow";
+import { exportSectionsAsPdf, type PdfSection } from "../utils/pdfExport";
+import { computeSubtaskTiming } from "../utils/subtaskTiming";
+import { formatIsoDate } from "../utils/calendarGrid";
+
+interface SubtaskHistorySnapshot {
+    subtaskId: number;
+    history: StatusHistoryEntry[];
+}
 
 // a story ("/stories/:id"): its subtasks, tags, and Jira refresh action.
 export function StoryDetailPage(): React.ReactElement {
@@ -15,6 +24,10 @@ export function StoryDetailPage(): React.ReactElement {
     const [newSubtaskTitle, setNewSubtaskTitle] = useState<string>("");
     const [newTagName, setNewTagName] = useState<string>("");
     const [jiraLoading, setJiraLoading] = useState<boolean>(false);
+    const [exportSnapshot, setExportSnapshot] = useState<SubtaskHistorySnapshot[] | null>(null);
+    const [exporting, setExporting] = useState<boolean>(false);
+
+    const barChartRef = useRef<HTMLDivElement>(null);
 
     async function loadStory() {
         try {
@@ -74,6 +87,57 @@ export function StoryDetailPage(): React.ReactElement {
         }
     }
 
+    // fetches every subtask's history, which mounts the hidden bar chart +
+    // flow diagrams below (see the effect that watches exportSnapshot) so
+    // they can be screenshotted once rendered.
+    async function handleExportPdf() {
+        if (!story) {
+            return;
+        }
+        setExporting(true);
+        const histories = await Promise.all(story.subtasks.map((subtask) => api.getSubtaskHistory(subtask.id)));
+        setExportSnapshot(story.subtasks.map((subtask, index) => ({ subtaskId: subtask.id, history: histories[index] })));
+    }
+
+    useEffect(() => {
+        if (!exportSnapshot || !story || !flow) {
+            return;
+        }
+        (async () => {
+            // can only measure after a pain, so wait two frames first
+            await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+            const sections: PdfSection[] = [
+                {
+                    title: story.jiraTitle ?? story.description,
+                    element: barChartRef.current ?? undefined,
+                    lines: [
+                        { text: `Jira: ${story.jiraKey ?? story.jiraUrl}`, url: story.jiraUrl },
+                        `Status: ${STATUS_LABELS[story.status] ?? story.status.toLowerCase()}`,
+                        `Subtasks: ${story.subtasks.length}`,
+                        `Pull requests: ${story.prCount}`,
+                        `Tags: ${story.tags.length > 0 ? story.tags.map((tag) => tag.name).join(", ") : "none"}`,
+                        ...(story.awaitingMoreSubtasks ? ["Awaiting more subtasks: yes"] : []),
+                    ],
+                },
+                ...story.subtasks.map((subtask) => {
+                    const history = exportSnapshot.find((snapshot) => snapshot.subtaskId === subtask.id)?.history ?? [];
+                    return {
+                        title: subtask.branchName === "(unknown)" ? subtask.title : `${subtask.title} (${subtask.branchName})`,
+                        lines: [
+                            ...(subtask.url ? [{ text: `Pull request: ${subtask.url}`, url: subtask.url }] : []),
+                            ...computeSubtaskTiming(history).lines,
+                        ],
+                    };
+                }),
+            ];
+
+            await exportSectionsAsPdf(sections, `story-${storyId}-export-${formatIsoDate(new Date())}.pdf`);
+            setExportSnapshot(null);
+            setExporting(false);
+        })();
+    }, [exportSnapshot]);
+
     if (loadError) {
         return (
             <div className="page">
@@ -112,11 +176,16 @@ export function StoryDetailPage(): React.ReactElement {
                         </label>
                     </div>
                 </div>
-                {story.jiraKey && (
-                    <button onClick={handleFetchJiraInfo} disabled={jiraLoading}>
-                        {jiraLoading ? "fetching..." : "refresh from jira"}
+                <div className="page-header-actions">
+                    {story.jiraKey && (
+                        <button onClick={handleFetchJiraInfo} disabled={jiraLoading}>
+                            {jiraLoading ? "fetching..." : "refresh from jira"}
+                        </button>
+                    )}
+                    <button onClick={handleExportPdf} disabled={exporting}>
+                        {exporting ? "exporting..." : "export pdf"}
                     </button>
-                )}
+                </div>
             </div>
 
             <div className="tag-list">
@@ -159,6 +228,30 @@ export function StoryDetailPage(): React.ReactElement {
                 />
                 <button onClick={handleAddSubtask}>add subtask</button>
             </div>
+
+            {exportSnapshot && (
+                <div style={{ position: "fixed", top: 0, left: -10000, width: 900, pointerEvents: "none" }}>
+                    <div ref={barChartRef}>
+                        <ResponsiveContainer width="100%" height={280}>
+                            <BarChart
+                                data={story.subtasks.map((subtask) => ({
+                                    label: subtask.title,
+                                    days: computeSubtaskTiming(
+                                        exportSnapshot.find((snapshot) => snapshot.subtaskId === subtask.id)?.history ?? []
+                                    ).totalDays,
+                                }))}
+                                layout="vertical"
+                            >
+                                <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
+                                <XAxis type="number" stroke="#9ca3af" allowDecimals={false} />
+                                <YAxis type="category" dataKey="label" stroke="#9ca3af" width={220} />
+                                <Tooltip contentStyle={{ backgroundColor: "#1a1a1a", border: "1px solid #333" }} />
+                                <Bar dataKey="days" fill="#2563eb" />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

@@ -3,6 +3,7 @@
 - A subtask can be of a given type - feature, bugfix, tech-debt, spike. Add icons for each
 - Auto-generate subtask's branch name based of subtask name (all lowercase and spaces are dashes), name is e.g., `tech-debt/NEB-1234-my-title-here` (this is auto-filled in the textbox and highlighted, so can be replaced by the user)[sprint-export-2026-07-05.md](../../../Downloads/sprint-export-2026-07-05.md)
 - Past sprints are locked and cannot be edited
+- Bundle installer/single exe for electron?
 
 ## Enhancements
 
@@ -13,6 +14,7 @@
 
 ## Tech Debt
 - Code: avoid amending the URL if possible, use internal state
+- Add code auto-formatter to project
 
 ## Bugs
 - Stats: assume latest is NEW, even when status is not NEW. No transition for it, but should be deducible.

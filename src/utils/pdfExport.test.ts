@@ -14,7 +14,9 @@ const pdfInstance = {
     addImage: vi.fn(),
     addPage: vi.fn(),
     setFontSize: vi.fn(),
+    setTextColor: vi.fn(),
     text: vi.fn(),
+    textWithLink: vi.fn(),
     splitTextToSize: vi.fn((text: string) => [text]),
     save: vi.fn(),
 };
@@ -91,5 +93,31 @@ describe("exportSectionsAsPdf", () => {
         await exportSectionsAsPdf(sections, "single.pdf");
 
         expect(pdfInstance.addPage).not.toHaveBeenCalled();
+    });
+
+    it("renders a link line as a real clickable pdf link, in the accent color, and resets color afterwards", async () => {
+        const sections: PdfSection[] = [
+            {
+                title: "Story",
+                lines: [{ text: "Jira: NEB-1", url: "https://example.atlassian.net/browse/NEB-1" }, "Status: new"],
+            },
+        ];
+
+        await exportSectionsAsPdf(sections, "story.pdf");
+
+        expect(pdfInstance.textWithLink).toHaveBeenCalledWith(
+            "Jira: NEB-1",
+            expect.any(Number),
+            expect.any(Number),
+            { url: "https://example.atlassian.net/browse/NEB-1" }
+        );
+        // plain text is never passed through textWithLink
+        expect(pdfInstance.textWithLink).toHaveBeenCalledTimes(1);
+        expect(pdfInstance.text).toHaveBeenCalledWith(["Status: new"], expect.any(Number), expect.any(Number));
+
+        // color set to the accent color for the link, then reset to black
+        const colorCalls = pdfInstance.setTextColor.mock.calls;
+        expect(colorCalls[0]).toEqual([217, 119, 6]);
+        expect(colorCalls[1]).toEqual([0, 0, 0]);
     });
 });
