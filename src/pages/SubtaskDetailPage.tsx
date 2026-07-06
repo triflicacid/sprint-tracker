@@ -73,23 +73,24 @@ export function SubtaskDetailPage(): React.ReactElement {
                         back to story
                     </Link>
                     <h1>{subtask.title}</h1>
-                    {editingComment ? (
-                        <textarea
-                            className="comment-edit"
-                            value={commentDraft}
-                            autoFocus
-                            onChange={(event) => setCommentDraft(event.target.value)}
-                            onBlur={saveComment}
-                        />
-                    ) : (
-                        <p className="subtask-comment subtask-comment-editable" onClick={startEditingComment}>
-                            {subtask.comment || "add comment"}
-                        </p>
-                    )}
                 </div>
             </div>
 
             <SubtaskRow subtask={subtask} flow={flow} onChanged={loadSubtask} disableNavigation />
+
+            {editingComment ? (
+                <textarea
+                    className="comment-edit"
+                    value={commentDraft}
+                    autoFocus
+                    onChange={(event) => setCommentDraft(event.target.value)}
+                    onBlur={saveComment}
+                />
+            ) : (
+                <p className="subtask-comment subtask-comment-editable" onClick={startEditingComment}>
+                    {subtask.comment || "add comment"}
+                </p>
+            )}
 
             <h2>Flow</h2>
             <SubtaskFlowDiagram history={history} />

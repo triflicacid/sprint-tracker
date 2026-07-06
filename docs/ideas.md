@@ -7,7 +7,6 @@
 ## Enhancements
 
 - `/transitions` - all as SVG and separated arrows so they are legible. Some arrows can be a straight line between lozenges if 1. they are next to one-another and 2. there isn't al;ready a straight connection (avoid overlap)
-- Subtasks: comment below tile.
 - Stats: time per story, only show numbers, e.g., NEB-1234, on y-axis
 - Past sprints are locked and cannot be edited
 - Exporting an entire sprint grants one page to each sub-task. Add an export button on the subtask's page to export just that subtask.

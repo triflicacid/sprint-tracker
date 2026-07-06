@@ -115,6 +115,17 @@ describe("SubtaskDetailPage", () => {
         expect(screen.queryByRole("heading", { name: "internal note" })).not.toBeInTheDocument();
     });
 
+    it("shows the comment below the subtask tile", async () => {
+        vi.mocked(api.getSubtask).mockResolvedValue({ ...subtask, comment: "internal note" });
+        renderPage();
+        const comment = await screen.findByText("internal note");
+        const pageHeader = document.querySelector(".page-header") as HTMLElement;
+        const tile = document.querySelector(".subtask-row") as HTMLElement;
+
+        expect(pageHeader.contains(comment)).toBe(false);
+        expect(tile.compareDocumentPosition(comment) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    });
+
     it("lists every transition in the table, including several on the same day", async () => {
         vi.mocked(api.getSubtask).mockResolvedValue(subtask);
         vi.mocked(api.getSubtaskHistory).mockResolvedValue([
