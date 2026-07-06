@@ -10,6 +10,7 @@ import { calendarRouter } from "./routes/calendar.js";
 import { jiraRouter } from "./routes/jira.js";
 import { statusFlowRouter } from "./routes/statusFlow.js";
 import { holidaysRouter } from "./routes/holidays.js";
+import { exportRouter } from "./routes/export.js";
 
 export function createApp() {
     const app = express();
@@ -25,6 +26,7 @@ export function createApp() {
     app.use("/api/jira", jiraRouter);
     app.use("/api/status-flow", statusFlowRouter);
     app.use("/api/holidays", holidaysRouter);
+    app.use("/api/export", exportRouter);
 
     const clientDist = path.join(process.cwd(), "dist", "client");
     app.use(express.static(clientDist));

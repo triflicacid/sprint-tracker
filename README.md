@@ -22,6 +22,7 @@ The favicon was sourced from <a href="https://www.flaticon.com/free-icons/run" t
 - A stats page with charts summarising sprint progress
 - Tagging support, both automatic (by repo) and custom labels
 - Holiday tracking, so calendars can distinguish working days
+- Export any set of sprints to a markdown file, with a picker for which story/subtask fields to include
 - Runs as a browser app or as an Electron desktop app
 
 ## Commands
