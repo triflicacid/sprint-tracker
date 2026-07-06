@@ -75,7 +75,7 @@ describe("ExportPage", () => {
         expect(screen.getByText("generate export")).not.toBeDisabled();
     });
 
-    it("generates and downloads a export with the selected sprint and default (all-true) fields", async () => {
+    it("generates and downloads a export with the selected sprint and default fields", async () => {
         vi.mocked(api.exportMarkdown).mockResolvedValue("# Sprint One\n");
         renderPage();
         await screen.findByText(/Sprint One/);
@@ -100,12 +100,27 @@ describe("ExportPage", () => {
         await screen.findByText(/Sprint One/);
 
         await userEvent.click(screen.getByText(/Sprint One/).closest("label")!.querySelector("input")!);
+        await userEvent.click(screen.getByText("Branch name", { exact: true }));
+        await userEvent.click(screen.getByText("generate export"));
+
+        expect(api.exportMarkdown).toHaveBeenCalledWith(
+            [1],
+            expect.objectContaining({ subtask: expect.objectContaining({ branchName: false }) })
+        );
+    });
+
+    it("includes a field that defaults to excluded, once selected", async () => {
+        vi.mocked(api.exportMarkdown).mockResolvedValue("markdown");
+        renderPage();
+        await screen.findByText(/Sprint One/);
+
+        await userEvent.click(screen.getByText(/Sprint One/).closest("label")!.querySelector("input")!);
         await userEvent.click(screen.getByText("Comment", { exact: true }));
         await userEvent.click(screen.getByText("generate export"));
 
         expect(api.exportMarkdown).toHaveBeenCalledWith(
             [1],
-            expect.objectContaining({ subtask: expect.objectContaining({ comment: false }) })
+            expect.objectContaining({ subtask: expect.objectContaining({ comment: true }) })
         );
     });
 
@@ -128,12 +143,14 @@ describe("ExportPage", () => {
         renderPage();
         await screen.findByText(/Sprint One/);
 
+        // Comment defaults to excluded (unchecked).
         const commentCheckbox = screen.getByText("Comment", { exact: true }).closest("label")!.querySelector("input") as HTMLInputElement;
-        await userEvent.click(commentCheckbox);
         expect(commentCheckbox.checked).toBe(false);
+        await userEvent.click(commentCheckbox);
+        expect(commentCheckbox.checked).toBe(true);
 
         await userEvent.click(screen.getByText("reset to defaults"));
-        expect(commentCheckbox.checked).toBe(true);
+        expect(commentCheckbox.checked).toBe(false);
     });
 
     it("persists field changes to localStorage across a remount", async () => {
@@ -145,6 +162,6 @@ describe("ExportPage", () => {
         renderPage();
         await screen.findByText(/Sprint One/);
         const commentCheckbox = screen.getByText("Comment", { exact: true }).closest("label")!.querySelector("input") as HTMLInputElement;
-        expect(commentCheckbox.checked).toBe(false);
+        expect(commentCheckbox.checked).toBe(true);
     });
 });

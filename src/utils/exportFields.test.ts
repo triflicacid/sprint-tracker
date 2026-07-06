@@ -1,15 +1,37 @@
 import { describe, it, expect, beforeEach } from "vitest";
+import type { MarkdownExportFields } from "@shared/types";
+import rawExportFieldsJson from "../../static/exportFields.json";
 import { defaultExportFields, loadExportFields, saveExportFields } from "./exportFields";
+
+const staticDefaults = rawExportFieldsJson as MarkdownExportFields;
 
 beforeEach(() => {
     localStorage.clear();
 });
 
 describe("defaultExportFields", () => {
-    it("defaults every story and subtask field to true", () => {
+    it("matches static/exportFields.json - the single source of truth for defaults", () => {
+        expect(defaultExportFields()).toEqual(staticDefaults);
+    });
+
+    it("only the common fields (identifying info, status, branch/PR) default to included", () => {
         const fields = defaultExportFields();
-        expect(Object.values(fields.story).every((value) => value === true)).toBe(true);
-        expect(Object.values(fields.subtask).every((value) => value === true)).toBe(true);
+        expect(fields.story).toMatchObject({ jiraKey: true, title: true, status: true });
+        expect(fields.story).toMatchObject({ tags: false, awaitingMoreSubtasks: false });
+        expect(fields.subtask).toMatchObject({ title: true, branchName: true, prUrl: true, status: true });
+        expect(fields.subtask).toMatchObject({
+            comment: false,
+            repoName: false,
+            complexityRating: false,
+            releaseVersion: false,
+            createdAt: false,
+        });
+    });
+
+    it("returns a fresh copy each time, not a shared reference to the static json", () => {
+        const first = defaultExportFields();
+        first.story.title = false;
+        expect(defaultExportFields().story.title).toBe(true);
     });
 });
 
@@ -20,8 +42,8 @@ describe("loadExportFields", () => {
 
     it("round-trips whatever was last saved", () => {
         const fields = defaultExportFields();
-        fields.subtask.comment = false;
-        fields.story.tags = false;
+        fields.subtask.comment = true;
+        fields.story.tags = true;
         saveExportFields(fields);
 
         expect(loadExportFields()).toEqual(fields);

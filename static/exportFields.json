@@ -1,0 +1,20 @@
+{
+  "story": {
+    "jiraKey": true,
+    "title": true,
+    "status": true,
+    "tags": false,
+    "awaitingMoreSubtasks": false
+  },
+  "subtask": {
+    "title": true,
+    "comment": false,
+    "branchName": true,
+    "prUrl": true,
+    "status": true,
+    "repoName": false,
+    "complexityRating": false,
+    "releaseVersion": false,
+    "createdAt": false
+  }
+}
