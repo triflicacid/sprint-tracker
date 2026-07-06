@@ -35,4 +35,17 @@ describe("statusAsOf", () => {
         ];
         expect(statusAsOf(history, "2026-03-05")).toBe("WIP");
     });
+
+    it("uses the given fallback instead of NEW when there is no history at all", () => {
+        expect(statusAsOf([], "2026-03-05", "DONE")).toBe("DONE");
+    });
+
+    it("still defaults an empty history to NEW when no fallback is given", () => {
+        expect(statusAsOf([], "2026-03-05")).toBe("NEW");
+    });
+
+    it("does not use the fallback once real history exists, even before its first entry", () => {
+        const history: StatusHistoryLike[] = [{ status: "WIP", changedAt: "2026-03-05" }];
+        expect(statusAsOf(history, "2026-03-01", "DONE")).toBe("NEW");
+    });
 });

@@ -21,4 +21,3 @@
 - global.css is getting pretty beefy. Split styles up by components, pages etc. (question: store in code next to the component, or in styles/?)
 
 ## Bugs
-- Stats: assume latest is NEW, even when status is not NEW. No transition for it, but should be deducible.

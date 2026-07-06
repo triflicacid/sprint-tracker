@@ -9,7 +9,15 @@ export interface StatusHistoryLike {
 // given its full history sorted ascending by changedAt.
 // If multiple transitions happened on the same day, return the LAST one
 // that day.
-export function statusAsOf(sortedHistory: StatusHistoryLike[], dateString: string) {
+// If there is no history at all, fallbackStatus is used instead of assuming NEW.
+export function statusAsOf(
+    sortedHistory: StatusHistoryLike[],
+    dateString: string,
+    fallbackStatus: SubtaskStatus = "NEW"
+): SubtaskStatus {
+    if (sortedHistory.length === 0) {
+        return fallbackStatus;
+    }
     let status: SubtaskStatus = "NEW";
     for (const entry of sortedHistory) {
         if (entry.changedAt.slice(0, 10) <= dateString) {
