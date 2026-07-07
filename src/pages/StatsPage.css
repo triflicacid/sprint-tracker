@@ -1,11 +1,11 @@
 .granularity-toggle {
     display: flex;
     gap: 6px;
-}
 
-.granularity-toggle button.active {
-    border-color: var(--accent);
-    color: var(--accent);
+    button.active {
+        border-color: var(--accent);
+        color: var(--accent);
+    }
 }
 
 .stats-summary {

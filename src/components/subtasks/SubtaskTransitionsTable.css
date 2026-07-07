@@ -3,21 +3,21 @@
     border-collapse: collapse;
     margin-top: 12px;
     font-size: 13px;
-}
 
-.transitions-table th,
-.transitions-table td {
-    text-align: left;
-    padding: 8px 12px;
-    border-bottom: 1px solid var(--border);
-}
+    th,
+    td {
+        text-align: left;
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--border);
+    }
 
-.transitions-table th {
-    color: var(--text-dim);
-    font-weight: 500;
-    text-transform: lowercase;
-}
+    th {
+        color: var(--text-dim);
+        font-weight: 500;
+        text-transform: lowercase;
+    }
 
-.transitions-table tbody tr:last-child td {
-    border-bottom: none;
+    tbody tr:last-child td {
+        border-bottom: none;
+    }
 }

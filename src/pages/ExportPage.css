@@ -5,12 +5,12 @@
     margin-bottom: 14px;
     font-size: 13px;
     color: var(--text-dim);
-}
 
-.export-date-range label {
-    display: flex;
-    align-items: center;
-    gap: 6px;
+    label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
 }
 
 .export-sprint-list {
