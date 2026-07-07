@@ -2,6 +2,8 @@ import React from "react";
 import type { StatusHistoryEntry } from "@shared/types";
 import { STATUS_COLORS, STATUS_LABELS } from "../StatusBadge";
 import { buildTransitionRows, formatDateTime } from "../../utils/subtaskTiming";
+import "../flow/flow.css";
+import "./SubtaskFlowDiagram.css";
 
 interface SubtaskFlowDiagramProps {
     history: StatusHistoryEntry[];

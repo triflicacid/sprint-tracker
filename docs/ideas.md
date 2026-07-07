@@ -13,6 +13,5 @@
 ## Tech Debt
 - Code: avoid amending the URL if possible, use internal state
 - [?] Add code auto-formatter to project
-- global.css is getting pretty beefy. Split styles up by components, pages etc. (question: store in code next to the component, or in styles/?)
 
 ## Bugs

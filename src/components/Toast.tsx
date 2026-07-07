@@ -1,4 +1,5 @@
 import React, { createContext, useCallback, useContext, useRef, useState } from "react";
+import "./Toast.css";
 
 interface ToastMessage {
     id: number;

@@ -1,0 +1,48 @@
+.range-week-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+}
+
+.range-week {
+    border-bottom: 1px solid var(--border);
+    padding: 4px 0;
+}
+
+.range-daynumbers {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    margin-bottom: 2px;
+}
+
+.range-day-number {
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-dim);
+}
+
+.range-day-number-muted {
+    opacity: 0.3;
+}
+
+.range-lane {
+    display: grid;
+    grid-template-columns: repeat(14, 1fr);
+    min-height: 20px;
+    margin-bottom: 2px;
+}
+
+.range-bar {
+    display: block;
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.range-bar:hover {
+    filter: brightness(1.15);
+}

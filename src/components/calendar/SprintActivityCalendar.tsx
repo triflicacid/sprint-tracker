@@ -2,6 +2,7 @@ import React from "react";
 import type { DayActivityMap, DayActivityEntry } from "@shared/types";
 import { STATUS_COLORS, STATUS_LABELS } from "../StatusBadge";
 import { formatIsoDate, buildMonthGrid, monthsBetween } from "../../utils/calendarGrid";
+import "./calendar.css";
 
 interface SprintActivityCalendarProps {
     startDate: string;

@@ -2,6 +2,7 @@ import React from "react";
 import type { StatusHistoryEntry } from "@shared/types";
 import { StatusBadge } from "../StatusBadge";
 import { buildTransitionRows, formatDateTime, formatDurationDHM } from "../../utils/subtaskTiming";
+import "./SubtaskTransitionsTable.css";
 
 interface SubtaskTransitionsTableProps {
     history: StatusHistoryEntry[];

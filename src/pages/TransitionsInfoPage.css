@@ -1,0 +1,28 @@
+.flow-state-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.flow-state-entry {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 16px;
+}
+
+.flow-state-entry .status-badge {
+    flex-shrink: 0;
+    min-width: 84px;
+    text-align: center;
+}
+
+.flow-state-description {
+    margin: 0;
+    color: var(--text-dim);
+    font-size: 13px;
+}

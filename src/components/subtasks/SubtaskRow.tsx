@@ -4,6 +4,7 @@ import type { Subtask, SubtaskStatus, StatusFlowConfig, FlowField } from "@share
 import { StatusBadge } from "../StatusBadge";
 import { api } from "../../api/client";
 import { useToast } from "../Toast";
+import "./SubtaskRow.css";
 
 interface SubtaskRowProps {
     subtask: Subtask;

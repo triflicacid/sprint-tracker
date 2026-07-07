@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import type { SprintSummary } from "@shared/types";
 import { api } from "../api/client";
 import { SprintCard } from "../components/sprints/SprintCard";
+import "./SprintListPage.css";
 
 // home page ("/"): every sprint as a card, plus the new-sprint form.
 export function SprintListPage(): React.ReactElement {

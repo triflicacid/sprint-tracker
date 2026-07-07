@@ -2,6 +2,8 @@ import React from "react";
 import { Link } from "react-router-dom";
 import type { CalendarEntry } from "@shared/types";
 import { buildMonthGridDates, formatIsoDate, isSameUtcMonth, monthsBetween } from "../../utils/calendarGrid";
+import "./calendar.css";
+import "./SprintRangeCalendar.css";
 
 interface SprintRangeCalendarProps {
     entries: CalendarEntry[];

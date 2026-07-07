@@ -4,6 +4,7 @@ import type { StatusHistoryLike } from "@shared/statusHistory";
 import { STATUS_COLORS, STATUS_LABELS } from "../StatusBadge";
 import { buildMonthGrid, formatIsoDate, monthsBetween } from "../../utils/calendarGrid";
 import { computeDaySegments } from "../../utils/dayStatusSegments";
+import "./calendar.css";
 
 interface SubtaskActivityCalendarProps {
     history: StatusHistoryEntry[];

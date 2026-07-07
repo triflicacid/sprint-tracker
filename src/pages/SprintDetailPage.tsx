@@ -7,6 +7,10 @@ import { formatIsoDate } from "../utils/calendarGrid";
 import { loadExportFields } from "../utils/exportFields";
 import { downloadTextFile } from "../utils/download";
 import { useToast } from "../components/Toast";
+import { CommentEditor } from "../components/CommentEditor";
+import { MetaRow } from "../components/MetaRow";
+import "../components/sprints/SprintCard.css";
+import "./SprintDetailPage.css";
 
 // a sprint ("/sprints/:id"): its stories, holiday management, and comment.
 export function SprintDetailPage(): React.ReactElement {
@@ -17,8 +21,6 @@ export function SprintDetailPage(): React.ReactElement {
     const [showForm, setShowForm] = useState<boolean>(false);
     const [jiraUrl, setJiraUrl] = useState<string>("");
     const [description, setDescription] = useState<string>("");
-    const [editingComment, setEditingComment] = useState<boolean>(false);
-    const [commentDraft, setCommentDraft] = useState<string>("");
     const [holidays, setHolidays] = useState<string[]>([]);
     const [newHolidayDate, setNewHolidayDate] = useState<string>("");
     const { showError } = useToast();
@@ -48,14 +50,8 @@ export function SprintDetailPage(): React.ReactElement {
         loadHolidays(sprint.startDate, sprint.endDate);
     }, [sprint?.startDate, sprint?.endDate]);
 
-    function startEditingComment() {
-        setCommentDraft(sprint?.comment ?? "");
-        setEditingComment(true);
-    }
-
-    async function saveComment() {
-        await api.updateSprint(sprintId, { comment: commentDraft.trim() });
-        setEditingComment(false);
+    async function saveComment(draft: string) {
+        await api.updateSprint(sprintId, { comment: draft });
         loadSprint();
     }
 
@@ -119,24 +115,16 @@ export function SprintDetailPage(): React.ReactElement {
                         back to sprints
                     </Link>
                     <h1>{sprint.name}</h1>
-                    <div className="story-meta-row">
+                    <MetaRow>
                         <span className="sprint-card-dates">
                             {sprint.startDate} to {sprint.endDate ?? "present"}
                         </span>
-                    </div>
-                    {editingComment ? (
-                        <textarea
-                            className="comment-edit"
-                            value={commentDraft}
-                            autoFocus
-                            onChange={(event) => setCommentDraft(event.target.value)}
-                            onBlur={saveComment}
-                        />
-                    ) : (
-                        <p className="sprint-card-comment sprint-card-comment-editable" onClick={startEditingComment}>
-                            {sprint.comment || "add comment"}
-                        </p>
-                    )}
+                    </MetaRow>
+                    <CommentEditor
+                        comment={sprint.comment}
+                        displayClassName="sprint-card-comment"
+                        onSave={saveComment}
+                    />
                 </div>
                 <div className="page-header-actions">
                     <Link to={`/stats?sprintId=${sprint.id}`}>stats</Link>

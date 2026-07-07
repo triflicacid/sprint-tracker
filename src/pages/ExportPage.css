@@ -1,0 +1,54 @@
+.export-date-range {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 14px;
+    font-size: 13px;
+    color: var(--text-dim);
+}
+
+.export-date-range label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.export-sprint-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 24px;
+}
+
+.export-sprint-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+}
+
+.export-fields {
+    display: flex;
+    gap: 48px;
+    margin-bottom: 16px;
+}
+
+.export-field-group h3 {
+    margin: 0 0 8px;
+    font-size: 13px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.export-field-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    margin-bottom: 6px;
+}
+
+.export-actions {
+    margin-top: 20px;
+}

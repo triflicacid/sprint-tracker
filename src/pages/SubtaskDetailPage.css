@@ -1,0 +1,14 @@
+.subtask-comment {
+    color: var(--text-dim);
+    font-style: italic;
+    font-size: 13px;
+    margin: 6px 0;
+}
+
+.subtask-comment-editable {
+    cursor: pointer;
+}
+
+.subtask-comment-editable:hover {
+    color: var(--text);
+}

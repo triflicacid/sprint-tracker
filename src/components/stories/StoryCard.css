@@ -1,0 +1,37 @@
+.story-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 18px;
+}
+
+.story-card:hover {
+    border-color: var(--accent);
+}
+
+.story-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.story-jira-link {
+    font-size: 13px;
+    color: var(--text-dim);
+}
+
+.story-description {
+    display: block;
+    color: var(--text);
+    font-size: 15px;
+    margin-bottom: 8px;
+}
+
+.story-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--text-dim);
+    font-size: 13px;
+}

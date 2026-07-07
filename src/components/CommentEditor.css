@@ -1,0 +1,9 @@
+.comment-edit {
+    display: block;
+    width: 100%;
+    min-height: 100px;
+    margin: 6px 0;
+    font-size: 13px;
+    font-family: inherit;
+    resize: vertical;
+}
