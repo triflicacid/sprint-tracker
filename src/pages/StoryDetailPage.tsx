@@ -8,6 +8,9 @@ import { SubtaskRow } from "../components/subtasks/SubtaskRow";
 import { exportSectionsAsPdf, type PdfSection } from "../utils/pdfExport";
 import { computeSubtaskTiming, buildTransitionsPdfTable, buildPhaseTotalsLines } from "../utils/subtaskTiming";
 import { formatIsoDate } from "../utils/calendarGrid";
+import { MetaRow } from "../components/MetaRow";
+import "../components/stories/story-tags.css";
+import "./StoryDetailPage.css";
 
 interface SubtaskHistorySnapshot {
     subtaskId: number;
@@ -159,7 +162,7 @@ export function StoryDetailPage(): React.ReactElement {
                         back to sprint
                     </Link>
                     <h1>{story.jiraTitle ?? story.description}</h1>
-                    <div className="story-meta-row">
+                    <MetaRow>
                         <a href={story.jiraUrl} target="_blank" rel="noreferrer">
                             {story.jiraKey ?? story.jiraUrl}
                         </a>
@@ -172,7 +175,7 @@ export function StoryDetailPage(): React.ReactElement {
                             />
                             awaiting more subtasks
                         </label>
-                    </div>
+                    </MetaRow>
                 </div>
                 <div className="page-header-actions">
                     {story.jiraKey && (

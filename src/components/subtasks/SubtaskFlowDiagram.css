@@ -1,0 +1,17 @@
+.flow-chain {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin-top: 12px;
+}
+
+.flow-chain-arrow {
+    color: var(--text-dim);
+}
+
+.flow-chain-empty {
+    color: var(--text-dim);
+    font-size: var(--font-medium);
+    margin-top: 12px;
+}

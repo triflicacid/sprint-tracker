@@ -2,6 +2,8 @@ import React from "react";
 import { Link } from "react-router-dom";
 import type { StorySummary } from "@shared/types";
 import { StatusBadge } from "../StatusBadge";
+import "./story-tags.css";
+import "./StoryCard.css";
 
 interface StoryCardProps {
     story: StorySummary;

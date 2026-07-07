@@ -1,0 +1,88 @@
+.subtask-row {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 18px;
+}
+
+.subtask-row:hover {
+    border-color: var(--accent);
+}
+
+.subtask-row-clickable {
+    cursor: pointer;
+}
+
+.subtask-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.subtask-branch-pr {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.branch-name {
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: var(--font-small);
+    color: var(--text-dim);
+    background: var(--surface-raised);
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.status-flow {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.status-flow-arrow {
+    color: var(--text-dim);
+    font-size: var(--font-medium);
+}
+
+.subtask-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    font-size: var(--font-medium);
+}
+
+.subtask-title {
+    flex: 1;
+}
+
+.subtask-complexity-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.pr-link {
+    font-family: "SFMono-Regular", Consolas, monospace;
+}
+
+.complexity-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-dim);
+    font-size: var(--font-medium);
+}
+
+.release-version {
+    color: var(--text-dim);
+    font-size: var(--font-small);
+}
+
+.release-version-prompt {
+    display: flex;
+    gap: 6px;
+}

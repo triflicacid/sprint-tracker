@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import type { SprintSummary } from "@shared/types";
+import "./SprintCard.css";
 
 interface SprintCardProps {
     sprint: SprintSummary;

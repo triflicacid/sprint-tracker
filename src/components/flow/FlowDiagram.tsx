@@ -1,6 +1,8 @@
 import React, { useLayoutEffect, useRef, useState } from "react";
 import type { StatusFlowConfig, SubtaskStatus } from "@shared/types";
 import { STATUS_COLORS } from "../StatusBadge";
+import "./flow.css";
+import "./FlowDiagram.css";
 
 // `id` must be unique per edge, even for a repeated from/to pair
 export interface FlowEdge {

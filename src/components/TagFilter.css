@@ -1,0 +1,7 @@
+.tag-filter {
+    display: flex;
+    flex-direction: column;
+    font-size: var(--font-tiny);
+    color: var(--text-dim);
+    gap: 4px;
+}

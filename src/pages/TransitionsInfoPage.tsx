@@ -4,6 +4,7 @@ import type { FlowState, StatusFlowConfig } from "@shared/types";
 import { api } from "../api/client";
 import { FlowDiagram, type FlowEdge } from "../components/flow/FlowDiagram";
 import { STATUS_COLORS, STATUS_LABELS } from "../components/StatusBadge";
+import "./TransitionsInfoPage.css";
 
 function allTransitionEdges(flow: StatusFlowConfig): FlowEdge[] {
     return flow.transitions.flatMap((transition) =>

@@ -1,0 +1,46 @@
+.sprint-card {
+    display: block;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    color: var(--text);
+}
+
+.sprint-card:hover {
+    border-color: var(--accent);
+}
+
+.sprint-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+}
+
+.sprint-card-dates {
+    color: var(--text-dim);
+    font-size: var(--font-medium);
+}
+
+.sprint-card-comment {
+    color: var(--text-dim);
+    font-style: italic;
+    font-size: var(--font-medium);
+    margin: 6px 0;
+}
+
+.sprint-card-comment-editable {
+    cursor: pointer;
+}
+
+.sprint-card-comment-editable:hover {
+    color: var(--text);
+}
+
+.sprint-card-stats {
+    display: flex;
+    gap: 16px;
+    color: var(--text-dim);
+    font-size: var(--font-medium);
+    margin-top: 8px;
+}

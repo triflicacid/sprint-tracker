@@ -1,0 +1,16 @@
+.status-badge {
+    color: white;
+    font-size: var(--font-tiny);
+    padding: 3px 8px;
+    border-radius: 12px;
+    white-space: nowrap;
+}
+
+.status-badge-muted {
+    opacity: 0.45;
+    cursor: pointer;
+}
+
+.status-badge-muted:hover {
+    opacity: 0.85;
+}

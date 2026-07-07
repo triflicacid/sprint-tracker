@@ -6,6 +6,8 @@ import { SubtaskRow } from "../components/subtasks/SubtaskRow";
 import { SubtaskFlowDiagram } from "../components/subtasks/SubtaskFlowDiagram";
 import { SubtaskTransitionsTable } from "../components/subtasks/SubtaskTransitionsTable";
 import { SubtaskActivityCalendar } from "../components/calendar/SubtaskActivityCalendar";
+import { CommentEditor } from "../components/CommentEditor";
+import "./SubtaskDetailPage.css";
 
 // a subtask ("/subtasks/:id"): its row, flow diagram, and activity calendar.
 export function SubtaskDetailPage(): React.ReactElement {
@@ -15,8 +17,6 @@ export function SubtaskDetailPage(): React.ReactElement {
     const [loadError, setLoadError] = useState<string | null>(null);
     const [flow, setFlow] = useState<StatusFlowConfig | null>(null);
     const [history, setHistory] = useState<StatusHistoryEntry[]>([]);
-    const [editingComment, setEditingComment] = useState<boolean>(false);
-    const [commentDraft, setCommentDraft] = useState<string>("");
 
     async function loadSubtask() {
         try {
@@ -39,14 +39,8 @@ export function SubtaskDetailPage(): React.ReactElement {
         api.getStatusFlow().then(setFlow);
     }, []);
 
-    function startEditingComment() {
-        setCommentDraft(subtask?.comment ?? "");
-        setEditingComment(true);
-    }
-
-    async function saveComment() {
-        await api.updateSubtask(subtaskId, { comment: commentDraft.trim() });
-        setEditingComment(false);
+    async function saveComment(draft: string) {
+        await api.updateSubtask(subtaskId, { comment: draft });
         loadSubtask();
     }
 
@@ -78,19 +72,11 @@ export function SubtaskDetailPage(): React.ReactElement {
 
             <SubtaskRow subtask={subtask} flow={flow} onChanged={loadSubtask} disableNavigation />
 
-            {editingComment ? (
-                <textarea
-                    className="comment-edit"
-                    value={commentDraft}
-                    autoFocus
-                    onChange={(event) => setCommentDraft(event.target.value)}
-                    onBlur={saveComment}
-                />
-            ) : (
-                <p className="subtask-comment subtask-comment-editable" onClick={startEditingComment}>
-                    {subtask.comment || "add comment"}
-                </p>
-            )}
+            <CommentEditor
+                comment={subtask.comment}
+                displayClassName="subtask-comment"
+                onSave={saveComment}
+            />
 
             <h2>Flow</h2>
             <SubtaskFlowDiagram history={history} />

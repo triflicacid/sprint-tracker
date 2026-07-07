@@ -1,0 +1,23 @@
+.transitions-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+    font-size: var(--font-medium);
+
+    th,
+    td {
+        text-align: left;
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    th {
+        color: var(--text-dim);
+        font-weight: 500;
+        text-transform: lowercase;
+    }
+
+    tbody tr:last-child td {
+        border-bottom: none;
+    }
+}
