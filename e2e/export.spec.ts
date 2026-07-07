@@ -20,7 +20,7 @@ test("export page selects sprints by date range, the field picker changes the do
     await transitionSubtask(request, subtask.id, { status: "WIP", branchName: "feature/e2e" });
     await transitionSubtask(request, subtask.id, { comment: "this is the subtask comment" });
 
-    await page.goto("/#/export");
+    await page.goto("/export");
     await expect(page.getByText(sprintName)).toBeVisible();
     await expect(page.getByText(otherSprintName)).toBeVisible();
 
@@ -79,13 +79,13 @@ test("the per-sprint quick-export button on SprintDetailPage uses the fields sav
     await transitionSubtask(request, subtask.id, { status: "WIP", branchName: "feature/quick-export" });
 
     // customise the field selection via the export page first
-    await page.goto("/#/export");
+    await page.goto("/export");
     await expect(page.getByText(sprintName)).toBeVisible();
     await page.locator(".export-field-item", { hasText: "Branch name" }).click();
 
     // ...then use the quick-export shortcut on the sprint page, which has
     // no picker of its own and should just pick up what was saved above.
-    await page.goto(`/#/sprints/${sprint.id}`);
+    await page.goto(`/sprints/${sprint.id}`);
     await expect(page.getByText(`e2e story ${suffix}`)).toBeVisible();
     const [download] = await Promise.all([
         page.waitForEvent("download"),

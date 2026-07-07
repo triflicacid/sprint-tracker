@@ -33,7 +33,7 @@ test("stats page shows tiles and a togglable weekday, subtask detail calendar li
         prUrl: "https://github.com/example/repo/pull/42",
     });
 
-    await page.goto(`/#/stats/${sprint.id}`);
+    await page.goto(`/stats/${sprint.id}`);
 
     const prTile = page.getByText("pull requests");
     await expect(prTile).toBeVisible();
@@ -55,7 +55,7 @@ test("stats page shows tiles and a togglable weekday, subtask detail calendar li
     // the subtask's own activity calendar has no weekend muting, so its
     // most recent (today's) active day reliably shows the pr link
     // regardless of which day of the week the suite runs on.
-    await page.goto(`/#/subtasks/${subtask.id}`);
+    await page.goto(`/subtasks/${subtask.id}`);
     const prLink = page.locator(".activity-calendar .calendar-day-link").last();
     const [popup] = await Promise.all([page.waitForEvent("popup"), prLink.click()]);
     await expect(popup).toHaveURL("https://github.com/example/repo/pull/42");

@@ -8,7 +8,7 @@ test("adding and removing a custom tag on a story updates its tag list", async (
     const story = await seedStory(request, sprint.id, { description: "e2e tag story" });
     const tagName = `frontend-${Date.now()}`;
 
-    await page.goto(`/#/stories/${story.id}`);
+    await page.goto(`/stories/${story.id}`);
     await expect(page.getByText("e2e tag story")).toBeVisible();
 
     await page.fill('input[placeholder="add tag"]', tagName);
@@ -24,10 +24,10 @@ test("adding and removing a custom tag on a story updates its tag list", async (
         description: "e2e untagged story",
         jiraUrl: "https://example.atlassian.net/browse/E2E-2",
     });
-    await page.goto(`/#/stories/${otherStory.id}`);
+    await page.goto(`/stories/${otherStory.id}`);
     await expect(page.locator(".tag", { hasText: tagName })).toHaveCount(0);
 
-    await page.goto(`/#/stories/${story.id}`);
+    await page.goto(`/stories/${story.id}`);
     await expect(page.locator(".tag", { hasText: tagName })).toBeVisible();
     await page.locator(".tag", { hasText: tagName }).locator(".tag-remove").click();
     await expect(page.locator(".tag", { hasText: tagName })).toHaveCount(0);
