@@ -3,7 +3,7 @@
     align-items: center;
     gap: 6px;
     color: var(--text-dim);
-    font-size: 13px;
+    font-size: var(--font-medium);
 }
 
 .subtask-list {

@@ -29,7 +29,7 @@
 
 .branch-name {
     font-family: "SFMono-Regular", Consolas, monospace;
-    font-size: 12px;
+    font-size: var(--font-small);
     color: var(--text-dim);
     background: var(--surface-raised);
     padding: 2px 8px;
@@ -44,7 +44,7 @@
 
 .status-flow-arrow {
     color: var(--text-dim);
-    font-size: 13px;
+    font-size: var(--font-medium);
 }
 
 .subtask-footer {
@@ -52,7 +52,7 @@
     justify-content: space-between;
     align-items: center;
     gap: 12px;
-    font-size: 13px;
+    font-size: var(--font-medium);
 }
 
 .subtask-title {
@@ -74,12 +74,12 @@
     align-items: center;
     gap: 6px;
     color: var(--text-dim);
-    font-size: 13px;
+    font-size: var(--font-medium);
 }
 
 .release-version {
     color: var(--text-dim);
-    font-size: 12px;
+    font-size: var(--font-small);
 }
 
 .release-version-prompt {

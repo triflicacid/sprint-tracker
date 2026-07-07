@@ -25,7 +25,7 @@
     color: #a5b4fc;
     border-radius: 12px;
     padding: 3px 10px;
-    font-size: 11px;
+    font-size: var(--font-tiny);
     display: inline-flex;
     align-items: center;
     gap: 4px;
@@ -36,5 +36,5 @@
     border: none;
     padding: 0;
     color: #a5b4fc;
-    font-size: 11px;
+    font-size: var(--font-tiny);
 }

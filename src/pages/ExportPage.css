@@ -3,7 +3,7 @@
     align-items: center;
     gap: 14px;
     margin-bottom: 14px;
-    font-size: 13px;
+    font-size: var(--font-medium);
     color: var(--text-dim);
 
     label {
@@ -24,7 +24,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 13px;
+    font-size: var(--font-medium);
 }
 
 .export-fields {
@@ -35,7 +35,7 @@
 
 .export-field-group h3 {
     margin: 0 0 8px;
-    font-size: 13px;
+    font-size: var(--font-medium);
     color: var(--text-dim);
     text-transform: uppercase;
     letter-spacing: 0.04em;
@@ -45,7 +45,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 13px;
+    font-size: var(--font-medium);
     margin-bottom: 6px;
 }
 

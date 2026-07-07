@@ -19,13 +19,13 @@
 
 .sprint-card-dates {
     color: var(--text-dim);
-    font-size: 13px;
+    font-size: var(--font-medium);
 }
 
 .sprint-card-comment {
     color: var(--text-dim);
     font-style: italic;
-    font-size: 13px;
+    font-size: var(--font-medium);
     margin: 6px 0;
 }
 
@@ -41,6 +41,6 @@
     display: flex;
     gap: 16px;
     color: var(--text-dim);
-    font-size: 13px;
+    font-size: var(--font-medium);
     margin-top: 8px;
 }

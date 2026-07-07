@@ -3,7 +3,7 @@
     width: 100%;
     min-height: 100px;
     margin: 6px 0;
-    font-size: 13px;
+    font-size: var(--font-medium);
     font-family: inherit;
     resize: vertical;
 }

@@ -12,6 +12,6 @@
 
 .flow-chain-empty {
     color: var(--text-dim);
-    font-size: 13px;
+    font-size: var(--font-medium);
     margin-top: 12px;
 }

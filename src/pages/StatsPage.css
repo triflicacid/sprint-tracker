@@ -26,11 +26,11 @@
 }
 
 .stat-value {
-    font-size: 28px;
+    font-size: var(--font-huge);
     font-weight: 600;
 }
 
 .stat-label {
     color: var(--text-dim);
-    font-size: 12px;
+    font-size: var(--font-small);
 }

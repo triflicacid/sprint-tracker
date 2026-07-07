@@ -6,7 +6,15 @@
     --text: #e5e5e5;
     --text-dim: #9ca3af;
     --accent: #d97706;
-    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-family: "Inter", BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 16px;
+
+    --font-tiny: 0.6875rem;   /* approx. 10-11px: badges, tags, pills, small labels */
+    --font-small: 0.75rem;    /* approx. 12px: branch name, release version, stat label */
+    --font-medium: 0.8125rem; /* approx. 13px: default body/button/input text, used almost everywhere */
+    --font-large: 0.9375rem;  /* approx. 14-15px: month title, story description */
+    --font-xlarge: 1rem;      /* approx. 16px: h2 */
+    --font-huge: 1.75rem;     /* approx. 26-28px: h1, stat value */
 }
 
 * {
@@ -46,18 +54,18 @@ a {
 
 h1 {
     margin: 4px 0;
-    font-size: 26px;
+    font-size: var(--font-huge);
 }
 
 h2 {
-    font-size: 16px;
+    font-size: var(--font-xlarge);
     color: var(--text-dim);
     text-transform: lowercase;
     margin-top: 32px;
 }
 
 .back-link {
-    font-size: 13px;
+    font-size: var(--font-medium);
     color: var(--text-dim);
 }
 
@@ -68,7 +76,7 @@ button {
     padding: 8px 14px;
     border-radius: 6px;
     cursor: pointer;
-    font-size: 13px;
+    font-size: var(--font-medium);
 }
 
 button:hover {
@@ -83,5 +91,5 @@ select {
     color: var(--text);
     padding: 8px 10px;
     border-radius: 6px;
-    font-size: 13px;
+    font-size: var(--font-medium);
 }
