@@ -45,7 +45,7 @@ test.describe("holiday days", () => {
         const chip = page.locator(".holiday-chip", { hasText: holidayDate });
         await expect(chip).toBeVisible();
 
-        await page.goto(`/#/stats?sprintId=${sprint.id}`);
+        await page.goto(`/#/stats/${sprint.id}`);
         const cell = calendarCellFor(page, holidayDate);
         await expect(cell).toHaveClass(/calendar-day-holiday/);
         await expect(await holidaysStatValue(page)).toBe("1");
@@ -55,7 +55,7 @@ test.describe("holiday days", () => {
         await page.locator(".holiday-chip", { hasText: holidayDate }).locator(".holiday-remove").click();
         await expect(page.locator(".holiday-chip", { hasText: holidayDate })).toHaveCount(0);
 
-        await page.goto(`/#/stats?sprintId=${sprint.id}`);
+        await page.goto(`/#/stats/${sprint.id}`);
         const cellAfterRemoval = calendarCellFor(page, holidayDate);
         await expect(cellAfterRemoval).toHaveClass(/calendar-day-active/);
         await expect(await holidaysStatValue(page)).toBe("0");
@@ -72,7 +72,7 @@ test.describe("holiday days", () => {
             endDate: "2026-09-18",
         });
 
-        await page.goto(`/#/stats?sprintId=${sprint.id}`);
+        await page.goto(`/#/stats/${sprint.id}`);
         const cell = calendarCellFor(page, holidayDate);
         await expect(cell).toHaveClass(/calendar-day-active/);
         await cell.click();
@@ -85,7 +85,7 @@ test.describe("holiday days", () => {
         await chip.locator(".holiday-remove").click();
         await expect(page.locator(".holiday-chip", { hasText: holidayDate })).toHaveCount(0);
 
-        await page.goto(`/#/stats?sprintId=${sprint.id}`);
+        await page.goto(`/#/stats/${sprint.id}`);
         await expect(calendarCellFor(page, holidayDate)).toHaveClass(/calendar-day-active/);
     });
 
@@ -96,7 +96,7 @@ test.describe("holiday days", () => {
             endDate: "2026-10-16",
         });
 
-        await page.goto(`/#/stats?sprintId=${sprint.id}`);
+        await page.goto(`/#/stats/${sprint.id}`);
 
         // 2026-10-10 is a saturday inside the sprint's own month block - muted
         // for being a weekend, not for falling outside the sprint range.

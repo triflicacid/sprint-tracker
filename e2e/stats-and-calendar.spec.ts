@@ -33,7 +33,7 @@ test("stats page shows tiles and a togglable weekday, subtask detail calendar li
         prUrl: "https://github.com/example/repo/pull/42",
     });
 
-    await page.goto(`/#/stats?sprintId=${sprint.id}`);
+    await page.goto(`/#/stats/${sprint.id}`);
 
     const prTile = page.getByText("pull requests");
     await expect(prTile).toBeVisible();

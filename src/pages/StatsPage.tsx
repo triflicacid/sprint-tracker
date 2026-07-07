@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import type {
     SprintSummary,
@@ -49,11 +49,11 @@ function describeStatusCounts(counts: Record<string, number>, statusLabels: Stor
 
 // "/stats": charts and activity calendar for one selected sprint.
 export function StatsPage() {
-    const [searchParams, setSearchParams] = useSearchParams();
-    const initialSprintId: string | null = searchParams.get("sprintId");
+    const { sprintId: sprintIdParam } = useParams<{ sprintId?: string }>();
+    const navigate = useNavigate();
+    const selectedSprintId: string = sprintIdParam ?? "";
 
     const [sprints, setSprints] = useState<SprintSummary[]>([]);
-    const [selectedSprintId, setSelectedSprintId] = useState<string>(initialSprintId ?? "");
     const [stats, setStats] = useState<SprintStats | null>(null);
     const [granularity, setGranularity] = useState<StatusBreakdownGranularity>("subtask");
     const [statusBreakdown, setStatusBreakdown] = useState<StatusBreakdownPoint[]>([]);
@@ -80,7 +80,6 @@ export function StatsPage() {
         if (!selectedSprintId) {
             return;
         }
-        setSearchParams({ sprintId: selectedSprintId });
         api.getSprintStats(Number(selectedSprintId)).then(setStats);
         api.getDayActivity(Number(selectedSprintId)).then(setDayActivity);
     }, [selectedSprintId]);
@@ -209,7 +208,10 @@ export function StatsPage() {
                     </Link>
                     <h1>Stats</h1>
                 </div>
-                <select value={selectedSprintId} onChange={(event) => setSelectedSprintId(event.target.value)}>
+                <select
+                    value={selectedSprintId}
+                    onChange={(event) => navigate(event.target.value ? `/stats/${event.target.value}` : "/stats")}
+                >
                     <option value="">select a sprint</option>
                     {sprints.map((sprint) => (
                         <option key={sprint.id} value={sprint.id}>

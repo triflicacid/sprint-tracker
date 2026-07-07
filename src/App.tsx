@@ -19,6 +19,7 @@ export function App(): React.ReactElement {
                 <Route path="/stories/:id" element={<StoryDetailPage />} />
                 <Route path="/subtasks/:id" element={<SubtaskDetailPage />} />
                 <Route path="/stats" element={<StatsPage />} />
+                <Route path="/stats/:sprintId" element={<StatsPage />} />
                 <Route path="/calendar" element={<CalendarPage />} />
                 <Route path="/transitions" element={<TransitionsInfoPage />} />
                 <Route path="/export" element={<ExportPage />} />

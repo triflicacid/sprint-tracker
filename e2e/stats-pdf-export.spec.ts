@@ -34,7 +34,7 @@ test("exporting a single stats section downloads a one-page pdf", async ({ page,
     const suffix = Date.now();
     const sprint = await seedStatsSprint(request, suffix);
 
-    await page.goto(`/#/stats?sprintId=${sprint.id}`);
+    await page.goto(`/#/stats/${sprint.id}`);
     await expect(page.getByText("pull requests")).toBeVisible();
 
     const [download] = await Promise.all([
@@ -50,7 +50,7 @@ test("exporting all stats sections downloads one multi-page pdf", async ({ page,
     const suffix = Date.now();
     const sprint = await seedStatsSprint(request, suffix);
 
-    await page.goto(`/#/stats?sprintId=${sprint.id}`);
+    await page.goto(`/#/stats/${sprint.id}`);
     await expect(page.getByText("pull requests")).toBeVisible();
 
     const [download] = await Promise.all([
