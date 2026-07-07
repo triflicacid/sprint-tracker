@@ -18,7 +18,7 @@ export function getStatusFlow() {
 export function getAllowedNextStates(from: SubtaskStatus) {
     return config.transitions
         .filter((transition) => transition.from === from)
-        .flatMap((transition) => transition.to) as SubtaskStatus[];
+        .flatMap((transition) => transition.to);
 }
 
 // when taking the given transition, return any fields which are required

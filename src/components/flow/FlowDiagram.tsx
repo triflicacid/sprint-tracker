@@ -13,7 +13,7 @@ export interface FlowEdge {
 export interface FlowDiagramProps {
     flow: StatusFlowConfig;
     edges: FlowEdge[];
-    reachedStatuses?: Set<string>;
+    reachedStatuses?: Set<SubtaskStatus>;
 }
 
 interface NodePosition {
@@ -32,8 +32,8 @@ interface Arc {
 // generic node+arrow flow diagram for statuses
 export function FlowDiagram({ flow, edges, reachedStatuses }: FlowDiagramProps): React.ReactElement {
     const containerRef = useRef<HTMLDivElement>(null);
-    const nodeRefs = useRef<Map<string, HTMLDivElement>>(new Map());
-    const [positions, setPositions] = useState<Record<string, NodePosition>>({});
+    const nodeRefs = useRef<Map<SubtaskStatus, HTMLDivElement>>(new Map());
+    const [positions, setPositions] = useState<Partial<Record<SubtaskStatus, NodePosition>>>({});
 
     const states = [...flow.states].sort((a, b) => a.rank - b.rank);
 
@@ -44,7 +44,7 @@ export function FlowDiagram({ flow, edges, reachedStatuses }: FlowDiagramProps):
                 return;
             }
             const containerRect = container.getBoundingClientRect();
-            const next: Record<string, NodePosition> = {};
+            const next: Partial<Record<SubtaskStatus, NodePosition>> = {};
             for (const state of states) {
                 const node = nodeRefs.current.get(state.id);
                 if (!node) {

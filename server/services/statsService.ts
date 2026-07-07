@@ -244,7 +244,7 @@ export function getDayActivity(sprintId: number): DayActivityMap {
             cursor.setDate(cursor.getDate() + 1)
         ) {
             const dateString = cursor.toISOString().slice(0, 10);
-            const status = statusAsOf(historyForStatusAsOf, dateString, subtask.status) as SubtaskStatus;
+            const status = statusAsOf(historyForStatusAsOf, dateString, subtask.status);
             (result[dateString] ??= []).push({
                 storyLabel,
                 branchName: subtask.branch_name,
