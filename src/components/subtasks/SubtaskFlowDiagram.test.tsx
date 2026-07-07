@@ -1,10 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
-import type { StatusHistoryEntry } from "@shared/types";
+import type { StatusHistoryEntry, SubtaskStatus } from "@shared/types";
 import { SubtaskFlowDiagram } from "./SubtaskFlowDiagram";
 
-function entry(id: number, status: string, changedAt: string): StatusHistoryEntry {
-    return { id, entityType: "subtask", entityId: 1, status, releaseVersion: null, changedAt };
+function entry(id: number, status: SubtaskStatus, changedAt: string) {
+    return { id, entityType: "subtask", entityId: 1, status, releaseVersion: null, changedAt } as StatusHistoryEntry;
 }
 
 describe("SubtaskFlowDiagram", () => {
@@ -14,7 +14,7 @@ describe("SubtaskFlowDiagram", () => {
     });
 
     it("draws one lozenge per transition, in order", () => {
-        const history: StatusHistoryEntry[] = [
+        const history = [
             entry(1, "NEW", "2026-01-01"),
             entry(2, "WIP", "2026-01-02"),
             entry(3, "DONE", "2026-01-05"),
@@ -25,7 +25,7 @@ describe("SubtaskFlowDiagram", () => {
     });
 
     it("draws revisiting an earlier status as a brand new lozenge, not a shared/looping node", () => {
-        const history: StatusHistoryEntry[] = [
+        const history = [
             entry(1, "NEW", "2026-01-01"),
             entry(2, "WIP", "2026-01-02"),
             entry(3, "IN_REVIEW", "2026-01-03"),
@@ -47,20 +47,20 @@ describe("SubtaskFlowDiagram", () => {
     });
 
     it("collapses a genuine no-op (two consecutive identical statuses) into a single lozenge", () => {
-        const history: StatusHistoryEntry[] = [entry(1, "NEW", "2026-01-01"), entry(2, "NEW", "2026-01-01")];
+        const history = [entry(1, "NEW", "2026-01-01"), entry(2, "NEW", "2026-01-01")];
         const { container } = render(<SubtaskFlowDiagram history={history} />);
         expect(container.querySelectorAll(".flow-node")).toHaveLength(1);
     });
 
     it("draws history out of insertion order by sorting on changedAt first", () => {
-        const history: StatusHistoryEntry[] = [entry(2, "WIP", "2026-01-02"), entry(1, "NEW", "2026-01-01")];
+        const history = [entry(2, "WIP", "2026-01-02"), entry(1, "NEW", "2026-01-01")];
         const { container } = render(<SubtaskFlowDiagram history={history} />);
         const nodes = container.querySelectorAll(".flow-node");
         expect(Array.from(nodes).map((n) => n.textContent)).toEqual(["new", "wip"]);
     });
 
     it("puts the transition's date/time in each lozenge's title", () => {
-        const history: StatusHistoryEntry[] = [entry(1, "NEW", "2026-01-01 09:15:00")];
+        const history = [entry(1, "NEW", "2026-01-01 09:15:00")];
         const { container } = render(<SubtaskFlowDiagram history={history} />);
         expect(container.querySelector(".flow-node")).toHaveAttribute("title", "2026-01-01 09:15 — new");
     });

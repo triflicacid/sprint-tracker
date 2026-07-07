@@ -2,19 +2,10 @@ import type { MarkdownExportFields, StoryDetail, StoryStatus, Subtask } from "..
 import { getSprintDetail } from "./sprintService.js";
 import { getStoryDetail } from "./storyService.js";
 import { getStatusFlow } from "./statusFlowService.js";
+import { statusLabels } from "../../shared/statusCatalog.js";
 
 function labelOf(status: StoryStatus): string {
-    const state = getStatusFlow().states.find((entry) => entry.id === status);
-    if (state) {
-        return state.label;
-    }
-    if (status === "JIRA_ONLY") {
-        return "jira only";
-    }
-    if (status === "WORK_REMAINING") {
-        return "work remaining";
-    }
-    return status.toLowerCase();
+    return statusLabels(getStatusFlow())[status];
 }
 
 function formatSubtask(subtask: Subtask, fields: MarkdownExportFields["subtask"]) {

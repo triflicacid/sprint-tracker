@@ -1,5 +1,5 @@
 import React from "react";
-import type { StatusHistoryEntry, SubtaskStatus } from "@shared/types";
+import type { StatusHistoryEntry } from "@shared/types";
 import type { StatusHistoryLike } from "@shared/statusHistory";
 import { STATUS_COLORS, STATUS_LABELS } from "../StatusBadge";
 import { buildMonthGrid, formatIsoDate, monthsBetween } from "../../utils/calendarGrid";
@@ -17,7 +17,7 @@ const DAY_HEADERS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 export function SubtaskActivityCalendar({ history, prUrl }: SubtaskActivityCalendarProps) {
     const sortedHistory: StatusHistoryLike[] = [...history]
         .sort((a, b) => new Date(a.changedAt).getTime() - new Date(b.changedAt).getTime())
-        .map((entry) => ({ status: entry.status as SubtaskStatus, changedAt: entry.changedAt }));
+        .map((entry) => ({ status: entry.status, changedAt: entry.changedAt }));
 
     const firstActiveEntry = sortedHistory.find((entry) => entry.status !== "NEW");
     if (!firstActiveEntry) {
@@ -63,14 +63,14 @@ export function SubtaskActivityCalendar({ history, prUrl }: SubtaskActivityCalen
                                     const dateString = formatIsoDate(date);
                                     const isActive = dateString >= startDate && dateString <= endDate;
                                     const segments = isActive ? computeDaySegments(sortedHistory, dateString) : [];
-                                    const lastStatus = segments[segments.length - 1]?.status ?? "";
+                                    const lastStatus = segments[segments.length - 1]?.status;
                                     const baseTitle = isActive
                                         ? `${dateString} — ${segments
-                                              .map((segment) => STATUS_LABELS[segment.status] ?? segment.status.toLowerCase())
+                                              .map((segment) => STATUS_LABELS[segment.status])
                                               .join(" → ")}`
                                         : "";
                                     // only a day with several transitions gets the proportional-width segment strips.
-                                    const cellStyle = isActive && segments.length <= 1
+                                    const cellStyle = isActive && segments.length <= 1 && lastStatus
                                         ? { backgroundColor: STATUS_COLORS[lastStatus] }
                                         : undefined;
                                     const segmentsOverlay =

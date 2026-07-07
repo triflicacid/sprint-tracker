@@ -7,10 +7,10 @@ import {
     buildTransitionsPdfTable,
     buildPhaseTotalsLines,
 } from "./subtaskTiming";
-import type { StatusHistoryEntry } from "@shared/types";
+import type { StatusHistoryEntry, SubtaskStatus } from "@shared/types";
 
 let nextId = 1;
-function entry(status: string, changedAt: string): StatusHistoryEntry {
+function entry(status: SubtaskStatus, changedAt: string): StatusHistoryEntry {
     return { id: nextId++, entityType: "subtask", entityId: 1, status, releaseVersion: null, changedAt };
 }
 

@@ -1,7 +1,8 @@
 import type { StatusHistoryLike } from "@shared/statusHistory";
+import type { SubtaskStatus } from "@shared/types";
 
 export interface DaySegment {
-    status: string;
+    status: SubtaskStatus;
     durationMs: number;
 }
 
