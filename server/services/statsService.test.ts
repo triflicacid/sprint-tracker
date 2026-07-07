@@ -68,10 +68,7 @@ describe("getSprintStats", () => {
         expect(stats.storyTimeDays[0].days).toBe(2);
     });
 
-    it("is unaffected by the story row's own created_at, which can postdate its subtasks' history entirely", () => {
-        // e.g. bulk-imported/seeded data, where the story row is created "now"
-        // but its status history reaches back months - created_at must not be
-        // used as the start of the measured window in that case.
+    it("is unaffected by the story row's own created_at", () => {
         const sprintId = insertSprint("2026-01-01", "2026-12-31");
         const storyId = insertStory(sprintId);
         const subtaskId = insertSubtask(storyId);
@@ -106,7 +103,7 @@ describe("getSprintStats", () => {
 });
 
 describe("getStatusBreakdown", () => {
-    it("classifies each subtask by the status it held as of each day (subtask granularity)", () => {
+    it("classifies each subtask by the status it held as of each day", () => {
         const sprintId = insertSprint("2026-01-01", "2026-01-05");
         const storyId = insertStory(sprintId);
         const subtaskId = insertSubtask(storyId);
@@ -121,7 +118,7 @@ describe("getStatusBreakdown", () => {
         expect(byDate["2026-01-05"].WIP).toBe(1);
     });
 
-    it("rolls subtask statuses up to story status (story granularity)", () => {
+    it("rolls subtask statuses up to story status", () => {
         const sprintId = insertSprint("2026-01-01", "2026-01-02");
         const storyId = insertStory(sprintId);
         const subtaskId = insertSubtask(storyId);
