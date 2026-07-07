@@ -1,16 +1,16 @@
 import { db } from "../db/connection.js";
-import type { EntityType, StatusHistoryEntry } from "../../shared/types.js";
+import type { EntityType, StatusHistoryEntry, SubtaskStatus } from "../../shared/types.js";
 
 interface StatusHistoryRow {
     id: number;
     entity_type: EntityType;
     entity_id: number;
-    status: string;
+    status: SubtaskStatus;
     release_version: string | null;
     changed_at: string;
 }
 
-function rowToEntry(row: StatusHistoryRow) {
+function rowToEntry(row: StatusHistoryRow): StatusHistoryEntry {
     return {
         id: row.id,
         entityType: row.entity_type,
@@ -18,13 +18,13 @@ function rowToEntry(row: StatusHistoryRow) {
         status: row.status,
         releaseVersion: row.release_version,
         changedAt: row.changed_at,
-    } as StatusHistoryEntry;
+    };
 }
 
 export function recordStatusChange(
     entityType: EntityType,
     entityId: number,
-    status: string,
+    status: SubtaskStatus,
     releaseVersion: string | null
 ) {
     db.prepare(

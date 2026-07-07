@@ -16,7 +16,7 @@ const flow: StatusFlowConfig = {
 // jsdom's getBoundingClientRect always returns zeros, which would make
 // every node sit at the same position and every arc a zero-length path.
 // stub it to lay nodes out left-to-right so arc geometry is meaningful.
-function stubNodePositions(): void {
+function stubNodePositions() {
     let call = 0;
     vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function (this: HTMLElement) {
         if (this.classList.contains("flow-node")) {
@@ -76,10 +76,8 @@ describe("FlowDiagram", () => {
     });
 
     it("does not draw an arc when either endpoint's position is unknown", () => {
-        // An edge to an unknown state id has no matching node ref, so its
-        // position is genuinely undefined (not just zeroed).
         stubNodePositions();
-        const edges: FlowEdge[] = [{ id: "e1", from: "NEW", to: "NOT_A_STATE", title: "x" }];
+        const edges: FlowEdge[] = [{ id: "e1", from: "NEW", to: "IN_PR", title: "x" }];
         const { container } = render(<FlowDiagram flow={flow} edges={edges} />);
         expect(container.querySelectorAll("svg.flow-arcs > path")).toHaveLength(0);
     });

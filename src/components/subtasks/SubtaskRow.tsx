@@ -68,9 +68,9 @@ export function SubtaskRow({ subtask, flow, onChanged, disableNavigation }: Subt
         }
     }
 
-    const allowedNextStates: SubtaskStatus[] = flow.transitions
+    const allowedNextStates = flow.transitions
         .filter((transition) => transition.from === subtask.status)
-        .flatMap((transition) => transition.to) as SubtaskStatus[];
+        .flatMap((transition) => transition.to);
     const pendingFields: FlowField[] = pendingStatus ? requiredFields(subtask.status, pendingStatus) : [];
     const githubBranchUrl: string | null = branchUrl(subtask);
     const complexityLocked = flow.states.find((state) => state.id === subtask.status)?.locksComplexity ?? false;

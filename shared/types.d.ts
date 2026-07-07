@@ -31,13 +31,13 @@ export interface FlowField {
 
 // allowed destinations from one state, plus data required to leave it.
 export interface FlowTransition {
-  from: string;
-  to: string[];
+  from: SubtaskStatus;
+  to: SubtaskStatus[];
   requires?: FlowField[];
 }
 
 export interface FlowState {
-  id: string;
+  id: SubtaskStatus;
   label: string;
   rank: number;
   color: string;
@@ -66,7 +66,7 @@ export interface StatusHistoryEntry {
   id: number;
   entityType: EntityType;
   entityId: number;
-  status: string;
+  status: SubtaskStatus;
   releaseVersion: string | null;
   changedAt: string;
 }

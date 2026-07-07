@@ -7,6 +7,7 @@ import type {
     StatusBreakdownPoint,
     StatusBreakdownGranularity,
     DayActivityMap,
+    StoryStatus,
 } from "@shared/types";
 import { api } from "../api/client";
 import { StatusBreakdownChart } from "../components/stats/StatusBreakdownChart";
@@ -38,10 +39,10 @@ function isWeekday(dateString: string) {
 
 // renders one day's status tally as "label: count, label: count", skipping
 // zero counts - used to describe a StatusBreakdownPoint in the pdf report.
-function describeStatusCounts(counts: Record<string, number>, statusLabels: string[]): string {
+function describeStatusCounts(counts: Record<string, number>, statusLabels: StoryStatus[]) {
     const parts = statusLabels
         .filter((status) => (counts[status] ?? 0) > 0)
-        .map((status) => `${STATUS_LABELS[status] ?? status.toLowerCase()}: ${counts[status]}`);
+        .map((status) => `${STATUS_LABELS[status]}: ${counts[status]}`);
     return parts.length > 0 ? parts.join(", ") : "no statuses recorded";
 }
 

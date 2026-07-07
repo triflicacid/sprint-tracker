@@ -1,4 +1,4 @@
-import type { StatusHistoryEntry } from "@shared/types";
+import type { StatusHistoryEntry, SubtaskStatus } from "@shared/types";
 import { STATUS_LABELS, STATUS_COLORS, SUBTASK_STATUSES } from "../components/StatusBadge";
 import type { PdfTable } from "./pdfExport";
 
@@ -16,14 +16,10 @@ export interface SubtaskTiming {
 export interface TransitionRow {
     id: number;
     changedAt: string;
-    status: string;
-    // days spent in the PREVIOUS row's status before this transition -
-    // null for the first row, since there's no previous status. Whole days,
-    // rounded - used by the pdf export's "total time per phase" summary.
+    status: SubtaskStatus;
+    // days spent in the PREVIOUS row's status before this transition
     daysInPrevious: number | null;
-    // same duration as daysInPrevious, but exact milliseconds - used by the
-    // on-page transitions table's days/hours/minutes breakdown, where
-    // rounding to whole days would hide same-day transitions entirely.
+    // same duration as daysInPrevious, but exact milliseconds
     msInPrevious: number | null;
 }
 
@@ -42,7 +38,7 @@ function formatDays(days: number) {
 // same-format/no-offset string is parsed as LOCAL time by `Date`, which would
 // silently shift the displayed hour depending on the runtime's timezone.
 // Reading the digits straight out of the string sidesteps that entirely.
-export function formatDateTime(changedAt: string): string {
+export function formatDateTime(changedAt: string) {
     const match = changedAt.match(/^(\d{4}-\d{2}-\d{2})[ T](\d{2}):(\d{2})/);
     if (match) {
         return `${match[1]} ${match[2]}:${match[3]}`;
@@ -111,7 +107,7 @@ function computePhaseTotals(rows: TransitionRow[], now: Date): PhaseTotals {
     }
 
     const totalParts = Object.entries(totalsByStatus).map(([status, days]) => {
-        const label = STATUS_LABELS[status] ?? status.toLowerCase();
+        const label = STATUS_LABELS[status as SubtaskStatus];
         const ongoingSuffix = !isTerminal && status === last.status ? " (ongoing)" : "";
         return `${label}: ${formatDays(days)}${ongoingSuffix}`;
     });
@@ -132,11 +128,11 @@ export function computeSubtaskTiming(history: StatusHistoryEntry[], now: Date = 
 
     const transitionLines = rows.map((row, i) => {
         const date = row.changedAt.slice(0, 10);
-        const label = STATUS_LABELS[row.status] ?? row.status.toLowerCase();
+        const label = STATUS_LABELS[row.status];
         if (i === 0) {
             return `${date}: ${label}`;
         }
-        const previousLabel = STATUS_LABELS[rows[i - 1].status] ?? rows[i - 1].status.toLowerCase();
+        const previousLabel = STATUS_LABELS[rows[i - 1].status];
         return `${date}: ${label} (${formatDays(row.daysInPrevious ?? 0)} in ${previousLabel})`;
     });
 
@@ -164,8 +160,8 @@ export function buildTransitionsPdfTable(history: StatusHistoryEntry[]): PdfTabl
         rows: rows.map((row) => [
             { text: formatDateTime(row.changedAt) },
             {
-                text: STATUS_LABELS[row.status] ?? row.status.toLowerCase(),
-                color: hexToRgb(STATUS_COLORS[row.status] ?? "#6b7280"),
+                text: STATUS_LABELS[row.status],
+                color: hexToRgb(STATUS_COLORS[row.status]),
             },
             { text: row.msInPrevious === null ? "-" : formatDurationDHM(row.msInPrevious) },
         ]),

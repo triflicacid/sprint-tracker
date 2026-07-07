@@ -24,10 +24,10 @@ export function SubtaskFlowDiagram({ history }: SubtaskFlowDiagramProps) {
                     {i > 0 && <span className="flow-chain-arrow">&rarr;</span>}
                     <span
                         className="flow-node"
-                        style={{ backgroundColor: STATUS_COLORS[row.status] ?? "#6b7280" }}
-                        title={`${formatDateTime(row.changedAt)} — ${STATUS_LABELS[row.status] ?? row.status.toLowerCase()}`}
+                        style={{ backgroundColor: STATUS_COLORS[row.status] }}
+                        title={`${formatDateTime(row.changedAt)} — ${STATUS_LABELS[row.status]}`}
                     >
-                        {STATUS_LABELS[row.status] ?? row.status.toLowerCase()}
+                        {STATUS_LABELS[row.status]}
                     </span>
                 </React.Fragment>
             ))}

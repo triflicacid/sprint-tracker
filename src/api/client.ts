@@ -14,6 +14,7 @@ import type {
     StatusFlowConfig,
     StatusHistoryEntry,
     MarkdownExportFields,
+    SubtaskStatus,
 } from "@shared/types";
 
 const BASE_URL: string = "/api";
@@ -84,7 +85,7 @@ export const api = {
             title?: string;
             comment?: string;
             branchName?: string;
-            status?: string;
+            status?: SubtaskStatus;
             prUrl?: string;
             releaseVersion?: string;
             complexityRating?: number;

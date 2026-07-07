@@ -5,16 +5,16 @@ import type {
     StatusBreakdownGranularity,
     CalendarEntry,
     SubtaskStatus,
-    StoryStatus,
     DayActivityMap,
 } from "../../shared/types.js";
 import { computeStoryStatus } from "./storyService.js";
 import { getStatusFlow } from "./statusFlowService.js";
 import { statusAsOf } from "../../shared/statusHistory.js";
+import { storyStatuses, subtaskStatuses } from "../../shared/statusCatalog.js";
 
-const SUBTASK_STATUSES = getStatusFlow().states.map((state) => state.id) as SubtaskStatus[];
+const SUBTASK_STATUSES = subtaskStatuses(getStatusFlow());
 
-const STORY_STATUSES: StoryStatus[] = ["JIRA_ONLY", "WORK_REMAINING", ...SUBTASK_STATUSES];
+const STORY_STATUSES = storyStatuses(getStatusFlow());
 
 interface RepoCountRow {
     repo_name: string;
@@ -244,7 +244,7 @@ export function getDayActivity(sprintId: number): DayActivityMap {
             cursor.setDate(cursor.getDate() + 1)
         ) {
             const dateString = cursor.toISOString().slice(0, 10);
-            const status = statusAsOf(historyForStatusAsOf, dateString, subtask.status) as SubtaskStatus;
+            const status = statusAsOf(historyForStatusAsOf, dateString, subtask.status);
             (result[dateString] ??= []).push({
                 storyLabel,
                 branchName: subtask.branch_name,

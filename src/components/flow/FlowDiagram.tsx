@@ -1,19 +1,19 @@
 import React, { useLayoutEffect, useRef, useState } from "react";
-import type { StatusFlowConfig } from "@shared/types";
+import type { StatusFlowConfig, SubtaskStatus } from "@shared/types";
 import { STATUS_COLORS } from "../StatusBadge";
 
 // `id` must be unique per edge, even for a repeated from/to pair
 export interface FlowEdge {
     id: string;
-    from: string;
-    to: string;
+    from: SubtaskStatus;
+    to: SubtaskStatus;
     title: string;
 }
 
 export interface FlowDiagramProps {
     flow: StatusFlowConfig;
     edges: FlowEdge[];
-    reachedStatuses?: Set<string>;
+    reachedStatuses?: Set<SubtaskStatus>;
 }
 
 interface NodePosition {
@@ -32,8 +32,8 @@ interface Arc {
 // generic node+arrow flow diagram for statuses
 export function FlowDiagram({ flow, edges, reachedStatuses }: FlowDiagramProps): React.ReactElement {
     const containerRef = useRef<HTMLDivElement>(null);
-    const nodeRefs = useRef<Map<string, HTMLDivElement>>(new Map());
-    const [positions, setPositions] = useState<Record<string, NodePosition>>({});
+    const nodeRefs = useRef<Map<SubtaskStatus, HTMLDivElement>>(new Map());
+    const [positions, setPositions] = useState<Partial<Record<SubtaskStatus, NodePosition>>>({});
 
     const states = [...flow.states].sort((a, b) => a.rank - b.rank);
 
@@ -44,7 +44,7 @@ export function FlowDiagram({ flow, edges, reachedStatuses }: FlowDiagramProps):
                 return;
             }
             const containerRect = container.getBoundingClientRect();
-            const next: Record<string, NodePosition> = {};
+            const next: Partial<Record<SubtaskStatus, NodePosition>> = {};
             for (const state of states) {
                 const node = nodeRefs.current.get(state.id);
                 if (!node) {
@@ -84,7 +84,7 @@ export function FlowDiagram({ flow, edges, reachedStatuses }: FlowDiagramProps):
         const bow = 20 + dx * 0.12 + (isBackward ? 36 : 0) + repeatIndex * 16;
         const midX = (fromPos.x + toPos.x) / 2;
         const controlY = Math.max(fromPos.bottom, toPos.bottom) + bow;
-        const color = STATUS_COLORS[edge.to] ?? "#6b7280";
+        const color = STATUS_COLORS[edge.to];
 
         arcs.push({
             key: edge.id,
@@ -115,7 +115,7 @@ export function FlowDiagram({ flow, edges, reachedStatuses }: FlowDiagramProps):
                         }}
                         className="flow-node"
                         style={{
-                            backgroundColor: STATUS_COLORS[state.id] ?? "#6b7280",
+                            backgroundColor: STATUS_COLORS[state.id],
                             opacity: reachedStatuses && !reachedStatuses.has(state.id) ? 0.35 : 1,
                         }}
                         title={state.description}
