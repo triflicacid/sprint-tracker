@@ -14,3 +14,4 @@
 - [?] Add code auto-formatter to project
 
 ## Bugs
+- `/stats` page seems to be blank??
