@@ -11,7 +11,7 @@
 - Exporting an entire sprint grants one page to each sub-task. Add an export button on the subtask's page to export just that subtask.
 
 ## Tech Debt
-- Code: avoid amending the URL if possible, use internal state
 - [?] Add code auto-formatter to project
 
 ## Bugs
+- `/stats` page seems to be blank??

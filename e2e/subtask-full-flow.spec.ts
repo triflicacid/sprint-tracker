@@ -9,7 +9,7 @@ test("subtask flow to done, including the pr comments detour, drives its story t
     const story = await seedStory(request, sprint.id, { description: "e2e full-flow story" });
     const subtask = await seedSubtask(request, story.id, "e2e full-flow subtask");
 
-    await page.goto(`/#/stories/${story.id}`);
+    await page.goto(`/stories/${story.id}`);
     await expect(page.getByText("e2e full-flow subtask")).toBeVisible();
 
     // rejects an incomplete transition: NEW -> WIP requires a branch name
@@ -71,7 +71,7 @@ test("subtask flow to done, including the pr comments detour, drives its story t
     await expect(page.locator(".subtask-row .status-flow-arrow")).toHaveCount(0);
 
     await page.click(".subtask-title");
-    await expect(page).toHaveURL(new RegExp(`#/subtasks/${subtask.id}$`));
+    await expect(page).toHaveURL(new RegExp(`/subtasks/${subtask.id}$`));
     const lozenges = page.locator(".flow-chain .flow-node");
     await expect(lozenges).toHaveText([
         "new",

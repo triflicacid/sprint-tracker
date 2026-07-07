@@ -26,7 +26,7 @@ test("exporting a story downloads one pdf page for the summary plus one per subt
     });
     await seedSubtask(request, story.id, `e2e subtask b ${suffix}`);
 
-    await page.goto(`/#/stories/${story.id}`);
+    await page.goto(`/stories/${story.id}`);
     await expect(page.getByText(`e2e story pdf export ${suffix}`)).toBeVisible();
 
     const [download] = await Promise.all([

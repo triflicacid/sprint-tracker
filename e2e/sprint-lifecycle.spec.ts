@@ -6,7 +6,7 @@ import { test, expect } from "@playwright/test";
 test("create a sprint, story and subtask, and walk the subtask through the flow", async ({ page }) => {
     const sprintName = `E2E Lifecycle ${Date.now()}`;
 
-    await page.goto("/#/");
+    await page.goto("/");
     await page.click("text=new sprint");
     await page.fill('input[placeholder="sprint name"]', sprintName);
     await page.fill('input[type="date"]', "2026-01-01");
@@ -41,7 +41,7 @@ test("create a sprint, story and subtask, and walk the subtask through the flow"
 
     // clicking the row itself (not a control) navigates to the detail page
     await page.click(".subtask-title");
-    await expect(page).toHaveURL(/#\/subtasks\/\d+/);
+    await expect(page).toHaveURL(/\/subtasks\/\d+/);
     await expect(page.locator(".flow-chain")).toBeVisible();
     await expect(page.getByText("Activity calendar")).toBeVisible();
 
@@ -58,7 +58,7 @@ test("create a sprint, story and subtask, and walk the subtask through the flow"
 
     // the comment stays off the tile view back on the story page.
     await page.click("text=back to story");
-    await expect(page).toHaveURL(/#\/stories\/\d+$/);
+    await expect(page).toHaveURL(/\/stories\/\d+$/);
     await expect(page.locator(".subtask-title")).toHaveText("e2e subtask");
     await expect(page.locator(".subtask-comment")).toHaveCount(0);
 });

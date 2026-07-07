@@ -127,7 +127,7 @@ export function SprintDetailPage(): React.ReactElement {
                     />
                 </div>
                 <div className="page-header-actions">
-                    <Link to={`/stats?sprintId=${sprint.id}`}>stats</Link>
+                    <Link to={`/stats/${sprint.id}`}>stats</Link>
                     <button onClick={handleQuickExport}>export</button>
                     <button onClick={() => setShowForm(!showForm)}>new story</button>
                 </div>

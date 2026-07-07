@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { StatsPage } from "../../pages/StatsPage";
 import { api } from "../../api/client";
 import { exportSectionsAsPdf } from "../../utils/pdfExport";
@@ -50,10 +50,13 @@ beforeEach(() => {
     vi.mocked(exportSectionsAsPdf).mockReset();
 });
 
-function renderPage() {
+function renderPage(initialPath: string = "/stats") {
     return render(
-        <MemoryRouter>
-            <StatsPage />
+        <MemoryRouter initialEntries={[initialPath]}>
+            <Routes>
+                <Route path="/stats" element={<StatsPage />} />
+                <Route path="/stats/:sprintId" element={<StatsPage />} />
+            </Routes>
         </MemoryRouter>
     );
 }
@@ -166,5 +169,14 @@ describe("StatsPage", () => {
     it("does not show the header export-all button until a sprint is selected", () => {
         renderPage();
         expect(screen.queryByRole("button", { name: "export all as pdf" })).not.toBeInTheDocument();
+    });
+
+    it("pre-selects the sprint from a /stats/:sprintId deep link", async () => {
+        renderPage("/stats/1");
+
+        const prTile = await screen.findByText("pull requests");
+        expect(prTile.previousElementSibling).toHaveTextContent("3");
+        expect(api.getSprintStats).toHaveBeenCalledWith(1);
+        expect(screen.getByRole("combobox")).toHaveValue("1");
     });
 });

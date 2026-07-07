@@ -17,7 +17,7 @@ test("calendar page renders sprints as range-lines, splitting a shared handoff d
         endDate: "2026-05-29",
     });
 
-    await page.goto("/#/calendar");
+    await page.goto("/calendar");
 
     const barA = page.locator(".range-bar", { hasText: `E2E Range A ${suffix}` }).first();
     const barB = page.locator(".range-bar", { hasText: `E2E Range B ${suffix}` }).first();
@@ -30,7 +30,7 @@ test("calendar page renders sprints as range-lines, splitting a shared handoff d
     await expect(week.locator(".range-lane")).toHaveCount(1);
 
     await barA.click();
-    await expect(page).toHaveURL(new RegExp(`#/sprints/${sprintA.id}$`));
+    await expect(page).toHaveURL(new RegExp(`/sprints/${sprintA.id}$`));
 });
 
 // Repo filter is auto-derived from a subtask's pr url (custom tags are
@@ -73,7 +73,7 @@ test("calendar page's repo filter narrows sprints down to ones with a matching r
         prUrl: `https://github.com/example/${otherRepoName}/pull/1`,
     });
 
-    await page.goto("/#/calendar");
+    await page.goto("/calendar");
     const bar = page.locator(".range-bar", { hasText: `E2E Filter ${suffix}` }).first();
     await expect(bar).toBeVisible();
 
