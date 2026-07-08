@@ -1,9 +1,22 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import {
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    ResponsiveContainer,
+    ScatterChart,
+    Scatter,
+    Legend,
+} from "recharts";
 import type {
     SprintSummary,
     SprintStats,
+    ComplexityStats,
+    ComplexityTimingPoint,
     StatusBreakdownPoint,
     StatusBreakdownGranularity,
     DayActivityMap,
@@ -15,7 +28,41 @@ import { SprintActivityCalendar } from "../components/calendar/SprintActivityCal
 import { SUBTASK_STATUSES, STORY_STATUSES, STATUS_LABELS } from "../components/StatusBadge";
 import { parseIsoDate, formatIsoDate } from "../utils/calendarGrid";
 import { exportSectionsAsPdf, type PdfSection } from "../utils/pdfExport";
+import { colorForStory } from "../utils/storyColor";
 import "./StatsPage.css";
+
+const COMPLEXITY_RATINGS = [1, 2, 3, 4, 5];
+
+// groups the complexity/running-time points by story
+function groupPointsByStory(points: ComplexityTimingPoint[]) {
+    const byStory = new Map<number, { storyId: number; storyLabel: string; points: ComplexityTimingPoint[] }>();
+    for (const point of points) {
+        const existing = byStory.get(point.storyId);
+        if (existing) {
+            existing.points.push(point);
+        } else {
+            byStory.set(point.storyId, { storyId: point.storyId, storyLabel: point.storyLabel, points: [point] });
+        }
+    }
+    return Array.from(byStory.values());
+}
+
+// custom scatter tooltip
+function ComplexityTooltip({ active, payload }: { active?: boolean; payload?: { payload: ComplexityTimingPoint }[] }) {
+    if (!active || !payload || payload.length === 0) {
+        return null;
+    }
+    const point = payload[0].payload;
+    return (
+        <div style={{ backgroundColor: "#1a1a1a", border: "1px solid #333", padding: "6px 10px" }}>
+            <div>
+                {point.storyLabel} - subtask #{point.subtaskId}
+            </div>
+            <div>complexity: {point.complexityRating}</div>
+            <div>running time: {point.runningTimeDays} day{point.runningTimeDays === 1 ? "" : "s"}</div>
+        </div>
+    );
+}
 
 // counts weekdays (mon-fri) in an inclusive date range.
 function countWeekdays(start: string, end: string) {
@@ -55,6 +102,7 @@ export function StatsPage() {
 
     const [sprints, setSprints] = useState<SprintSummary[]>([]);
     const [stats, setStats] = useState<SprintStats | null>(null);
+    const [complexity, setComplexity] = useState<ComplexityStats | null>(null);
     const [granularity, setGranularity] = useState<StatusBreakdownGranularity>("subtask");
     const [statusBreakdown, setStatusBreakdown] = useState<StatusBreakdownPoint[]>([]);
     const [dayActivity, setDayActivity] = useState<DayActivityMap>({});
@@ -62,6 +110,7 @@ export function StatsPage() {
 
     const repoChartRef = useRef<HTMLDivElement>(null);
     const timeChartRef = useRef<HTMLDivElement>(null);
+    const complexityChartRef = useRef<HTMLDivElement>(null);
     const statusBreakdownRef = useRef<HTMLDivElement>(null);
     const calendarRef = useRef<HTMLDivElement>(null);
 
@@ -82,6 +131,7 @@ export function StatsPage() {
         }
         api.getSprintStats(Number(selectedSprintId)).then(setStats);
         api.getDayActivity(Number(selectedSprintId)).then(setDayActivity);
+        api.getComplexityTiming(Number(selectedSprintId)).then(setComplexity);
     }, [selectedSprintId]);
 
     useEffect(() => {
@@ -128,6 +178,7 @@ export function StatsPage() {
                 title: `Summary - ${selectedSprint.name}`,
                 lines: [
                     `Sprint: ${selectedSprint.name} (${selectedSprint.startDate} to ${sprintEndDate})`,
+                    `Completed: ${isCompleted ? "yes" : "ongoing"}`,
                     `Pull requests: ${stats.prCount}`,
                     `Stories: ${stats.storyCount}`,
                     `Repos touched: ${stats.repoCounts.length}`,
@@ -160,6 +211,24 @@ export function StatsPage() {
                               }`,
                           ]
                         : ["No completed stories with recorded time yet."],
+            },
+            {
+                title: "Complexity",
+                element: complexityChartRef.current ?? undefined,
+                lines: complexity
+                    ? [
+                          ...COMPLEXITY_RATINGS.map(
+                              (rating) => `Complexity ${rating}: ${complexity.ratingCounts[rating] ?? 0} subtask${(complexity.ratingCounts[rating] ?? 0) === 1 ? "" : "s"}`
+                          ),
+                          `Unrated: ${complexity.unratedCount}`,
+                          `Rated but still in progress (not charted): ${complexity.inProgressRatedCount}`,
+                          ...(complexity.storyComplexity.length > 0
+                              ? complexity.storyComplexity.map(
+                                    (story) => `${story.storyLabel}: complexity ${story.totalComplexity}`
+                                )
+                              : ["No done, rated subtasks yet to summarise per story."]),
+                      ]
+                    : [],
             },
             {
                 title: `Status breakdown (${granularity === "story" ? "stories" : granularity + "s"})`,
@@ -198,6 +267,7 @@ export function StatsPage() {
 
     const totalWeekdays = selectedSprint && sprintEndDate ? countWeekdays(selectedSprint.startDate, sprintEndDate) : 0;
     const holidayWeekdays = Array.from(holidays).filter(isWeekday).length;
+    const isCompleted = selectedSprint ? selectedSprint.endDate !== null : false;
 
     return (
         <div className="page">
@@ -251,6 +321,18 @@ export function StatsPage() {
                             <span className="stat-value">{holidayWeekdays}</span>
                             <span className="stat-label">holidays</span>
                         </div>
+                        <div className="stat-tile">
+                            <span className="stat-value">{selectedSprint.startDate}</span>
+                            <span className="stat-label">start date</span>
+                        </div>
+                        <div className="stat-tile">
+                            <span className="stat-value">{selectedSprint.endDate ?? "ongoing"}</span>
+                            <span className="stat-label">end date</span>
+                        </div>
+                        <div className="stat-tile">
+                            <span className="stat-value">{isCompleted ? "yes" : "ongoing"}</span>
+                            <span className="stat-label">completed</span>
+                        </div>
                     </div>
 
                     <div className="page-header">
@@ -293,6 +375,74 @@ export function StatsPage() {
                     </div>
 
                     <div className="page-header">
+                        <h2>Complexity</h2>
+                        <button onClick={() => handleExportSection(3, "complexity")}>export pdf</button>
+                    </div>
+                    <div ref={complexityChartRef}>
+                        <div className="stats-summary">
+                            {COMPLEXITY_RATINGS.map((rating) => (
+                                <div className="stat-tile" key={rating}>
+                                    <span className="stat-value">{complexity?.ratingCounts[rating] ?? 0}</span>
+                                    <span className="stat-label">complexity {rating}</span>
+                                </div>
+                            ))}
+                            <div className="stat-tile">
+                                <span className="stat-value">{complexity?.unratedCount ?? 0}</span>
+                                <span className="stat-label">unrated</span>
+                            </div>
+                        </div>
+
+                        {complexity && complexity.storyComplexity.length > 0 && (
+                            <ResponsiveContainer width="100%" height={220}>
+                                <BarChart data={complexity.storyComplexity} layout="vertical">
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
+                                    <XAxis type="number" stroke="#9ca3af" allowDecimals={false} />
+                                    <YAxis type="category" dataKey="storyLabel" stroke="#9ca3af" width={100} />
+                                    <Tooltip contentStyle={{ backgroundColor: "#1a1a1a", border: "1px solid #333" }} />
+                                    <Bar dataKey="totalComplexity" name="total complexity" fill="#7c3aed" />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        )}
+
+                        {complexity && complexity.points.length > 0 ? (
+                            <ResponsiveContainer width="100%" height={320}>
+                                <ScatterChart margin={{ top: 10, right: 20, bottom: 10, left: 0 }}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
+                                    <XAxis
+                                        type="number"
+                                        dataKey="complexityRating"
+                                        name="complexity"
+                                        domain={[1, 5]}
+                                        ticks={COMPLEXITY_RATINGS}
+                                        stroke="#9ca3af"
+                                    />
+                                    <YAxis type="number" dataKey="runningTimeDays" name="running time (days)" stroke="#9ca3af" />
+                                    <Tooltip content={<ComplexityTooltip />} />
+                                    <Legend />
+                                    {groupPointsByStory(complexity.points).map((story) => (
+                                        <Scatter
+                                            key={story.storyId}
+                                            name={story.storyLabel}
+                                            data={story.points}
+                                            fill={colorForStory(story.storyId)}
+                                        />
+                                    ))}
+                                </ScatterChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <p className="complexity-note">
+                                No done, rated subtasks yet to chart complexity against running time.
+                            </p>
+                        )}
+
+                        <p className="complexity-note">
+                            {complexity?.unratedCount ?? 0} subtask{(complexity?.unratedCount ?? 0) === 1 ? "" : "s"} not yet
+                            rated and {complexity?.inProgressRatedCount ?? 0} rated but still in progress are excluded from
+                            the chart above.
+                        </p>
+                    </div>
+
+                    <div className="page-header">
                         <h2>Status breakdown</h2>
                         <div className="page-header-actions">
                             <div className="granularity-toggle">
@@ -309,7 +459,7 @@ export function StatsPage() {
                                     stories
                                 </button>
                             </div>
-                            <button onClick={() => handleExportSection(3, "status-breakdown")}>
+                            <button onClick={() => handleExportSection(4, "status-breakdown")}>
                                 export pdf
                             </button>
                         </div>
@@ -323,7 +473,7 @@ export function StatsPage() {
 
                     <div className="page-header">
                         <h2>Calendar</h2>
-                        <button onClick={() => handleExportSection(4, "calendar")}>export pdf</button>
+                        <button onClick={() => handleExportSection(5, "calendar")}>export pdf</button>
                     </div>
                     <div ref={calendarRef}>
                         <SprintActivityCalendar

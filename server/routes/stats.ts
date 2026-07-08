@@ -1,11 +1,16 @@
 import { Router, Request, Response } from "express";
-import { getSprintStats, getStatusBreakdown, getDayActivity } from "../services/statsService.js";
+import { getSprintStats, getStatusBreakdown, getDayActivity, getComplexityTiming } from "../services/statsService.js";
 
 export const statsRouter: Router = Router();
 
 statsRouter.get("/sprint/:id", (req: Request, res: Response) => {
     const sprintId = Number(req.params.id);
     res.json(getSprintStats(sprintId));
+});
+
+statsRouter.get("/complexity-timing/:id", (req: Request, res: Response) => {
+    const sprintId = Number(req.params.id);
+    res.json(getComplexityTiming(sprintId));
 });
 
 statsRouter.get("/status-breakdown/:id", (req: Request, res: Response) => {

@@ -10,6 +10,7 @@ vi.mock("../../api/client", () => ({
     api: {
         listSprints: vi.fn(),
         getSprintStats: vi.fn(),
+        getComplexityTiming: vi.fn(),
         getDayActivity: vi.fn(),
         getStatusBreakdown: vi.fn(),
         listHolidays: vi.fn(),
@@ -40,10 +41,19 @@ const stats = {
     storyTimeDays: [{ storyId: 1, storyLabel: "NEB-1", description: "a story", days: 4 }],
 };
 
+const complexity = {
+    points: [{ subtaskId: 1, storyId: 1, storyLabel: "NEB-1", complexityRating: 3, runningTimeDays: 4 }],
+    ratingCounts: { 3: 1 },
+    unratedCount: 1,
+    inProgressRatedCount: 0,
+    storyComplexity: [{ storyId: 1, storyLabel: "NEB-1", totalComplexity: 3 }],
+};
+
 beforeEach(() => {
     Object.values(api).forEach((fn) => vi.mocked(fn).mockReset());
     vi.mocked(api.listSprints).mockResolvedValue([sprint]);
     vi.mocked(api.getSprintStats).mockResolvedValue(stats);
+    vi.mocked(api.getComplexityTiming).mockResolvedValue(complexity);
     vi.mocked(api.getDayActivity).mockResolvedValue({});
     vi.mocked(api.getStatusBreakdown).mockResolvedValue([{ date: "2026-03-10", counts: { NEW: 1, WIP: 1 } }]);
     vi.mocked(api.listHolidays).mockResolvedValue([]);
@@ -72,6 +82,35 @@ describe("StatsPage", () => {
         expect(api.getDayActivity).toHaveBeenCalledWith(1);
     });
 
+    it("shows start date, end date, and completed status in the summary tiles", async () => {
+        renderPage();
+        await userEvent.selectOptions(await screen.findByRole("combobox"), "1");
+        await screen.findByText("pull requests");
+
+        expect((await screen.findByText("start date")).previousElementSibling).toHaveTextContent("2026-03-02");
+        expect(screen.getByText("end date").previousElementSibling).toHaveTextContent("2026-03-16");
+        expect(screen.getByText("completed").previousElementSibling).toHaveTextContent("yes");
+    });
+
+    it("shows 'ongoing' for end date and completed when the sprint has no end date", async () => {
+        vi.mocked(api.listSprints).mockResolvedValue([{ ...sprint, endDate: null }]);
+        renderPage();
+        await userEvent.selectOptions(await screen.findByRole("combobox"), "1");
+        await screen.findByText("pull requests");
+
+        expect(screen.getByText("end date").previousElementSibling).toHaveTextContent("ongoing");
+        expect(screen.getByText("completed").previousElementSibling).toHaveTextContent("ongoing");
+    });
+
+    it("renders the complexity section's rating distribution and per-story summary", async () => {
+        renderPage();
+        await userEvent.selectOptions(await screen.findByRole("combobox"), "1");
+
+        expect(await screen.findByText("Complexity")).toBeInTheDocument();
+        expect(screen.getByText("complexity 3").previousElementSibling).toHaveTextContent("1");
+        expect(screen.getByText("unrated").previousElementSibling).toHaveTextContent("1");
+    });
+
     it("switches status breakdown granularity via the toggle buttons", async () => {
         renderPage();
         await userEvent.selectOptions(await screen.findByRole("combobox"), "1");
@@ -93,7 +132,7 @@ describe("StatsPage", () => {
         await userEvent.selectOptions(await screen.findByRole("combobox"), "1");
         await screen.findByText("March 2026");
 
-        await userEvent.click(screen.getByText("5"));
+        await userEvent.click(screen.getByText("5", { selector: ".calendar-day-number" }));
         expect(api.addHoliday).toHaveBeenCalledWith("2026-03-05");
     });
 
@@ -125,7 +164,7 @@ describe("StatsPage", () => {
 
         expect(exportSectionsAsPdf).toHaveBeenCalledTimes(1);
         const [sections, filename] = vi.mocked(exportSectionsAsPdf).mock.calls[0];
-        expect(sections).toHaveLength(5);
+        expect(sections).toHaveLength(6);
 
         // summary is text-only; the rest pair a chart/calendar screenshot with
         // written stats underneath.
@@ -141,7 +180,18 @@ describe("StatsPage", () => {
             expect.arrayContaining(["a story: 4 days", "Average: 4.0 days across 1 story"])
         );
 
-        const statusSection = sections[3];
+        const complexitySection = sections[3];
+        expect(complexitySection.title).toBe("Complexity");
+        expect(complexitySection.lines).toEqual(
+            expect.arrayContaining([
+                "Complexity 3: 1 subtask",
+                "Unrated: 1",
+                "Rated but still in progress (not charted): 0",
+                "NEB-1: complexity 3",
+            ])
+        );
+
+        const statusSection = sections[4];
         expect(statusSection.lines).toEqual(["2026-03-10: new: 1, wip: 1"]);
 
         expect(filename).toMatch(/^sprint-stats-\d{4}-\d{2}-\d{2}\.pdf$/);
@@ -160,7 +210,7 @@ describe("StatsPage", () => {
         await userEvent.click(screen.getByRole("button", { name: "export all as pdf" }));
 
         const [sections] = vi.mocked(exportSectionsAsPdf).mock.calls[0];
-        expect(sections[3].lines).toEqual([
+        expect(sections[4].lines).toEqual([
             "Start (2026-03-02): new: 2",
             "End (2026-03-16): wip: 1, done: 1",
         ]);

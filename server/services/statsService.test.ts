@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { db } from "../db/connection.js";
-import { getSprintStats, getStatusBreakdown, getDayActivity, getCalendarEntries } from "./statsService.js";
+import { getSprintStats, getStatusBreakdown, getDayActivity, getCalendarEntries, getComplexityTiming } from "./statsService.js";
 
 function insertSprint(startDate: string, endDate: string | null = null) {
     const result = db
@@ -18,14 +18,27 @@ function insertStory(sprintId: number, jiraKey: string | null = null) {
 
 function insertSubtask(
     storyId: number,
-    fields: { branchName?: string; status?: string; url?: string | null; repoName?: string | null } = {}
+    fields: {
+        branchName?: string;
+        status?: string;
+        url?: string | null;
+        repoName?: string | null;
+        complexityRating?: number | null;
+    } = {}
 ) {
     const result = db
         .prepare(
-            `INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name)
-             VALUES (?, 'sub', ?, ?, ?, ?)`
+            `INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, complexity_rating)
+             VALUES (?, 'sub', ?, ?, ?, ?, ?)`
         )
-        .run(storyId, fields.branchName ?? "(unknown)", fields.status ?? "NEW", fields.url ?? null, fields.repoName ?? null);
+        .run(
+            storyId,
+            fields.branchName ?? "(unknown)",
+            fields.status ?? "NEW",
+            fields.url ?? null,
+            fields.repoName ?? null,
+            fields.complexityRating ?? null
+        );
     return Number(result.lastInsertRowid);
 }
 
@@ -99,6 +112,73 @@ describe("getSprintStats", () => {
         const byId = Object.fromEntries(stats.storyTimeDays.map((story) => [story.storyId, story.storyLabel]));
         expect(byId[storyWithKey]).toBe("NEB-42");
         expect(byId[storyWithoutKey]).toBe(`#${storyWithoutKey}`);
+    });
+});
+
+describe("getComplexityTiming", () => {
+    it("plots each rated, DONE subtask's running time against its complexity rating", () => {
+        const sprintId = insertSprint("2026-01-01", "2026-01-31");
+        const storyId = insertStory(sprintId, "NEB-1");
+        const subtaskId = insertSubtask(storyId, { status: "DONE", complexityRating: 3 });
+        insertHistory(subtaskId, "WIP", "2026-01-03 10:00:00");
+        insertHistory(subtaskId, "DONE", "2026-01-05 10:00:00");
+
+        const result = getComplexityTiming(sprintId);
+        expect(result.points).toEqual([
+            { subtaskId, storyId, storyLabel: "NEB-1", complexityRating: 3, runningTimeDays: 2 },
+        ]);
+        expect(result.ratingCounts).toEqual({ 3: 1 });
+        expect(result.unratedCount).toBe(0);
+        expect(result.inProgressRatedCount).toBe(0);
+        expect(result.storyComplexity).toEqual([{ storyId, storyLabel: "NEB-1", totalComplexity: 3 }]);
+    });
+
+    it("excludes unrated subtasks from points/ratingCounts, but counts them as unrated", () => {
+        const sprintId = insertSprint("2026-01-01", "2026-01-31");
+        const storyId = insertStory(sprintId);
+        insertSubtask(storyId, { status: "DONE" }); // no complexity rating
+
+        const result = getComplexityTiming(sprintId);
+        expect(result.points).toEqual([]);
+        expect(result.unratedCount).toBe(1);
+        expect(result.storyComplexity).toEqual([]);
+    });
+
+    it("excludes rated subtasks that aren't DONE yet, but counts them separately", () => {
+        const sprintId = insertSprint("2026-01-01", "2026-01-31");
+        const storyId = insertStory(sprintId);
+        const subtaskId = insertSubtask(storyId, { status: "WIP", complexityRating: 4 });
+        insertHistory(subtaskId, "WIP", "2026-01-03 10:00:00");
+
+        const result = getComplexityTiming(sprintId);
+        expect(result.points).toEqual([]);
+        expect(result.ratingCounts).toEqual({ 4: 1 });
+        expect(result.inProgressRatedCount).toBe(1);
+        expect(result.storyComplexity).toEqual([]);
+    });
+
+    it("sums complexity across a story's rated, DONE subtasks", () => {
+        const sprintId = insertSprint("2026-01-01", "2026-01-31");
+        const storyId = insertStory(sprintId, "NEB-2");
+        const subtaskA = insertSubtask(storyId, { status: "DONE", complexityRating: 2 });
+        insertHistory(subtaskA, "WIP", "2026-01-01 10:00:00");
+        insertHistory(subtaskA, "DONE", "2026-01-02 10:00:00");
+        const subtaskB = insertSubtask(storyId, { status: "DONE", complexityRating: 5 });
+        insertHistory(subtaskB, "WIP", "2026-01-01 10:00:00");
+        insertHistory(subtaskB, "DONE", "2026-01-03 10:00:00");
+
+        const result = getComplexityTiming(sprintId);
+        expect(result.storyComplexity).toEqual([{ storyId, storyLabel: "NEB-2", totalComplexity: 7 }]);
+    });
+
+    it("excludes a DONE, rated subtask that has no recorded status history to time it from", () => {
+        const sprintId = insertSprint("2026-01-01", "2026-01-31");
+        const storyId = insertStory(sprintId);
+        insertSubtask(storyId, { status: "DONE", complexityRating: 3 }); // no status_history rows inserted
+
+        const result = getComplexityTiming(sprintId);
+        expect(result.points).toEqual([]);
+        expect(result.ratingCounts).toEqual({ 3: 1 });
     });
 });
 

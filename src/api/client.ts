@@ -6,6 +6,7 @@ import type {
     Subtask,
     Tag,
     SprintStats,
+    ComplexityStats,
     StatusBreakdownPoint,
     StatusBreakdownGranularity,
     DayActivityMap,
@@ -102,6 +103,9 @@ export const api = {
     listTags: (): Promise<Tag[]> => request("/tags"),
 
     getSprintStats: (sprintId: number): Promise<SprintStats> => request(`/stats/sprint/${sprintId}`),
+
+    getComplexityTiming: (sprintId: number): Promise<ComplexityStats> =>
+        request(`/stats/complexity-timing/${sprintId}`),
 
     getStatusBreakdown: (
         sprintId: number,

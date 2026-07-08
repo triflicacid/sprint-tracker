@@ -1,7 +1,7 @@
 ## New Features
 
 - A subtask can be of a given type - feature, bugfix, tech-debt, spike. Add icons for each
-- Auto-generate subtask's branch name based of subtask name (all lowercase and spaces are dashes), name is e.g., `tech-debt/NEB-1234-my-title-here` (this is autofilled in the textbox and highlighted, so can be replaced by the user)[sprint-export-2026-07-05.md](../../../Downloads/sprint-export-2026-07-05.md)
+- Auto-generate subtask's branch name based of subtask name (all lowercase and spaces are dashes), name is e.g., `tech-debt/NEB-1234-my-title-here` (this is autofilled in the textbox and highlighted, so can be replaced by the user)
 - [?] Bundle installer/single exe for electron?
 - `/stats/:id` - create a sprint burndown, as well as velocity data
 - `/stats` - while allowing to select a sprint, provide coss-sprint stats like velocity and #subtasks across sprints and repos
