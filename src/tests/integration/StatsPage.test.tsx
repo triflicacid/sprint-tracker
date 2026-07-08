@@ -6,6 +6,14 @@ import { StatsPage } from "../../pages/StatsPage";
 import { api } from "../../api/client";
 import { exportSectionsAsPdf } from "../../utils/pdfExport";
 
+// StatsPage itself only owns cross-cutting state (which sprint is selected,
+// granularity/burndown-mode, the pdf-export wiring) and fetches data to hand
+// down to the section components under src/components/stats/. Rendering
+// details for each section (complexity chart markers, calendar day clicks,
+// velocity mode switching, ...) are covered by that section's own colocated
+// *.test.tsx - this file is for behaviour that only exists once the sections
+// are assembled together on the page.
+
 vi.mock("../../api/client", () => ({
     api: {
         listSprints: vi.fn(),
@@ -107,83 +115,37 @@ describe("StatsPage", () => {
         expect(api.getDayActivity).toHaveBeenCalledWith(1);
     });
 
-    it("shows start date, end date, and completed status in the summary tiles", async () => {
+    it("wires fetched sprint stats and complexity data into their respective sections", async () => {
         renderPage();
         await userEvent.selectOptions(await screen.findByRole("combobox"), "1");
         await screen.findByText("pull requests");
 
-        expect((await screen.findByText("start date")).previousElementSibling).toHaveTextContent("2026-03-02");
-        expect(screen.getByText("end date").previousElementSibling).toHaveTextContent("2026-03-16");
-        expect(screen.getByText("completed").previousElementSibling).toHaveTextContent("yes");
-    });
-
-    it("shows 'ongoing' for end date and completed when the sprint has no end date", async () => {
-        vi.mocked(api.listSprints).mockResolvedValue([{ ...sprint, endDate: null }]);
-        renderPage();
-        await userEvent.selectOptions(await screen.findByRole("combobox"), "1");
-        await screen.findByText("pull requests");
-
-        expect(screen.getByText("end date").previousElementSibling).toHaveTextContent("ongoing");
-        expect(screen.getByText("completed").previousElementSibling).toHaveTextContent("ongoing");
-    });
-
-    it("renders the complexity section's rating distribution and per-story summary", async () => {
-        renderPage();
-        await userEvent.selectOptions(await screen.findByRole("combobox"), "1");
-
-        expect(await screen.findByText("Complexity")).toBeInTheDocument();
+        expect(screen.getByText("Repo distribution")).toBeInTheDocument();
+        expect(screen.getByText("checkout-web", { exact: false })).toBeInTheDocument();
+        expect(screen.getByText("Time per story (days)")).toBeInTheDocument();
+        expect(screen.getByText("Complexity")).toBeInTheDocument();
         expect(screen.getByText("complexity 3").previousElementSibling).toHaveTextContent("1");
-        expect(screen.getByText("unrated").previousElementSibling).toHaveTextContent("1");
     });
 
-    it("still lists the average running time in the text below the chart for a complexity rating with only one point", async () => {
+    it("shows the velocity section anchored on the most recent sprint when no sprint is selected", async () => {
         renderPage();
-        await userEvent.selectOptions(await screen.findByRole("combobox"), "1");
-        await screen.findByText("Complexity");
-
-        expect(screen.getByText(/Average running time by complexity/)).toHaveTextContent("3: 4 days");
+        expect(await screen.findByText("Velocity")).toBeInTheDocument();
+        expect(api.getVelocityHistory).toHaveBeenCalledWith(1, { mode: "lastN", n: 5 });
     });
 
-    it("does not draw the average square marker on the chart for a complexity rating with only one point", async () => {
-        const { container } = renderPage();
-        await userEvent.selectOptions(await screen.findByRole("combobox"), "1");
-        await screen.findByText("Complexity");
-        
-        expect(container.querySelectorAll('[fill="#ffffff"]')).toHaveLength(0);
-    });
-
-    it("draws the average square marker on the chart for a complexity rating with more than one point", async () => {
-        vi.mocked(api.getComplexityTiming).mockResolvedValue({
-            points: [
-                { subtaskId: 1, storyId: 1, storyLabel: "NEB-1", complexityRating: 3, runningTimeDays: 2 },
-                { subtaskId: 2, storyId: 2, storyLabel: "NEB-2", complexityRating: 3, runningTimeDays: 6 },
-            ],
-            ratingCounts: { 3: 2 },
-            unratedCount: 0,
-            inProgressRatedCount: 0,
-            storyComplexity: [
-                { storyId: 1, storyLabel: "NEB-1", totalComplexity: 3 },
-                { storyId: 2, storyLabel: "NEB-2", totalComplexity: 3 },
-            ],
-        });
-        const { container } = renderPage();
-        await userEvent.selectOptions(await screen.findByRole("combobox"), "1");
-        await screen.findByText("Complexity");
-
-        expect(screen.getByText(/Average running time by complexity/)).toHaveTextContent("3: 4 days");
-        expect(container.querySelectorAll('[fill="#ffffff"]').length).toBeGreaterThan(0);
-    });
-
-    it("switches status breakdown granularity via the toggle buttons", async () => {
+    it("hides the velocity section once a sprint is selected, showing a numeric velocity tile in the summary instead", async () => {
         renderPage();
+        await screen.findByText("Velocity");
+
         await userEvent.selectOptions(await screen.findByRole("combobox"), "1");
         await screen.findByText("pull requests");
 
-        await userEvent.click(screen.getByRole("button", { name: "stories" }));
-        expect(api.getStatusBreakdown).toHaveBeenCalledWith(1, "story");
+        expect(screen.queryByText("Velocity")).not.toBeInTheDocument();
+        expect(api.getVelocityHistory).toHaveBeenCalledWith(1, { mode: "lastN", n: 1 });
+        expect(screen.getByText("velocity (pts)").previousElementSibling).toHaveTextContent("8");
     });
 
-    it("renders a burndown section driven by the same granularity toggle as status breakdown", async () => {
+    it("drives both the burndown chart and status breakdown from the same granularity toggle", async () => {
         const { container } = renderPage();
         await userEvent.selectOptions(await screen.findByRole("combobox"), "1");
         await screen.findByText("pull requests");
@@ -196,72 +158,6 @@ describe("StatsPage", () => {
         expect(screen.getAllByRole("button", { name: "stories" })).toHaveLength(1);
         await userEvent.click(screen.getByRole("button", { name: "stories" }));
         expect(api.getStatusBreakdown).toHaveBeenCalledWith(1, "story");
-    });
-
-    it("switches the burndown chart to the advanced per-milestone view", async () => {
-        renderPage();
-        await userEvent.selectOptions(await screen.findByRole("combobox"), "1");
-        await screen.findByText("pull requests");
-        await screen.findByText("Burndown");
-
-        const visible = within(screen.getByTestId("burndown-chart-visible"));
-
-        // basic view is the default: one actual line, one ideal line
-        expect(visible.getByText("actual")).toBeInTheDocument();
-        expect(visible.getByText("ideal")).toBeInTheDocument();
-
-        await userEvent.click(screen.getByRole("button", { name: "advanced" }));
-
-        // advanced view: no more "actual" legend, one line per milestone status instead,
-        // still alongside the same shared ideal reference line
-        expect(visible.queryByText("actual")).not.toBeInTheDocument();
-        expect(visible.getByText("ideal")).toBeInTheDocument();
-        expect(visible.getByText("new")).toBeInTheDocument();
-        expect(visible.getByText("testing")).toBeInTheDocument();
-        expect(visible.getByText("uat")).toBeInTheDocument();
-        expect(visible.getByText("done")).toBeInTheDocument();
-    });
-
-    it("renders the velocity chart on the generic /stats page (no sprint selected), anchored on the most recent sprint", async () => {
-        renderPage();
-
-        expect(await screen.findByText("Velocity")).toBeInTheDocument();
-        expect(api.getVelocityHistory).toHaveBeenCalledWith(1, { mode: "lastN", n: 5 });
-
-        await userEvent.click(screen.getByRole("button", { name: "all sprints" }));
-        expect(api.getVelocityHistory).toHaveBeenLastCalledWith(1, { mode: "all" });
-
-        await userEvent.click(screen.getByRole("button", { name: "date range" }));
-        expect(api.getVelocityHistory).toHaveBeenLastCalledWith(1, {
-            mode: "range",
-            from: expect.any(String),
-            to: expect.any(String),
-        });
-    });
-
-    it("draws a running-average line on the velocity chart", async () => {
-        renderPage();
-        await screen.findByText("Velocity");
-
-        expect(screen.getByText("completed points")).toBeInTheDocument();
-        expect(screen.getByText("average velocity")).toBeInTheDocument();
-
-        const lines = document.querySelectorAll(".recharts-line");
-        expect(lines).toHaveLength(1);
-        const dots = document.querySelectorAll(".recharts-line-dot");
-        expect(dots).toHaveLength(2);
-    });
-
-    it("hides the velocity chart once a sprint is selected, showing a numeric velocity tile in the summary instead", async () => {
-        renderPage();
-        await screen.findByText("Velocity");
-
-        await userEvent.selectOptions(await screen.findByRole("combobox"), "1");
-        await screen.findByText("pull requests");
-
-        expect(screen.queryByRole("button", { name: "all sprints" })).not.toBeInTheDocument();
-        expect(api.getVelocityHistory).toHaveBeenCalledWith(1, { mode: "lastN", n: 1 });
-        expect(screen.getByText("velocity (pts)").previousElementSibling).toHaveTextContent("8");
     });
 
     it("renders the sprint's calendar once loaded", async () => {
