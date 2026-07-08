@@ -26,15 +26,15 @@ INSERT INTO stories (sprint_id, jira_url, jira_key, description) VALUES
      'https://nebula.atlassian.net/browse/NEB-1001', 'NEB-1001',
      'Support saved payment methods at checkout');
 
-INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1001'),
      'add saved card list endpoint', 'feature/neb-1001-saved-cards-api', 'DONE',
-     'https://github.com/nebula-labs/payments-service/pull/214', 'payments-service', 'v4.12.0');
+     'https://github.com/nebula-labs/payments-service/pull/214', 'payments-service', 'v4.12.0', 2);
 
-INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1001'),
      'render saved card selector in checkout ui', 'feature/neb-1001-checkout-ui', 'DONE',
-     'https://github.com/nebula-labs/checkout-web/pull/588', 'checkout-web', 'v4.12.0');
+     'https://github.com/nebula-labs/checkout-web/pull/588', 'checkout-web', 'v4.12.0', 1);
 
 INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1001'),
@@ -81,10 +81,10 @@ INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, rele
      'integrate vat rate lookup service', 'feature/neb-1032-vat-lookup', 'DONE',
      'https://github.com/nebula-labs/tax-engine/pull/77', 'tax-engine', 'v4.13.0', 3);
 
-INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1032'),
      'surface tax breakdown in order summary', 'feature/neb-1032-tax-breakdown-ui', 'DONE',
-     'https://github.com/nebula-labs/checkout-web/pull/590', 'checkout-web', 'v4.13.0');
+     'https://github.com/nebula-labs/checkout-web/pull/590', 'checkout-web', 'v4.13.0', 2);
 
 -- story: NEB-1040, 2 subtasks, both DONE (one continues the existing
 -- pr-comments <-> in-review oscillation - two rounds of feedback total).
@@ -98,10 +98,10 @@ INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, rele
      'add exponential backoff to webhook dispatcher', 'feature/neb-1040-webhook-retry', 'DONE',
      'https://github.com/nebula-labs/notifications-service/pull/301', 'notifications-service', 'v4.13.1', 4);
 
-INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1040'),
      'add dead-letter queue for exhausted retries', 'feature/neb-1040-dlq', 'DONE',
-     'https://github.com/nebula-labs/notifications-service/pull/302', 'notifications-service', 'v4.13.0');
+     'https://github.com/nebula-labs/notifications-service/pull/302', 'notifications-service', 'v4.13.0', 3);
 
 -- story: NEB-1045, 2 subtasks, both DONE.
 INSERT INTO stories (sprint_id, jira_url, jira_key, description) VALUES
@@ -109,15 +109,15 @@ INSERT INTO stories (sprint_id, jira_url, jira_key, description) VALUES
      'https://nebula.atlassian.net/browse/NEB-1045', 'NEB-1045',
      'Send webhook delivery status to customer dashboard');
 
-INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1045'),
      'add delivery-status api endpoint', 'feature/neb-1045-status-api', 'DONE',
-     'https://github.com/nebula-labs/notifications-service/pull/303', 'notifications-service', 'v4.13.0');
+     'https://github.com/nebula-labs/notifications-service/pull/303', 'notifications-service', 'v4.13.0', 2);
 
-INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1045'),
      'render delivery status widget', 'feature/neb-1045-status-widget', 'DONE',
-     'https://github.com/nebula-labs/checkout-web/pull/591', 'checkout-web', 'v4.13.0');
+     'https://github.com/nebula-labs/checkout-web/pull/591', 'checkout-web', 'v4.13.0', 4);
 
 -- ============================================================
 -- SPRINT 3 (current, open - no end_date) - a mix: some subtasks reach
@@ -131,10 +131,10 @@ INSERT INTO stories (sprint_id, jira_url, jira_key, description) VALUES
      'https://nebula.atlassian.net/browse/NEB-1058', 'NEB-1058',
      'Allow partial refunds from the support console');
 
-INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1058'),
      'add partial refund endpoint', 'feature/neb-1058-partial-refund-api', 'DONE',
-     'https://github.com/nebula-labs/payments-service/pull/229', 'payments-service', 'v4.14.0');
+     'https://github.com/nebula-labs/payments-service/pull/229', 'payments-service', 'v4.14.0', 3);
 
 -- story: NEB-1061, 1 subtask - deliberately left at UAT (not done yet),
 -- showing work still in flight this sprint.
@@ -148,21 +148,21 @@ INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, rele
      'build refund timeline component', 'feature/neb-1061-refund-timeline', 'UAT',
      'https://github.com/nebula-labs/support-console/pull/142', 'support-console', 'v4.13.0');
 
--- story: NEB-1070, 3 subtasks spanning done / mid-flight / just started,
+-- story: NEB-1070, 3 subtasks spanning done / done / just started,
 -- including a two-round in_review <-> pr_comments oscillation.
 INSERT INTO stories (sprint_id, jira_url, jira_key, description) VALUES
     ((SELECT id FROM sprints WHERE name = 'Nebula Checkout Sprint 3'),
      'https://nebula.atlassian.net/browse/NEB-1070', 'NEB-1070',
      'Support multi-currency refunds');
 
-INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1070'),
      'add currency conversion helper', 'feature/neb-1070-fx-helper', 'DONE',
-     'https://github.com/nebula-labs/payments-service/pull/230', 'payments-service', 'v4.14.0');
+     'https://github.com/nebula-labs/payments-service/pull/230', 'payments-service', 'v4.14.0', 2);
 
 INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1070'),
-     'wire multi-currency refund endpoint', 'feature/neb-1070-fx-endpoint', 'TESTING',
+     'wire multi-currency refund endpoint', 'feature/neb-1070-fx-endpoint', 'DONE',
      'https://github.com/nebula-labs/payments-service/pull/231', 'payments-service', 'v4.14.0', 5);
 
 INSERT INTO subtasks (story_id, title, branch_name, status) VALUES
@@ -351,7 +351,7 @@ INSERT INTO status_history (entity_type, entity_id, status, release_version, cha
     ('subtask', (SELECT id FROM subtasks WHERE title = 'add currency conversion helper'), 'DONE', NULL, '2026-04-10 17:30:00'),
 
     -- NEB-1070 / wire multi-currency refund endpoint - two rounds of pr comments,
-    -- currently in testing (not yet uat/done - still in flight).
+    -- pushed through to done.
     ('subtask', (SELECT id FROM subtasks WHERE title = 'wire multi-currency refund endpoint'), 'NEW', NULL, '2026-04-01 09:00:00'),
     ('subtask', (SELECT id FROM subtasks WHERE title = 'wire multi-currency refund endpoint'), 'WIP', NULL, '2026-04-01 09:10:00'),
     ('subtask', (SELECT id FROM subtasks WHERE title = 'wire multi-currency refund endpoint'), 'IN_PR', NULL, '2026-04-02 13:00:00'),
@@ -362,6 +362,8 @@ INSERT INTO status_history (entity_type, entity_id, status, release_version, cha
     ('subtask', (SELECT id FROM subtasks WHERE title = 'wire multi-currency refund endpoint'), 'IN_REVIEW', NULL, '2026-04-05 09:00:00'),
     ('subtask', (SELECT id FROM subtasks WHERE title = 'wire multi-currency refund endpoint'), 'CUT_RELEASE', NULL, '2026-04-05 16:00:00'),
     ('subtask', (SELECT id FROM subtasks WHERE title = 'wire multi-currency refund endpoint'), 'TESTING', 'v4.14.0', '2026-04-07 10:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'wire multi-currency refund endpoint'), 'UAT', NULL, '2026-04-09 10:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'wire multi-currency refund endpoint'), 'DONE', NULL, '2026-04-10 18:00:00'),
 
     -- NEB-1070 / add currency selector to refund form - just started
     ('subtask', (SELECT id FROM subtasks WHERE title = 'add currency selector to refund form'), 'NEW', NULL, '2026-04-03 09:00:00'),
