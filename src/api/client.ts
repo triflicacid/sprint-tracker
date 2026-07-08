@@ -16,6 +16,8 @@ import type {
     StatusHistoryEntry,
     MarkdownExportFields,
     SubtaskStatus,
+    VelocityPoint,
+    VelocitySelection,
 } from "@shared/types";
 
 const BASE_URL: string = "/api";
@@ -114,6 +116,17 @@ export const api = {
 
     getDayActivity: (sprintId: number): Promise<DayActivityMap> => request(`/stats/day-activity/${sprintId}`),
 
+    getVelocityHistory: (sprintId: number, selection: VelocitySelection): Promise<VelocityPoint[]> => {
+        const params = new URLSearchParams({ mode: selection.mode });
+        if (selection.mode === "range") {
+            params.set("from", selection.from);
+            params.set("to", selection.to);
+        } else if (selection.mode === "lastN") {
+            params.set("n", String(selection.n));
+        }
+        return request(`/stats/velocity/${sprintId}?${params.toString()}`);
+    },
+
     listHolidays: (start: string, end: string): Promise<string[]> =>
         request(`/holidays?start=${start}&end=${end}`),
 
@@ -136,7 +149,7 @@ export const api = {
 
     getStatusFlow: (): Promise<StatusFlowConfig> => request("/status-flow"),
 
-    updateStory: (id: number, input: { awaitingMoreSubtasks: boolean }): Promise<StorySummary> =>
+    updateStory: (id: number, input: { awaitingMoreSubtasks?: boolean; storyPoints?: number | null }): Promise<StorySummary> =>
         request(`/stories/${id}`, { method: "PATCH", body: JSON.stringify(input) }),
 
     updateSprint: (id: number, input: { comment?: string }): Promise<SprintDetail> =>

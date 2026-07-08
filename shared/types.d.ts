@@ -44,6 +44,8 @@ export interface FlowState {
   description: string;
   // once a subtask reaches this state, its complexity rating is frozen
   locksComplexity?: boolean;
+  // included as a checkpoint line in the advanced burndown chart
+  burndownMilestone?: boolean;
 }
 
 // statusFlow.json
@@ -98,6 +100,7 @@ export interface StorySummary {
   jiraLabels: string[];
   status: StoryStatus;
   awaitingMoreSubtasks: boolean;
+  storyPoints: number | null;
   tags: Tag[];
   prCount: number;
 }
@@ -126,6 +129,24 @@ export interface SprintStats {
   storyCount: number;
   repoCounts: { repoName: string; count: number; proportion: number }[];
   storyTimeDays: { storyId: number; storyLabel: string; description: string; days: number }[];
+}
+
+// which sprints to include in a velocity history query.
+export type VelocitySelection =
+  | { mode: "all" }
+  | { mode: "range"; from: string; to: string }
+  | { mode: "lastN"; n: number };
+
+// one sprint's completed-work tally for the velocity chart.
+export interface VelocityPoint {
+  sprintId: number;
+  sprintName: string;
+  startDate: string;
+  endDate: string | null;
+  completedPoints: number;
+  unpointedDoneStoryCount: number;
+  completedStoryCount: number;
+  completedSubtaskCount: number;
 }
 
 // one rated, DONE subtask, plotted as complexity vs. running time

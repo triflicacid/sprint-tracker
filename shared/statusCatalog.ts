@@ -9,6 +9,11 @@ export function subtaskStatuses(flow: StatusFlowConfig): SubtaskStatus[] {
     return flow.states.map((state) => state.id);
 }
 
+// states flagged as checkpoints for the advanced burndown chart, in rank order.
+export function burndownMilestones(flow: StatusFlowConfig): SubtaskStatus[] {
+    return flow.states.filter((state) => state.burndownMilestone).map((state) => state.id);
+}
+
 // story statuses = the synthetic JIRA_ONLY/WORK_REMAINING states, followed by
 // every subtask status.
 export function storyStatuses(flow: StatusFlowConfig): StoryStatus[] {

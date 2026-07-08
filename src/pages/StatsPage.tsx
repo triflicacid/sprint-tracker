@@ -3,6 +3,10 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import {
     BarChart,
     Bar,
+    ComposedChart,
+    Line,
+    Cell,
+    LabelList,
     XAxis,
     YAxis,
     CartesianGrid,
@@ -22,14 +26,21 @@ import type {
     StatusBreakdownGranularity,
     DayActivityMap,
     StoryStatus, StoryComplexity,
+    SubtaskStatus,
+    VelocityPoint,
+    VelocitySelection,
 } from "@shared/types";
 import { api } from "../api/client";
 import { StatusBreakdownChart } from "../components/stats/StatusBreakdownChart";
+import { BurndownChart } from "../components/stats/BurndownChart";
+import { AdvancedBurndownChart } from "../components/stats/AdvancedBurndownChart";
 import { SprintActivityCalendar } from "../components/calendar/SprintActivityCalendar";
-import { SUBTASK_STATUSES, STORY_STATUSES, STATUS_LABELS } from "../components/StatusBadge";
+import { ExportButton } from "../components/ExportButton";
+import { SUBTASK_STATUSES, STORY_STATUSES, STATUS_LABELS, BURNDOWN_MILESTONES } from "../components/StatusBadge";
 import { parseIsoDate, formatIsoDate } from "../utils/calendarGrid";
 import { exportSectionsAsPdf, type PdfSection } from "../utils/pdfExport";
 import { colorForStory } from "../utils/storyColor";
+import { computeBurndownPoints, computeAdvancedBurndownPoints } from "../utils/burndown";
 import "./StatsPage.css";
 
 const COMPLEXITY_RATINGS = [1, 2, 3, 4, 5];
@@ -106,6 +117,57 @@ function ComplexityTooltip({
     );
 }
 
+// VelocityPoint plus the running average up to (and including) that sprint,
+// computed client-side purely for the chart's red "average velocity" line.
+interface VelocityChartPoint extends VelocityPoint {
+    averageVelocity: number;
+}
+
+function VelocityTooltip({
+    active,
+    payload,
+}: {
+    active?: boolean;
+    payload?: { payload: VelocityChartPoint }[];
+}) {
+    if (!active || !payload || payload.length === 0) {
+        return null;
+    }
+    const point = payload[0].payload;
+    return (
+        <div style={{ backgroundColor: "#1a1a1a", border: "1px solid #333", padding: "6px 10px" }}>
+            <div>{point.sprintName}</div>
+            <div>
+                {point.completedPoints} pt{point.completedPoints === 1 ? "" : "s"}
+                {point.unpointedDoneStoryCount > 0 ? ` (${point.unpointedDoneStoryCount} stories unpointed)` : ""}
+            </div>
+            <div>
+                {point.completedStoryCount} stor{point.completedStoryCount === 1 ? "y" : "ies"}, {point.completedSubtaskCount} subtask
+                {point.completedSubtaskCount === 1 ? "" : "s"} done
+            </div>
+            <div>average so far: {point.averageVelocity} pts</div>
+        </div>
+    );
+}
+
+// describes which sprints a velocity selection covers, for the pdf report.
+function describeVelocitySelection(selection: VelocitySelection): string {
+    if (selection.mode === "range") {
+        return `${selection.from || "?"} to ${selection.to || "?"}`;
+    }
+    if (selection.mode === "lastN") {
+        return `last ${selection.n} sprints`;
+    }
+    return "all sprints";
+}
+
+// calculate the average velocity of all given sprints
+function averageVelocity(points: VelocityPoint[]) {
+    return points.length === 0
+        ? undefined
+        : Math.round(points.map((point => point.completedPoints)).reduce((a, b) => a + b) / points.length * 10) / 10;
+}
+
 // counts weekdays (mon-fri) in an inclusive date range.
 function countWeekdays(start: string, end: string) {
     let count = 0;
@@ -136,6 +198,12 @@ function describeStatusCounts(counts: Record<string, number>, statusLabels: Stor
     return parts.length > 0 ? parts.join(", ") : "no statuses recorded";
 }
 
+// renders one day's remaining-until-milestone counts as "label: count, label: count" -
+// used to describe an AdvancedBurndownPoint in the pdf report.
+function describeMilestones(counts: Record<string, number>, milestones: SubtaskStatus[]) {
+    return milestones.map((milestone) => `${STATUS_LABELS[milestone]}: ${counts[milestone] ?? 0}`).join(", ");
+}
+
 // "/stats": charts and activity calendar for one selected sprint.
 export function StatsPage() {
     const { sprintId: sprintIdParam } = useParams<{ sprintId?: string }>();
@@ -146,13 +214,23 @@ export function StatsPage() {
     const [stats, setStats] = useState<SprintStats | null>(null);
     const [complexity, setComplexity] = useState<ComplexityStats | null>(null);
     const [granularity, setGranularity] = useState<StatusBreakdownGranularity>("subtask");
+    const [burndownMode, setBurndownMode] = useState<"basic" | "advanced">("basic");
     const [statusBreakdown, setStatusBreakdown] = useState<StatusBreakdownPoint[]>([]);
     const [dayActivity, setDayActivity] = useState<DayActivityMap>({});
     const [holidays, setHolidays] = useState<Set<string>>(new Set());
+    const [exportingKey, setExportingKey] = useState<string | null>(null);
+    const [velocityMode, setVelocityMode] = useState<VelocitySelection["mode"]>("lastN");
+    const [velocityN, setVelocityN] = useState<number>(5);
+    const [velocityRangeFrom, setVelocityRangeFrom] = useState<string>("");
+    const [velocityRangeTo, setVelocityRangeTo] = useState<string>("");
+    const [velocityPoints, setVelocityPoints] = useState<VelocityPoint[]>([]);
+    const [velocitySummary, setVelocitySummary] = useState<VelocityPoint | null>(null);
 
     const repoChartRef = useRef<HTMLDivElement>(null);
     const timeChartRef = useRef<HTMLDivElement>(null);
+    const velocityChartRef = useRef<HTMLDivElement>(null);
     const complexityChartRef = useRef<HTMLDivElement>(null);
+    const burndownExportRef = useRef<HTMLDivElement>(null);
     const statusBreakdownRef = useRef<HTMLDivElement>(null);
     const calendarRef = useRef<HTMLDivElement>(null);
 
@@ -162,6 +240,8 @@ export function StatsPage() {
     const sprintEndDate: string | null = selectedSprint
         ? selectedSprint.endDate ?? formatIsoDate(new Date())
         : null;
+    // used as the velocity chart's anchor when no specific sprint is selected
+    const latestSprintId: number | undefined = sprints[0]?.id;
 
     useEffect(() => {
         api.listSprints().then(setSprints);
@@ -182,6 +262,42 @@ export function StatsPage() {
         }
         api.getStatusBreakdown(Number(selectedSprintId), granularity).then(setStatusBreakdown);
     }, [selectedSprintId, granularity]);
+
+    // velocity range defaults
+    useEffect(() => {
+        if (sprints.length === 0 || velocityRangeFrom || velocityRangeTo) {
+            return;
+        }
+        const sorted = [...sprints].sort((a, b) => a.startDate.localeCompare(b.startDate));
+        const lastFive = sorted.slice(-5);
+        setVelocityRangeFrom(lastFive[0]?.startDate ?? "");
+        setVelocityRangeTo(formatIsoDate(new Date()));
+    }, [sprints]);
+
+    // only show velocity charts when no specific sprint is selected
+    useEffect(() => {
+        if (selectedSprintId || !latestSprintId) {
+            return;
+        }
+        const selection: VelocitySelection =
+            velocityMode === "range"
+                ? { mode: "range", from: velocityRangeFrom, to: velocityRangeTo }
+                : velocityMode === "lastN"
+                  ? { mode: "lastN", n: velocityN }
+                  : { mode: "all" };
+        api.getVelocityHistory(latestSprintId, selection).then(setVelocityPoints);
+    }, [selectedSprintId, latestSprintId, velocityMode, velocityN, velocityRangeFrom, velocityRangeTo]);
+
+    // this sprint's own completed-points figure, shown as a Summary tile.
+    useEffect(() => {
+        if (!selectedSprintId) {
+            setVelocitySummary(null);
+            return;
+        }
+        api
+            .getVelocityHistory(Number(selectedSprintId), { mode: "lastN", n: 1 })
+            .then((points) => setVelocitySummary(points[0] ?? null));
+    }, [selectedSprintId]);
 
     useEffect(() => {
         if (!selectedSprint || !sprintEndDate) {
@@ -210,6 +326,10 @@ export function StatsPage() {
         const statusLabels = granularity === "subtask" ? SUBTASK_STATUSES : STORY_STATUSES;
         const firstBreakdown = statusBreakdown[0];
         const lastBreakdown = statusBreakdown[statusBreakdown.length - 1];
+        const firstBurndown = burndownPoints[0];
+        const lastBurndown = burndownPoints[burndownPoints.length - 1];
+        const firstAdvancedBurndown = advancedBurndownPoints[0];
+        const lastAdvancedBurndown = advancedBurndownPoints[advancedBurndownPoints.length - 1];
         const activeDayCount = Object.keys(dayActivity).length;
         const storyDayCounts = stats.storyTimeDays.map((story) => story.days);
         const averageStoryDays =
@@ -226,6 +346,11 @@ export function StatsPage() {
                     `Repos touched: ${stats.repoCounts.length}`,
                     `Sprint days (excl. weekends): ${totalWeekdays}`,
                     `Holidays: ${holidayWeekdays}`,
+                    `Velocity: ${velocitySummary?.completedPoints ?? 0} pts${
+                        velocitySummary && velocitySummary.unpointedDoneStoryCount > 0
+                            ? ` (${velocitySummary.unpointedDoneStoryCount} stories unpointed)`
+                            : ""
+                    }`,
                 ],
             },
             {
@@ -280,6 +405,23 @@ export function StatsPage() {
                     : [],
             },
             {
+                title: "Burndown",
+                element: burndownExportRef.current ?? undefined,
+                lines: !firstBurndown
+                    ? ["No status history recorded yet."]
+                    : firstBurndown.date === lastBurndown.date
+                      ? [
+                            `${firstBurndown.date}: ${firstBurndown.actual} remaining (ideal ${firstBurndown.ideal})`,
+                            `Milestones remaining (${firstAdvancedBurndown.date}): ${describeMilestones(firstAdvancedBurndown.counts, BURNDOWN_MILESTONES)}`,
+                        ]
+                      : [
+                            `Start (${firstBurndown.date}): ${firstBurndown.actual} remaining (ideal ${firstBurndown.ideal})`,
+                            `End (${lastBurndown.date}): ${lastBurndown.actual} remaining (ideal ${lastBurndown.ideal})`,
+                            `Milestones remaining at start (${firstAdvancedBurndown.date}): ${describeMilestones(firstAdvancedBurndown.counts, BURNDOWN_MILESTONES)}`,
+                            `Milestones remaining at end (${lastAdvancedBurndown.date}): ${describeMilestones(lastAdvancedBurndown.counts, BURNDOWN_MILESTONES)}`,
+                        ],
+            },
+            {
                 title: `Status breakdown (${granularity === "story" ? "stories" : granularity + "s"})`,
                 element: statusBreakdownRef.current ?? undefined,
                 lines: !firstBreakdown
@@ -303,20 +445,76 @@ export function StatsPage() {
         ] as PdfSection[];
     }
 
-    function handleExportSection(index: number, section: string) {
+    async function handleExportSection(index: number, section: string) {
         const target = buildReportSections()[index];
-        if (target) {
-            exportSectionsAsPdf([target], `sprint-stats-${section}-${formatIsoDate(new Date())}.pdf`);
+        if (!target) {
+            return;
+        }
+        setExportingKey(section);
+        try {
+            await exportSectionsAsPdf([target], `sprint-stats-${section}-${formatIsoDate(new Date())}.pdf`);
+        } finally {
+            setExportingKey(null);
         }
     }
 
-    function handleExportAll() {
-        exportSectionsAsPdf(buildReportSections(), `sprint-stats-${formatIsoDate(new Date())}.pdf`);
+    async function handleExportAll() {
+        setExportingKey("all");
+        try {
+            await exportSectionsAsPdf(buildReportSections(), `sprint-stats-${formatIsoDate(new Date())}.pdf`);
+        } finally {
+            setExportingKey(null);
+        }
     }
 
+    async function handleExportVelocity() {
+        setExportingKey("velocity");
+        try {
+            const section: PdfSection = {
+                title: "Velocity",
+                element: velocityChartRef.current ?? undefined,
+                lines: [
+                    `Showing: ${describeVelocitySelection(velocitySelection)}`,
+                    ...(velocityPoints.length > 0
+                        ? velocityPoints.map(
+                              (point) =>
+                                  `${point.sprintName}: ${point.completedPoints} pts (${point.unpointedDoneStoryCount} stories unpointed)`
+                          )
+                        : ["No sprints in this selection."]),
+                    `Average velocity: ${averageVelocity(velocityPoints) ?? 'N/A'}`,
+                ],
+            };
+            await exportSectionsAsPdf([section], `velocity-${formatIsoDate(new Date())}.pdf`);
+        } finally {
+            setExportingKey(null);
+        }
+    }
+
+    const velocitySelection: VelocitySelection =
+        velocityMode === "range"
+            ? { mode: "range", from: velocityRangeFrom, to: velocityRangeTo }
+            : velocityMode === "lastN"
+              ? { mode: "lastN", n: velocityN }
+              : { mode: "all" };
+    // running average of completedPoints, sprint by sprint (chronological,
+    // per getVelocityHistory's ordering) - shows how the average itself has
+    // trended over time, not just a single flat average line.
+    const velocityChartData: VelocityChartPoint[] = velocityPoints.map((point, index) => {
+        const pointsSoFar = velocityPoints.slice(0, index + 1);
+        const average = pointsSoFar.reduce((sum, p) => sum + p.completedPoints, 0) / pointsSoFar.length;
+        return { ...point, averageVelocity: Math.round(average * 10) / 10 };
+    });
     const totalWeekdays = selectedSprint && sprintEndDate ? countWeekdays(selectedSprint.startDate, sprintEndDate) : 0;
     const holidayWeekdays = Array.from(holidays).filter(isWeekday).length;
     const isCompleted = selectedSprint ? selectedSprint.endDate !== null : false;
+    const isWorkingDay = (date: string) => isWeekday(date) && !holidays.has(date);
+    const burndownPoints = computeBurndownPoints(statusBreakdown, isWorkingDay);
+    const advancedBurndownPoints = computeAdvancedBurndownPoints(
+        statusBreakdown,
+        granularity === "subtask" ? SUBTASK_STATUSES : STORY_STATUSES,
+        BURNDOWN_MILESTONES,
+        isWorkingDay
+    );
     // don't show average points in the graph if there is only one rating (as rating == average)
     const complexityChartAverages = complexity
         ? averageRunningTimeByComplexity(complexity.points).filter((average) => average.pointCount > 1)
@@ -343,15 +541,116 @@ export function StatsPage() {
                     ))}
                 </select>
                 {stats && (
-                    <button onClick={handleExportAll}>export all as pdf</button>
+                    <ExportButton
+                        onClick={handleExportAll}
+                        loading={exportingKey === "all"}
+                        label="export all as pdf"
+                    />
                 )}
             </div>
+
+            {!selectedSprintId && latestSprintId && (
+                <>
+                    <div className="page-header">
+                        <h2>Velocity</h2>
+                        <div className="page-header-actions">
+                            <div className="granularity-toggle">
+                                <button
+                                    className={velocityMode === "all" ? "active" : ""}
+                                    onClick={() => setVelocityMode("all")}
+                                >
+                                    all sprints
+                                </button>
+                                <button
+                                    className={velocityMode === "range" ? "active" : ""}
+                                    onClick={() => setVelocityMode("range")}
+                                >
+                                    date range
+                                </button>
+                                <button
+                                    className={velocityMode === "lastN" ? "active" : ""}
+                                    onClick={() => setVelocityMode("lastN")}
+                                >
+                                    last N
+                                </button>
+                            </div>
+                            {velocityMode === "range" && (
+                                <>
+                                    <input
+                                        type="date"
+                                        value={velocityRangeFrom}
+                                        onChange={(event) => setVelocityRangeFrom(event.target.value)}
+                                    />
+                                    <input
+                                        type="date"
+                                        value={velocityRangeTo}
+                                        onChange={(event) => setVelocityRangeTo(event.target.value)}
+                                    />
+                                </>
+                            )}
+                            {velocityMode === "lastN" && (
+                                <input
+                                    type="number"
+                                    min={1}
+                                    value={velocityN}
+                                    style={{ width: 60 }}
+                                    onChange={(event) => setVelocityN(Math.max(1, Number(event.target.value) || 1))}
+                                />
+                            )}
+                            <ExportButton onClick={handleExportVelocity} loading={exportingKey === "velocity"} />
+                        </div>
+                    </div>
+                    <div ref={velocityChartRef}>
+                        {velocityChartData.length > 0 ? (
+                            <ResponsiveContainer width="100%" height={280}>
+                                <ComposedChart data={velocityChartData}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
+                                    <XAxis dataKey="sprintName" stroke="#9ca3af" />
+                                    <YAxis stroke="#9ca3af" allowDecimals={false} />
+                                    <Tooltip content={<VelocityTooltip />} />
+                                    <Legend />
+                                    <Bar dataKey="completedPoints" name="completed points">
+                                        {velocityChartData.map((point) => (
+                                            <Cell
+                                                key={point.sprintId}
+                                                fill={point.sprintId === latestSprintId ? "#facc15" : "#16a34a"}
+                                            />
+                                        ))}
+                                        <LabelList
+                                            dataKey="unpointedDoneStoryCount"
+                                            position="top"
+                                            fill="#9ca3af"
+                                            formatter={(value: number) => (value > 0 ? `${value} unpointed` : "")}
+                                        />
+                                    </Bar>
+                                    <Line
+                                        type="monotone"
+                                        dataKey="averageVelocity"
+                                        name="average velocity"
+                                        stroke="#ef4444"
+                                        strokeWidth={2}
+                                        dot={{ r: 3, fill: "#ef4444" }}
+                                        isAnimationActive={false}
+                                    />
+                                </ComposedChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <p className="complexity-note">No sprints in this selection yet.</p>
+                        )}
+                    </div>
+                    {velocityPoints.length > 0 &&
+                            <p>The average velocity within the selection is {averageVelocity(velocityPoints)} points per sprint</p>}
+                </>
+            )}
 
             {stats && selectedSprint && sprintEndDate && (
                 <>
                     <div className="page-header">
                         <h2>Summary</h2>
-                        <button onClick={() => handleExportSection(0, "summary")}>export pdf</button>
+                        <ExportButton
+                            onClick={() => handleExportSection(0, "summary")}
+                            loading={exportingKey === "summary"}
+                        />
                     </div>
                     <div className="stats-summary">
                         <div className="stat-tile">
@@ -361,6 +660,10 @@ export function StatsPage() {
                         <div className="stat-tile">
                             <span className="stat-value">{stats.storyCount}</span>
                             <span className="stat-label">stories</span>
+                        </div>
+                        <div className="stat-tile">
+                            <span className="stat-value">{velocitySummary?.completedPoints ?? 0}</span>
+                            <span className="stat-label">velocity (pts)</span>
                         </div>
                         <div className="stat-tile">
                             <span className="stat-value">{stats.repoCounts.length}</span>
@@ -390,9 +693,10 @@ export function StatsPage() {
 
                     <div className="page-header">
                         <h2>Repo distribution</h2>
-                        <button onClick={() => handleExportSection(1, "repo-distribution")}>
-                            export pdf
-                        </button>
+                        <ExportButton
+                            onClick={() => handleExportSection(1, "repo-distribution")}
+                            loading={exportingKey === "repo-distribution"}
+                        />
                     </div>
                     <div ref={repoChartRef}>
                         <ResponsiveContainer width="100%" height={280}>
@@ -408,9 +712,10 @@ export function StatsPage() {
 
                     <div className="page-header">
                         <h2>Time per story (days)</h2>
-                        <button onClick={() => handleExportSection(2, "time-per-story")}>
-                            export pdf
-                        </button>
+                        <ExportButton
+                            onClick={() => handleExportSection(2, "time-per-story")}
+                            loading={exportingKey === "time-per-story"}
+                        />
                     </div>
                     <div ref={timeChartRef}>
                         <ResponsiveContainer width="100%" height={280}>
@@ -429,7 +734,10 @@ export function StatsPage() {
 
                     <div className="page-header">
                         <h2>Complexity</h2>
-                        <button onClick={() => handleExportSection(3, "complexity")}>export pdf</button>
+                        <ExportButton
+                            onClick={() => handleExportSection(3, "complexity")}
+                            loading={exportingKey === "complexity"}
+                        />
                     </div>
                     <div ref={complexityChartRef}>
                         <div className="stats-summary">
@@ -527,8 +835,22 @@ export function StatsPage() {
                     </div>
 
                     <div className="page-header">
-                        <h2>Status breakdown</h2>
+                        <h2>Burndown</h2>
                         <div className="page-header-actions">
+                            <div className="granularity-toggle">
+                                <button
+                                    className={burndownMode === "basic" ? "active" : ""}
+                                    onClick={() => setBurndownMode("basic")}
+                                >
+                                    basic
+                                </button>
+                                <button
+                                    className={burndownMode === "advanced" ? "active" : ""}
+                                    onClick={() => setBurndownMode("advanced")}
+                                >
+                                    advanced
+                                </button>
+                            </div>
                             <div className="granularity-toggle">
                                 <button
                                     className={granularity === "subtask" ? "active" : ""}
@@ -543,10 +865,43 @@ export function StatsPage() {
                                     stories
                                 </button>
                             </div>
-                            <button onClick={() => handleExportSection(4, "status-breakdown")}>
-                                export pdf
-                            </button>
+                            <ExportButton
+                                onClick={() => handleExportSection(4, "burndown")}
+                                loading={exportingKey === "burndown"}
+                            />
                         </div>
+                    </div>
+                    <div data-testid="burndown-chart-visible">
+                        {burndownMode === "basic" ? (
+                            <BurndownChart points={burndownPoints} />
+                        ) : (
+                            <AdvancedBurndownChart points={advancedBurndownPoints} milestones={BURNDOWN_MILESTONES} />
+                        )}
+                    </div>
+                    {/* always-mounted off-screen: the pdf export shows both charts side by side,
+                        independent of which one the basic/advanced toggle currently shows on screen */}
+                    <div
+                        data-testid="burndown-chart-export"
+                        style={{ position: "fixed", top: 0, left: -10000, width: 1000, pointerEvents: "none" }}
+                    >
+                        <div ref={burndownExportRef} style={{ display: "flex", gap: 20 }}>
+                            <div style={{ flex: 1 }}>
+                                <div style={{ color: "#9ca3af", fontSize: 14, marginBottom: 8 }}>Basic</div>
+                                <BurndownChart points={burndownPoints} />
+                            </div>
+                            <div style={{ flex: 1 }}>
+                                <div style={{ color: "#9ca3af", fontSize: 14, marginBottom: 8 }}>Advanced</div>
+                                <AdvancedBurndownChart points={advancedBurndownPoints} milestones={BURNDOWN_MILESTONES} />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="page-header">
+                        <h2>Status breakdown</h2>
+                        <ExportButton
+                            onClick={() => handleExportSection(5, "status-breakdown")}
+                            loading={exportingKey === "status-breakdown"}
+                        />
                     </div>
                     <div ref={statusBreakdownRef}>
                         <StatusBreakdownChart
@@ -557,7 +912,10 @@ export function StatsPage() {
 
                     <div className="page-header">
                         <h2>Calendar</h2>
-                        <button onClick={() => handleExportSection(5, "calendar")}>export pdf</button>
+                        <ExportButton
+                            onClick={() => handleExportSection(6, "calendar")}
+                            loading={exportingKey === "calendar"}
+                        />
                     </div>
                     <div ref={calendarRef}>
                         <SprintActivityCalendar

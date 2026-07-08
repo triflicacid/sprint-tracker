@@ -37,6 +37,44 @@ describe("GET /api/stats/status-breakdown/:id", () => {
     });
 });
 
+describe("GET /api/stats/velocity/:id", () => {
+    it("defaults to mode=all, including the given sprint", async () => {
+        const response = await request(app).get(`/api/stats/velocity/${sprintId}`);
+        expect(response.status).toBe(200);
+        expect(response.body.map((point: { sprintId: number }) => point.sprintId)).toContain(sprintId);
+    });
+
+    it("mode=lastN with n=1 returns just the given sprint", async () => {
+        const response = await request(app).get(`/api/stats/velocity/${sprintId}?mode=lastN&n=1`);
+        expect(response.body).toHaveLength(1);
+        expect(response.body[0].sprintId).toBe(sprintId);
+    });
+
+    it("mode=range excludes sprints outside the given from/to", async () => {
+        const response = await request(app).get(
+            `/api/stats/velocity/${sprintId}?mode=range&from=2030-01-01&to=2030-12-31`
+        );
+        expect(response.body.map((point: { sprintId: number }) => point.sprintId)).not.toContain(sprintId);
+    });
+
+    it("sums completed story points once a story's subtasks are DONE", async () => {
+        await request(app).patch(`/api/stories/${storyId}`).send({ storyPoints: 5 });
+        const subtask = await request(app).post(`/api/stories/${storyId}/subtasks`).send({ title: "sub" });
+        const subtaskId = subtask.body.id;
+        await request(app).patch(`/api/subtasks/${subtaskId}`).send({ status: "WIP", branchName: "feature/x" });
+        await request(app)
+            .patch(`/api/subtasks/${subtaskId}`)
+            .send({ status: "IN_REVIEW", prUrl: "https://github.com/org/repo/pull/1" });
+        await request(app).patch(`/api/subtasks/${subtaskId}`).send({ status: "CUT_RELEASE" });
+        await request(app).patch(`/api/subtasks/${subtaskId}`).send({ status: "TESTING", releaseVersion: "v1.0.0" });
+        await request(app).patch(`/api/subtasks/${subtaskId}`).send({ status: "UAT" });
+        await request(app).patch(`/api/subtasks/${subtaskId}`).send({ status: "DONE" });
+
+        const response = await request(app).get(`/api/stats/velocity/${sprintId}?mode=lastN&n=1`);
+        expect(response.body[0]).toMatchObject({ completedPoints: 5, completedStoryCount: 1, unpointedDoneStoryCount: 0 });
+    });
+});
+
 describe("GET /api/stats/day-activity/:id", () => {
     it("returns an empty map when nothing has started", async () => {
         const response = await request(app).get(`/api/stats/day-activity/${sprintId}`);

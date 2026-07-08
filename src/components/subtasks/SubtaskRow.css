@@ -69,14 +69,6 @@
     font-family: "SFMono-Regular", Consolas, monospace;
 }
 
-.complexity-label {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    color: var(--text-dim);
-    font-size: var(--font-medium);
-}
-
 .release-version {
     color: var(--text-dim);
     font-size: var(--font-small);

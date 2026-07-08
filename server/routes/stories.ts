@@ -1,5 +1,6 @@
 import { Router, Request, Response } from "express";
-import { getStoryDetail, updateStoryAwaitingMoreSubtasks } from "../services/storyService.js";
+import { getStoryDetail, updateStoryAwaitingMoreSubtasks, updateStoryPoints } from "../services/storyService.js";
+import type { StorySummary } from "../../shared/types.js";
 import { createSubtask } from "../services/subtaskService.js";
 import { findOrCreateTag, attachTag, getTagsForEntity, removeTag } from "../services/tagService.js";
 
@@ -17,8 +18,17 @@ storiesRouter.get("/:id", (req: Request, res: Response) => {
 
 storiesRouter.patch("/:id", (req: Request, res: Response) => {
     const storyId = Number(req.params.id);
-    const { awaitingMoreSubtasks } = req.body;
-    const updated = updateStoryAwaitingMoreSubtasks(storyId, !!awaitingMoreSubtasks);
+    const { awaitingMoreSubtasks, storyPoints } = req.body;
+    let updated: StorySummary | null = null;
+    if (awaitingMoreSubtasks !== undefined) {
+        updated = updateStoryAwaitingMoreSubtasks(storyId, !!awaitingMoreSubtasks);
+    }
+    if (storyPoints !== undefined) {
+        updated = updateStoryPoints(storyId, storyPoints);
+    }
+    if (!updated) {
+        updated = getStoryDetail(storyId);
+    }
     if (!updated) {
         res.status(404).json({ error: "story not found" });
         return;

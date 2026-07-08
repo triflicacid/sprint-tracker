@@ -9,6 +9,7 @@ import { downloadTextFile } from "../utils/download";
 import { useToast } from "../components/Toast";
 import { CommentEditor } from "../components/CommentEditor";
 import { MetaRow } from "../components/MetaRow";
+import { ExportButton } from "../components/ExportButton";
 import "../components/sprints/SprintCard.css";
 import "./SprintDetailPage.css";
 
@@ -23,6 +24,7 @@ export function SprintDetailPage(): React.ReactElement {
     const [description, setDescription] = useState<string>("");
     const [holidays, setHolidays] = useState<string[]>([]);
     const [newHolidayDate, setNewHolidayDate] = useState<string>("");
+    const [exporting, setExporting] = useState<boolean>(false);
     const { showError } = useToast();
 
     async function loadSprint() {
@@ -73,11 +75,14 @@ export function SprintDetailPage(): React.ReactElement {
     }
 
     async function handleQuickExport() {
+        setExporting(true);
         try {
             const markdown = await api.exportMarkdown([sprintId], loadExportFields());
             downloadTextFile(`sprint-export-${formatIsoDate(new Date())}.md`, markdown);
         } catch (error) {
             showError(error instanceof Error ? error.message : "failed to generate export");
+        } finally {
+            setExporting(false);
         }
     }
 
@@ -128,7 +133,7 @@ export function SprintDetailPage(): React.ReactElement {
                 </div>
                 <div className="page-header-actions">
                     <Link to={`/stats/${sprint.id}`}>stats</Link>
-                    <button onClick={handleQuickExport}>export</button>
+                    <ExportButton onClick={handleQuickExport} loading={exporting} label="export" />
                     <button onClick={() => setShowForm(!showForm)}>new story</button>
                 </div>
             </div>

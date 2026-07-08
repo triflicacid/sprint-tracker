@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import type { MarkdownExportFields, SprintSummary } from "@shared/types";
 import { api } from "../api/client";
 import { useToast } from "../components/Toast";
+import { ExportButton } from "../components/ExportButton";
 import { defaultExportFields, loadExportFields, saveExportFields } from "../utils/exportFields";
 import { downloadTextFile } from "../utils/download";
 import { formatIsoDate } from "../utils/calendarGrid";
@@ -182,9 +183,13 @@ export function ExportPage(): React.ReactElement {
             <button onClick={resetToDefaults}>reset to defaults</button>
 
             <div className="export-actions">
-                <button onClick={handleGenerate} disabled={selectedSprintIds.size === 0 || generating}>
-                    {generating ? "generating..." : "generate export"}
-                </button>
+                <ExportButton
+                    onClick={handleGenerate}
+                    loading={generating}
+                    disabled={selectedSprintIds.size === 0}
+                    label="generate export"
+                    loadingLabel="generating..."
+                />
             </div>
         </div>
     );

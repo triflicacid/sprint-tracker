@@ -130,8 +130,12 @@ paths:
               schema: { $ref: "#/components/schemas/Error" }
     patch:
       tags: [Stories]
-      summary: Set whether a story is awaiting more subtasks
-      description: While true, forces the derived story status to WORK_REMAINING even once every subtask is DONE.
+      summary: Partially update a story's awaitingMoreSubtasks and/or storyPoints
+      description: >
+        Both fields are optional - whichever is present in the body is applied, the other is left
+        unchanged. While awaitingMoreSubtasks is true, it forces the derived story status to
+        WORK_REMAINING even once every subtask is DONE. storyPoints is nullable ("unpointed") and
+        editable at any story status - unlike a subtask's complexityRating, it is never locked.
       requestBody:
         required: true
         content:
@@ -344,6 +348,42 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/DayActivityMap" }
+
+  /stats/velocity/{id}:
+    parameters:
+      - $ref: "#/components/parameters/SprintId"
+      - name: mode
+        in: query
+        required: false
+        description: Which sprints to include. Defaults to `all` for any value other than `range`/`lastN`.
+        schema: { type: string, enum: [all, range, lastN] }
+      - name: from
+        in: query
+        required: false
+        description: "mode=range only: only sprints whose startDate is >= this date."
+        schema: { type: string, format: date }
+      - name: to
+        in: query
+        required: false
+        description: "mode=range only: only sprints whose startDate is <= this date."
+        schema: { type: string, format: date }
+      - name: n
+        in: query
+        required: false
+        description: "mode=lastN only: how many sprints, ending at (and including) {id}. Defaults to 5."
+        schema: { type: integer }
+    get:
+      tags: [Stats]
+      summary: Completed-work history across multiple sprints, for the velocity chart
+      description: id is always the currently-selected sprint
+      responses:
+        "200":
+          description: OK, chronological by startDate.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/VelocityPoint" }
 
   /calendar:
     get:
@@ -580,6 +620,9 @@ components:
         locksComplexity:
           type: boolean
           description: When true, a subtask's complexityRating can no longer be changed once it reaches this state.
+        burndownMilestone:
+          type: boolean
+          description: When true, this state is drawn as its own checkpoint line on the stats page's advanced burndown chart.
 
     StatusFlowConfig:
       type: object
@@ -647,7 +690,7 @@ components:
 
     StorySummary:
       type: object
-      required: [id, sprintId, jiraUrl, jiraKey, description, jiraTitle, jiraLabels, status, awaitingMoreSubtasks, tags, prCount]
+      required: [id, sprintId, jiraUrl, jiraKey, description, jiraTitle, jiraLabels, status, awaitingMoreSubtasks, storyPoints, tags, prCount]
       properties:
         id: { type: integer }
         sprintId: { type: integer }
@@ -660,6 +703,7 @@ components:
           items: { type: string }
         status: { $ref: "#/components/schemas/StoryStatus" }
         awaitingMoreSubtasks: { type: boolean }
+        storyPoints: { type: integer, nullable: true }
         tags:
           type: array
           items: { $ref: "#/components/schemas/Tag" }
@@ -684,9 +728,10 @@ components:
 
     UpdateStoryInput:
       type: object
-      required: [awaitingMoreSubtasks]
+      description: Both fields are optional - whichever is present is applied, the other is left unchanged.
       properties:
         awaitingMoreSubtasks: { type: boolean }
+        storyPoints: { type: integer, nullable: true }
 
     AddTagInput:
       type: object
@@ -765,6 +810,24 @@ components:
         storyTimeDays:
           type: array
           items: { $ref: "#/components/schemas/StoryTimeEntry" }
+
+    VelocityPoint:
+      type: object
+      description: One sprint's completed-work tally, as returned by /stats/velocity/{id}.
+      required: [sprintId, sprintName, startDate, endDate, completedPoints, unpointedDoneStoryCount, completedStoryCount, completedSubtaskCount]
+      properties:
+        sprintId: { type: integer }
+        sprintName: { type: string }
+        startDate: { type: string, format: date }
+        endDate: { type: string, format: date, nullable: true }
+        completedPoints:
+          type: integer
+          description: Sum of storyPoints over this sprint's DONE stories, excluding unpointed (null) ones.
+        unpointedDoneStoryCount:
+          type: integer
+          description: DONE stories in this sprint with no storyPoints set, excluded from completedPoints.
+        completedStoryCount: { type: integer, description: All DONE stories in this sprint (pointed or not). }
+        completedSubtaskCount: { type: integer, description: All DONE subtasks in this sprint. }
 
     StatusBreakdownPoint:
       type: object

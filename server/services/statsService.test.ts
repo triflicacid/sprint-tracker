@@ -1,6 +1,13 @@
 import { describe, it, expect } from "vitest";
 import { db } from "../db/connection.js";
-import { getSprintStats, getStatusBreakdown, getDayActivity, getCalendarEntries, getComplexityTiming } from "./statsService.js";
+import {
+    getSprintStats,
+    getStatusBreakdown,
+    getDayActivity,
+    getCalendarEntries,
+    getComplexityTiming,
+    getVelocityHistory,
+} from "./statsService.js";
 
 function insertSprint(startDate: string, endDate: string | null = null) {
     const result = db
@@ -46,6 +53,10 @@ function insertHistory(subtaskId: number, status: string, changedAt: string, rel
     db.prepare(
         "INSERT INTO status_history (entity_type, entity_id, status, release_version, changed_at) VALUES ('subtask', ?, ?, ?, ?)"
     ).run(subtaskId, status, releaseVersion, changedAt);
+}
+
+function setStoryPoints(storyId: number, points: number | null) {
+    db.prepare("UPDATE stories SET story_points = ? WHERE id = ?").run(points, storyId);
 }
 
 describe("getSprintStats", () => {
@@ -345,5 +356,76 @@ describe("getCalendarEntries", () => {
 
         const entries = getCalendarEntries({ storyId: storyA });
         expect(entries.map((e) => e.sprintId)).toEqual([sprintA]);
+    });
+});
+
+describe("getVelocityHistory", () => {
+    it("sums story points over DONE stories, excluding unpointed ones from the sum but counting them", () => {
+        const sprintId = insertSprint("2026-01-01", "2026-01-31");
+        const pointedDone = insertStory(sprintId);
+        insertSubtask(pointedDone, { status: "DONE" });
+        setStoryPoints(pointedDone, 5);
+        const unpointedDone = insertStory(sprintId);
+        insertSubtask(unpointedDone, { status: "DONE" });
+        const pointedNotDone = insertStory(sprintId);
+        insertSubtask(pointedNotDone, { status: "WIP" });
+        setStoryPoints(pointedNotDone, 8);
+
+        const [point] = getVelocityHistory(sprintId, { mode: "all" });
+        expect(point.completedPoints).toBe(5);
+        expect(point.unpointedDoneStoryCount).toBe(1);
+        expect(point.completedStoryCount).toBe(2);
+    });
+
+    it("counts DONE subtasks across the whole sprint, not just DONE stories", () => {
+        const sprintId = insertSprint("2026-01-01", "2026-01-31");
+        const storyId = insertStory(sprintId);
+        insertSubtask(storyId, { status: "DONE" });
+        insertSubtask(storyId, { status: "WIP" }); // story isn't DONE, but this subtask still counts
+
+        const [point] = getVelocityHistory(sprintId, { mode: "all" });
+        expect(point.completedSubtaskCount).toBe(1);
+        expect(point.completedStoryCount).toBe(0);
+    });
+
+    it("a story with no subtasks (JIRA_ONLY) is never counted as DONE", () => {
+        const sprintId = insertSprint("2026-01-01", "2026-01-31");
+        const storyId = insertStory(sprintId);
+        setStoryPoints(storyId, 3);
+
+        const [point] = getVelocityHistory(sprintId, { mode: "all" });
+        expect(point.completedStoryCount).toBe(0);
+        expect(point.completedPoints).toBe(0);
+    });
+
+    it("mode 'all' returns every sprint, chronological by start date", () => {
+        const sprintB = insertSprint("2026-02-01", "2026-02-28");
+        const sprintA = insertSprint("2026-01-01", "2026-01-31");
+
+        const points = getVelocityHistory(sprintA, { mode: "all" });
+        expect(points.map((point) => point.sprintId)).toEqual([sprintA, sprintB]);
+    });
+
+    it("mode 'range' only includes sprints starting within [from, to]", () => {
+        const sprintA = insertSprint("2026-01-01", "2026-01-31");
+        const sprintB = insertSprint("2026-02-01", "2026-02-28");
+        insertSprint("2026-03-01", "2026-03-31");
+
+        const points = getVelocityHistory(sprintA, { mode: "range", from: "2026-01-01", to: "2026-02-15" });
+        expect(points.map((point) => point.sprintId)).toEqual([sprintA, sprintB]);
+    });
+
+    it("mode 'lastN' returns the anchor sprint plus its n-1 most recent predecessors, chronological", () => {
+        const sprintA = insertSprint("2026-01-01", "2026-01-31");
+        const sprintB = insertSprint("2026-02-01", "2026-02-28");
+        const sprintC = insertSprint("2026-03-01", "2026-03-31");
+        insertSprint("2026-04-01", "2026-04-30"); // after the anchor, excluded
+
+        const points = getVelocityHistory(sprintC, { mode: "lastN", n: 2 });
+        expect(points.map((point) => point.sprintId)).toEqual([sprintB, sprintC]);
+    });
+
+    it("mode 'lastN' returns an empty list when the anchor sprint doesn't exist", () => {
+        expect(getVelocityHistory(999999, { mode: "lastN", n: 5 })).toEqual([]);
     });
 });

@@ -6,6 +6,18 @@
     font-size: var(--font-medium);
 }
 
+.page-header .page-header-actions {
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 10px;
+}
+
+.page-header-buttons {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
 .subtask-list {
     display: flex;
     flex-direction: column;

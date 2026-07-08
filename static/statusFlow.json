@@ -5,7 +5,8 @@
       "label": "new",
       "rank": 0,
       "color": "#6b7280",
-      "description": "Not started yet - no branch has been created for this subtask."
+      "description": "Not started yet - no branch has been created for this subtask.",
+      "burndownMilestone": true
     },
     {
       "id": "WIP",
@@ -49,7 +50,8 @@
       "rank": 6,
       "color": "#3987e5",
       "description": "The release is being tested (QA) before sign-off.",
-      "locksComplexity": true
+      "locksComplexity": true,
+      "burndownMilestone": true
     },
     {
       "id": "UAT",
@@ -57,7 +59,8 @@
       "rank": 7,
       "color": "#199e70",
       "description": "The release has passed testing and is in user acceptance testing.",
-      "locksComplexity": true
+      "locksComplexity": true,
+      "burndownMilestone": true
     },
     {
       "id": "DONE",
@@ -65,7 +68,8 @@
       "rank": 8,
       "color": "#008300",
       "description": "Fully released and accepted - no further work remains.",
-      "locksComplexity": true
+      "locksComplexity": true,
+      "burndownMilestone": true
     }
   ],
   "transitions": [

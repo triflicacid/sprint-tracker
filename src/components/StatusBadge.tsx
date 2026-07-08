@@ -1,6 +1,6 @@
 import React from "react";
 import type { StatusFlowConfig, StoryStatus } from "@shared/types";
-import { statusColors, statusLabels, storyStatuses, subtaskStatuses } from "@shared/statusCatalog";
+import { statusColors, statusLabels, storyStatuses, subtaskStatuses, burndownMilestones } from "@shared/statusCatalog";
 import rawStatusFlow from "../../static/statusFlow.json";
 import "./StatusBadge.css";
 
@@ -13,6 +13,8 @@ export const STORY_STATUSES = storyStatuses(statusFlow);
 export const STATUS_COLORS = statusColors(statusFlow);
 
 export const STATUS_LABELS = statusLabels(statusFlow);
+
+export const BURNDOWN_MILESTONES = burndownMilestones(statusFlow);
 
 interface StatusBadgeProps {
     status: StoryStatus;

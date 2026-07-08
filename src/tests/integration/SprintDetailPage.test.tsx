@@ -42,6 +42,7 @@ const sprint = {
             jiraLabels: [],
             status: "JIRA_ONLY" as const,
             awaitingMoreSubtasks: false,
+            storyPoints: null,
             tags: [],
             prCount: 0,
         },

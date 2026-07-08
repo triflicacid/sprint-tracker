@@ -9,6 +9,8 @@ import { exportSectionsAsPdf, type PdfSection } from "../utils/pdfExport";
 import { computeSubtaskTiming, buildSubtaskPdfSection } from "../utils/subtaskTiming";
 import { buildStoryPdfFilename } from "../utils/pdfFilename";
 import { MetaRow } from "../components/MetaRow";
+import { RatingSelect } from "../components/RatingSelect";
+import { ExportButton } from "../components/ExportButton";
 import "../components/stories/story-tags.css";
 import "./StoryDetailPage.css";
 
@@ -16,6 +18,8 @@ interface SubtaskHistorySnapshot {
     subtaskId: number;
     history: StatusHistoryEntry[];
 }
+
+const STORY_POINTS_OPTIONS = [1, 2, 3, 5, 8, 13];
 
 // a story ("/stories/:id"): its subtasks, tags, and Jira refresh action.
 export function StoryDetailPage(): React.ReactElement {
@@ -51,6 +55,11 @@ export function StoryDetailPage(): React.ReactElement {
 
     async function handleAwaitingMoreSubtasksChange(checked: boolean) {
         await api.updateStory(storyId, { awaitingMoreSubtasks: checked });
+        loadStory();
+    }
+
+    async function handleStoryPointsChange(value: string) {
+        await api.updateStory(storyId, { storyPoints: value === "" ? null : Number(value) });
         loadStory();
     }
 
@@ -171,14 +180,20 @@ export function StoryDetailPage(): React.ReactElement {
                     </MetaRow>
                 </div>
                 <div className="page-header-actions">
-                    {story.jiraKey && (
-                        <button onClick={handleFetchJiraInfo} disabled={jiraLoading}>
-                            {jiraLoading ? "fetching..." : "refresh from jira"}
-                        </button>
-                    )}
-                    <button onClick={handleExportPdf} disabled={exporting}>
-                        {exporting ? "exporting..." : "export pdf"}
-                    </button>
+                    <div className="page-header-buttons">
+                        {story.jiraKey && (
+                            <button onClick={handleFetchJiraInfo} disabled={jiraLoading}>
+                                {jiraLoading ? "fetching..." : "refresh from jira"}
+                            </button>
+                        )}
+                        <ExportButton onClick={handleExportPdf} loading={exporting} />
+                    </div>
+                    <RatingSelect
+                        label="story points:"
+                        value={story.storyPoints}
+                        options={STORY_POINTS_OPTIONS}
+                        onChange={handleStoryPointsChange}
+                    />
                 </div>
             </div>
 

@@ -21,10 +21,10 @@ INSERT OR IGNORE INTO holidays (date) VALUES ('2026-03-23');
 
 -- story: NEB-1001, 3 subtasks, all DONE (one with a two-round pr-comments
 -- oscillation).
-INSERT INTO stories (sprint_id, jira_url, jira_key, description) VALUES
+INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) VALUES
     ((SELECT id FROM sprints WHERE name = 'Nebula Checkout Sprint 1'),
      'https://nebula.atlassian.net/browse/NEB-1001', 'NEB-1001',
-     'Support saved payment methods at checkout');
+     'Support saved payment methods at checkout', 8);
 
 INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1001'),
@@ -42,7 +42,8 @@ INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, rele
      'https://github.com/nebula-labs/payments-service/pull/215', 'payments-service', 'v4.12.0', 3);
 
 -- story: NEB-1004, jira only, no subtasks yet - kept as a "just a jira
--- ticket, no code work started" example.
+-- ticket, no code work started" example. Left unpointed (story_points NULL)
+-- to exercise the "unpointed" case downstream.
 INSERT INTO stories (sprint_id, jira_url, jira_key, description) VALUES
     ((SELECT id FROM sprints WHERE name = 'Nebula Checkout Sprint 1'),
      'https://nebula.atlassian.net/browse/NEB-1004', 'NEB-1004',
@@ -50,10 +51,10 @@ INSERT INTO stories (sprint_id, jira_url, jira_key, description) VALUES
 
 -- story: NEB-1010, 2 subtasks, both DONE (one with a single-round
 -- in_pr <-> in_review oscillation).
-INSERT INTO stories (sprint_id, jira_url, jira_key, description) VALUES
+INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) VALUES
     ((SELECT id FROM sprints WHERE name = 'Nebula Checkout Sprint 1'),
      'https://nebula.atlassian.net/browse/NEB-1010', 'NEB-1010',
-     'Add fraud-score check before charging');
+     'Add fraud-score check before charging', 5);
 
 INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1010'),
@@ -71,10 +72,10 @@ INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, rele
 
 -- story: NEB-1032, 2 subtasks, both DONE (one continues the existing
 -- in_pr <-> in_review oscillation through to release).
-INSERT INTO stories (sprint_id, jira_url, jira_key, description) VALUES
+INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) VALUES
     ((SELECT id FROM sprints WHERE name = 'Nebula Checkout Sprint 2'),
      'https://nebula.atlassian.net/browse/NEB-1032', 'NEB-1032',
-     'Add regional tax calculation for EU checkout');
+     'Add regional tax calculation for EU checkout', 5);
 
 INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1032'),
@@ -88,10 +89,10 @@ INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, rele
 
 -- story: NEB-1040, 2 subtasks, both DONE (one continues the existing
 -- pr-comments <-> in-review oscillation - two rounds of feedback total).
-INSERT INTO stories (sprint_id, jira_url, jira_key, description) VALUES
+INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) VALUES
     ((SELECT id FROM sprints WHERE name = 'Nebula Checkout Sprint 2'),
      'https://nebula.atlassian.net/browse/NEB-1040', 'NEB-1040',
-     'Retry failed webhook deliveries automatically');
+     'Retry failed webhook deliveries automatically', 8);
 
 INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1040'),
@@ -104,10 +105,10 @@ INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, rele
      'https://github.com/nebula-labs/notifications-service/pull/302', 'notifications-service', 'v4.13.0', 3);
 
 -- story: NEB-1045, 2 subtasks, both DONE.
-INSERT INTO stories (sprint_id, jira_url, jira_key, description) VALUES
+INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) VALUES
     ((SELECT id FROM sprints WHERE name = 'Nebula Checkout Sprint 2'),
      'https://nebula.atlassian.net/browse/NEB-1045', 'NEB-1045',
-     'Send webhook delivery status to customer dashboard');
+     'Send webhook delivery status to customer dashboard', 3);
 
 INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1045'),
@@ -126,10 +127,10 @@ INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, rele
 
 -- story: NEB-1058, 1 subtask - pushed all the way to DONE this time, to
 -- show a current-sprint item that's actually finished.
-INSERT INTO stories (sprint_id, jira_url, jira_key, description) VALUES
+INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) VALUES
     ((SELECT id FROM sprints WHERE name = 'Nebula Checkout Sprint 3'),
      'https://nebula.atlassian.net/browse/NEB-1058', 'NEB-1058',
-     'Allow partial refunds from the support console');
+     'Allow partial refunds from the support console', 2);
 
 INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1058'),
@@ -138,10 +139,10 @@ INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, rele
 
 -- story: NEB-1061, 1 subtask - deliberately left at UAT (not done yet),
 -- showing work still in flight this sprint.
-INSERT INTO stories (sprint_id, jira_url, jira_key, description) VALUES
+INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) VALUES
     ((SELECT id FROM sprints WHERE name = 'Nebula Checkout Sprint 3'),
      'https://nebula.atlassian.net/browse/NEB-1061', 'NEB-1061',
-     'Show refund status timeline to support agents');
+     'Show refund status timeline to support agents', 3);
 
 INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1061'),
@@ -150,10 +151,10 @@ INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, rele
 
 -- story: NEB-1070, 3 subtasks spanning done / done / just started,
 -- including a two-round in_review <-> pr_comments oscillation.
-INSERT INTO stories (sprint_id, jira_url, jira_key, description) VALUES
+INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) VALUES
     ((SELECT id FROM sprints WHERE name = 'Nebula Checkout Sprint 3'),
      'https://nebula.atlassian.net/browse/NEB-1070', 'NEB-1070',
-     'Support multi-currency refunds');
+     'Support multi-currency refunds', 13);
 
 INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1070'),
@@ -170,10 +171,10 @@ INSERT INTO subtasks (story_id, title, branch_name, status) VALUES
      'add currency selector to refund form', 'feature/neb-1070-fx-selector', 'WIP');
 
 -- story: NEB-1075, 2 subtasks, both early/mid-flight (one not started at all).
-INSERT INTO stories (sprint_id, jira_url, jira_key, description) VALUES
+INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) VALUES
     ((SELECT id FROM sprints WHERE name = 'Nebula Checkout Sprint 3'),
      'https://nebula.atlassian.net/browse/NEB-1075', 'NEB-1075',
-     'Add refund audit log');
+     'Add refund audit log', 5);
 
 INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, complexity_rating) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1075'),
@@ -185,7 +186,8 @@ INSERT INTO subtasks (story_id, title, status) VALUES
      'expose audit log to support ui', 'NEW');
 
 -- story: NEB-1080, jira only, no subtasks yet - not every ticket in the
--- current sprint has code work started either.
+-- current sprint has code work started either. Left unpointed (story_points
+-- NULL) to exercise the "unpointed" case downstream.
 INSERT INTO stories (sprint_id, jira_url, jira_key, description) VALUES
     ((SELECT id FROM sprints WHERE name = 'Nebula Checkout Sprint 3'),
      'https://nebula.atlassian.net/browse/NEB-1080', 'NEB-1080',
@@ -463,3 +465,482 @@ INSERT INTO entity_tags (entity_type, entity_id, tag_id) VALUES
     -- NEB-1080: latency investigation, no subtasks yet
     ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-1080'), (SELECT id FROM tags WHERE name = 'latency')),
     ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-1080'), (SELECT id FROM tags WHERE name = 'reliability'));
+
+-- ============================================================
+-- ADDITIONAL HISTORICAL SPRINTS (added later, for a larger velocity-testing
+-- dataset) - three more 2-week sprints, all in the past, immediately
+-- preceding "Nebula Checkout Sprint 1" above. Unlike sprints 1/3, every
+-- story here is fully DONE (no jira-only or mid-flight items) - that's what
+-- a closed sprint actually looks like once everything shipped.
+-- ============================================================
+
+INSERT INTO sprints (name, start_date, end_date, comment) VALUES
+    ('Nebula Checkout Sprint -2', '2026-01-19', '2026-02-02', NULL);
+
+INSERT INTO sprints (name, start_date, end_date, comment) VALUES
+    ('Nebula Checkout Sprint -1', '2026-02-02', '2026-02-16', '1-day holiday mid-sprint');
+
+INSERT INTO sprints (name, start_date, end_date, comment) VALUES
+    ('Nebula Checkout Sprint 0', '2026-02-16', '2026-03-02', NULL);
+
+INSERT OR IGNORE INTO holidays (date) VALUES ('2026-02-09');
+
+-- ============================================================
+-- SPRINT -2 (past, closed 2026-02-02) - every subtask reaches DONE.
+-- ============================================================
+
+-- story: NEB-901, 3 subtasks, all DONE.
+INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) VALUES
+    ((SELECT id FROM sprints WHERE name = 'Nebula Checkout Sprint -2'),
+     'https://nebula.atlassian.net/browse/NEB-901', 'NEB-901',
+     'Add guest checkout flow', 8);
+
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+    ((SELECT id FROM stories WHERE jira_key = 'NEB-901'),
+     'scaffold guest checkout page', 'feature/neb-901-guest-page', 'DONE',
+     'https://github.com/nebula-labs/checkout-web/pull/540', 'checkout-web', 'v4.9.0', 3);
+
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+    ((SELECT id FROM stories WHERE jira_key = 'NEB-901'),
+     'add guest order creation endpoint', 'feature/neb-901-guest-order-api', 'DONE',
+     'https://github.com/nebula-labs/payments-service/pull/188', 'payments-service', 'v4.9.0', 2);
+
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+    ((SELECT id FROM stories WHERE jira_key = 'NEB-901'),
+     'send guest checkout confirmation email', 'feature/neb-901-guest-email', 'DONE',
+     'https://github.com/nebula-labs/notifications-service/pull/260', 'notifications-service', 'v4.9.0', 1);
+
+-- story: NEB-905, 2 subtasks, both DONE.
+INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) VALUES
+    ((SELECT id FROM sprints WHERE name = 'Nebula Checkout Sprint -2'),
+     'https://nebula.atlassian.net/browse/NEB-905', 'NEB-905',
+     'Add address autocomplete to checkout', 5);
+
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+    ((SELECT id FROM stories WHERE jira_key = 'NEB-905'),
+     'integrate address lookup api client', 'feature/neb-905-address-api', 'DONE',
+     'https://github.com/nebula-labs/payments-service/pull/189', 'payments-service', 'v4.9.0', 2);
+
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+    ((SELECT id FROM stories WHERE jira_key = 'NEB-905'),
+     'wire autocomplete widget into checkout form', 'feature/neb-905-address-ui', 'DONE',
+     'https://github.com/nebula-labs/checkout-web/pull/541', 'checkout-web', 'v4.9.0', 3);
+
+-- story: NEB-912, 2 subtasks, both DONE.
+INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) VALUES
+    ((SELECT id FROM sprints WHERE name = 'Nebula Checkout Sprint -2'),
+     'https://nebula.atlassian.net/browse/NEB-912', 'NEB-912',
+     'Support promo code stacking rules', 3);
+
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+    ((SELECT id FROM stories WHERE jira_key = 'NEB-912'),
+     'enforce promo stacking rules in pricing engine', 'feature/neb-912-promo-rules', 'DONE',
+     'https://github.com/nebula-labs/payments-service/pull/190', 'payments-service', 'v4.9.1', 3);
+
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+    ((SELECT id FROM stories WHERE jira_key = 'NEB-912'),
+     'surface stacking error message in checkout ui', 'feature/neb-912-promo-error-ui', 'DONE',
+     'https://github.com/nebula-labs/checkout-web/pull/542', 'checkout-web', 'v4.9.1', 1);
+
+-- ============================================================
+-- SPRINT -1 (past, closed 2026-02-16) - every subtask reaches DONE.
+-- ============================================================
+
+-- story: NEB-920, 2 subtasks, both DONE (one with a two-round pr-comments oscillation).
+INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) VALUES
+    ((SELECT id FROM sprints WHERE name = 'Nebula Checkout Sprint -1'),
+     'https://nebula.atlassian.net/browse/NEB-920', 'NEB-920',
+     'Add Apple Pay support', 8);
+
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+    ((SELECT id FROM stories WHERE jira_key = 'NEB-920'),
+     'integrate apple pay merchant session api', 'feature/neb-920-apple-pay-api', 'DONE',
+     'https://github.com/nebula-labs/payments-service/pull/191', 'payments-service', 'v4.10.0', 4);
+
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+    ((SELECT id FROM stories WHERE jira_key = 'NEB-920'),
+     'add apple pay button to checkout', 'feature/neb-920-apple-pay-ui', 'DONE',
+     'https://github.com/nebula-labs/checkout-web/pull/543', 'checkout-web', 'v4.10.0', 2);
+
+-- story: NEB-925, 2 subtasks, both DONE (one with a one-round in_pr <-> in_review oscillation).
+INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) VALUES
+    ((SELECT id FROM sprints WHERE name = 'Nebula Checkout Sprint -1'),
+     'https://nebula.atlassian.net/browse/NEB-925', 'NEB-925',
+     'Improve search relevance ranking', 5);
+
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+    ((SELECT id FROM stories WHERE jira_key = 'NEB-925'),
+     'tune bm25 weighting for product search', 'feature/neb-925-search-ranking', 'DONE',
+     'https://github.com/nebula-labs/search-service/pull/44', 'search-service', 'v4.10.0', 3);
+
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+    ((SELECT id FROM stories WHERE jira_key = 'NEB-925'),
+     'add search relevance debug panel', 'feature/neb-925-search-debug-ui', 'DONE',
+     'https://github.com/nebula-labs/checkout-web/pull/544', 'checkout-web', 'v4.10.0', 2);
+
+-- story: NEB-931, 3 subtasks, all DONE (two with pr-comments oscillations).
+INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) VALUES
+    ((SELECT id FROM sprints WHERE name = 'Nebula Checkout Sprint -1'),
+     'https://nebula.atlassian.net/browse/NEB-931', 'NEB-931',
+     'Add account merge for duplicate signups', 13);
+
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+    ((SELECT id FROM stories WHERE jira_key = 'NEB-931'),
+     'detect duplicate accounts by email+phone', 'feature/neb-931-dup-detection', 'DONE',
+     'https://github.com/nebula-labs/user-service/pull/12', 'user-service', 'v4.10.1', 4);
+
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+    ((SELECT id FROM stories WHERE jira_key = 'NEB-931'),
+     'merge order history across accounts', 'feature/neb-931-merge-orders', 'DONE',
+     'https://github.com/nebula-labs/user-service/pull/13', 'user-service', 'v4.10.1', 5);
+
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+    ((SELECT id FROM stories WHERE jira_key = 'NEB-931'),
+     'notify user after account merge', 'feature/neb-931-merge-notify', 'DONE',
+     'https://github.com/nebula-labs/notifications-service/pull/261', 'notifications-service', 'v4.10.1', 1);
+
+-- ============================================================
+-- SPRINT 0 (past, closed 2026-03-02) - every subtask reaches DONE.
+-- ============================================================
+
+-- story: NEB-940, 2 subtasks, both DONE (one with a one-round pr-comments oscillation).
+INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) VALUES
+    ((SELECT id FROM sprints WHERE name = 'Nebula Checkout Sprint 0'),
+     'https://nebula.atlassian.net/browse/NEB-940', 'NEB-940',
+     'Add subscription billing support', 5);
+
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+    ((SELECT id FROM stories WHERE jira_key = 'NEB-940'),
+     'add recurring charge scheduler', 'feature/neb-940-recurring-charge', 'DONE',
+     'https://github.com/nebula-labs/payments-service/pull/192', 'payments-service', 'v4.11.0', 3);
+
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+    ((SELECT id FROM stories WHERE jira_key = 'NEB-940'),
+     'show subscription management page', 'feature/neb-940-subscription-ui', 'DONE',
+     'https://github.com/nebula-labs/checkout-web/pull/545', 'checkout-web', 'v4.11.0', 2);
+
+-- story: NEB-945, 2 subtasks, both DONE (skip pr_comments).
+INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) VALUES
+    ((SELECT id FROM sprints WHERE name = 'Nebula Checkout Sprint 0'),
+     'https://nebula.atlassian.net/browse/NEB-945', 'NEB-945',
+     'Add order export to CSV for support team', 3);
+
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+    ((SELECT id FROM stories WHERE jira_key = 'NEB-945'),
+     'add csv export endpoint', 'feature/neb-945-csv-export-api', 'DONE',
+     'https://github.com/nebula-labs/support-console/pull/118', 'support-console', 'v4.11.0', 2);
+
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+    ((SELECT id FROM stories WHERE jira_key = 'NEB-945'),
+     'add export button to support console', 'feature/neb-945-csv-export-ui', 'DONE',
+     'https://github.com/nebula-labs/support-console/pull/119', 'support-console', 'v4.11.0', 1);
+
+-- story: NEB-951, 2 subtasks, both DONE (one with a two-round in_review <-> pr_comments oscillation).
+INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) VALUES
+    ((SELECT id FROM sprints WHERE name = 'Nebula Checkout Sprint 0'),
+     'https://nebula.atlassian.net/browse/NEB-951', 'NEB-951',
+     'Reduce checkout page load latency', 8);
+
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+    ((SELECT id FROM stories WHERE jira_key = 'NEB-951'),
+     'lazy-load non-critical checkout scripts', 'feature/neb-951-lazy-load', 'DONE',
+     'https://github.com/nebula-labs/checkout-web/pull/546', 'checkout-web', 'v4.11.1', 3);
+
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+    ((SELECT id FROM stories WHERE jira_key = 'NEB-951'),
+     'add cdn caching for static checkout assets', 'feature/neb-951-cdn-cache', 'DONE',
+     'https://github.com/nebula-labs/checkout-web/pull/547', 'checkout-web', 'v4.11.1', 2);
+
+-- ============================================================
+-- status_history for sprints -2/-1/0's subtasks - same full-transition-path
+-- convention as above, dated within each sprint's own window.
+-- ============================================================
+
+INSERT INTO status_history (entity_type, entity_id, status, release_version, changed_at) VALUES
+    -- NEB-901 / scaffold guest checkout page - skips in_pr and pr_comments
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'scaffold guest checkout page'), 'NEW', NULL, '2026-01-19 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'scaffold guest checkout page'), 'WIP', NULL, '2026-01-19 09:15:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'scaffold guest checkout page'), 'IN_REVIEW', NULL, '2026-01-21 14:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'scaffold guest checkout page'), 'CUT_RELEASE', NULL, '2026-01-22 10:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'scaffold guest checkout page'), 'TESTING', 'v4.9.0', '2026-01-26 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'scaffold guest checkout page'), 'UAT', NULL, '2026-01-28 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'scaffold guest checkout page'), 'DONE', NULL, '2026-01-29 17:00:00'),
+
+    -- NEB-901 / add guest order creation endpoint - one round of pr comments
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add guest order creation endpoint'), 'NEW', NULL, '2026-01-19 09:05:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add guest order creation endpoint'), 'WIP', NULL, '2026-01-19 09:20:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add guest order creation endpoint'), 'IN_REVIEW', NULL, '2026-01-21 15:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add guest order creation endpoint'), 'PR_COMMENTS', NULL, '2026-01-22 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add guest order creation endpoint'), 'IN_REVIEW', NULL, '2026-01-22 16:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add guest order creation endpoint'), 'CUT_RELEASE', NULL, '2026-01-23 10:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add guest order creation endpoint'), 'TESTING', 'v4.9.0', '2026-01-26 09:15:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add guest order creation endpoint'), 'UAT', NULL, '2026-01-28 09:15:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add guest order creation endpoint'), 'DONE', NULL, '2026-01-29 17:15:00'),
+
+    -- NEB-901 / send guest checkout confirmation email - skips pr_comments
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'send guest checkout confirmation email'), 'NEW', NULL, '2026-01-20 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'send guest checkout confirmation email'), 'WIP', NULL, '2026-01-20 09:10:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'send guest checkout confirmation email'), 'IN_PR', NULL, '2026-01-21 11:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'send guest checkout confirmation email'), 'IN_REVIEW', NULL, '2026-01-21 15:30:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'send guest checkout confirmation email'), 'CUT_RELEASE', NULL, '2026-01-22 11:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'send guest checkout confirmation email'), 'TESTING', 'v4.9.0', '2026-01-26 09:30:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'send guest checkout confirmation email'), 'UAT', NULL, '2026-01-28 09:30:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'send guest checkout confirmation email'), 'DONE', NULL, '2026-01-29 17:30:00'),
+
+    -- NEB-905 / integrate address lookup api client
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'integrate address lookup api client'), 'NEW', NULL, '2026-01-22 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'integrate address lookup api client'), 'WIP', NULL, '2026-01-22 09:15:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'integrate address lookup api client'), 'IN_PR', NULL, '2026-01-23 11:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'integrate address lookup api client'), 'IN_REVIEW', NULL, '2026-01-23 16:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'integrate address lookup api client'), 'CUT_RELEASE', NULL, '2026-01-26 10:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'integrate address lookup api client'), 'TESTING', 'v4.9.0', '2026-01-28 09:45:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'integrate address lookup api client'), 'UAT', NULL, '2026-01-30 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'integrate address lookup api client'), 'DONE', NULL, '2026-01-31 17:00:00'),
+
+    -- NEB-905 / wire autocomplete widget into checkout form - one round of in_pr <-> in_review
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'wire autocomplete widget into checkout form'), 'NEW', NULL, '2026-01-22 09:05:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'wire autocomplete widget into checkout form'), 'WIP', NULL, '2026-01-22 09:20:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'wire autocomplete widget into checkout form'), 'IN_PR', NULL, '2026-01-23 12:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'wire autocomplete widget into checkout form'), 'IN_REVIEW', NULL, '2026-01-24 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'wire autocomplete widget into checkout form'), 'IN_PR', NULL, '2026-01-24 14:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'wire autocomplete widget into checkout form'), 'IN_REVIEW', NULL, '2026-01-25 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'wire autocomplete widget into checkout form'), 'CUT_RELEASE', NULL, '2026-01-26 10:15:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'wire autocomplete widget into checkout form'), 'TESTING', 'v4.9.0', '2026-01-28 10:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'wire autocomplete widget into checkout form'), 'UAT', NULL, '2026-01-30 09:15:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'wire autocomplete widget into checkout form'), 'DONE', NULL, '2026-01-31 17:15:00'),
+
+    -- NEB-912 / enforce promo stacking rules in pricing engine
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'enforce promo stacking rules in pricing engine'), 'NEW', NULL, '2026-01-26 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'enforce promo stacking rules in pricing engine'), 'WIP', NULL, '2026-01-26 09:15:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'enforce promo stacking rules in pricing engine'), 'IN_REVIEW', NULL, '2026-01-27 14:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'enforce promo stacking rules in pricing engine'), 'CUT_RELEASE', NULL, '2026-01-28 10:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'enforce promo stacking rules in pricing engine'), 'TESTING', 'v4.9.1', '2026-01-29 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'enforce promo stacking rules in pricing engine'), 'UAT', NULL, '2026-01-30 09:30:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'enforce promo stacking rules in pricing engine'), 'DONE', NULL, '2026-01-31 17:30:00'),
+
+    -- NEB-912 / surface stacking error message in checkout ui - skips pr_comments
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'surface stacking error message in checkout ui'), 'NEW', NULL, '2026-01-26 09:05:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'surface stacking error message in checkout ui'), 'WIP', NULL, '2026-01-26 09:20:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'surface stacking error message in checkout ui'), 'IN_PR', NULL, '2026-01-27 11:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'surface stacking error message in checkout ui'), 'IN_REVIEW', NULL, '2026-01-27 15:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'surface stacking error message in checkout ui'), 'CUT_RELEASE', NULL, '2026-01-28 10:15:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'surface stacking error message in checkout ui'), 'TESTING', 'v4.9.1', '2026-01-29 09:15:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'surface stacking error message in checkout ui'), 'UAT', NULL, '2026-01-30 09:45:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'surface stacking error message in checkout ui'), 'DONE', NULL, '2026-01-31 17:45:00'),
+
+    -- NEB-920 / integrate apple pay merchant session api - two rounds of pr comments
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'integrate apple pay merchant session api'), 'NEW', NULL, '2026-02-02 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'integrate apple pay merchant session api'), 'WIP', NULL, '2026-02-02 09:15:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'integrate apple pay merchant session api'), 'IN_REVIEW', NULL, '2026-02-04 14:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'integrate apple pay merchant session api'), 'PR_COMMENTS', NULL, '2026-02-05 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'integrate apple pay merchant session api'), 'IN_REVIEW', NULL, '2026-02-05 16:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'integrate apple pay merchant session api'), 'PR_COMMENTS', NULL, '2026-02-06 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'integrate apple pay merchant session api'), 'IN_REVIEW', NULL, '2026-02-06 16:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'integrate apple pay merchant session api'), 'CUT_RELEASE', NULL, '2026-02-09 10:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'integrate apple pay merchant session api'), 'TESTING', 'v4.10.0', '2026-02-11 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'integrate apple pay merchant session api'), 'UAT', NULL, '2026-02-12 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'integrate apple pay merchant session api'), 'DONE', NULL, '2026-02-13 17:00:00'),
+
+    -- NEB-920 / add apple pay button to checkout
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add apple pay button to checkout'), 'NEW', NULL, '2026-02-02 09:05:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add apple pay button to checkout'), 'WIP', NULL, '2026-02-02 09:20:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add apple pay button to checkout'), 'IN_PR', NULL, '2026-02-04 11:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add apple pay button to checkout'), 'IN_REVIEW', NULL, '2026-02-04 15:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add apple pay button to checkout'), 'CUT_RELEASE', NULL, '2026-02-05 10:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add apple pay button to checkout'), 'TESTING', 'v4.10.0', '2026-02-11 09:15:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add apple pay button to checkout'), 'UAT', NULL, '2026-02-12 09:15:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add apple pay button to checkout'), 'DONE', NULL, '2026-02-13 17:15:00'),
+
+    -- NEB-925 / tune bm25 weighting for product search - one round of in_pr <-> in_review
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'tune bm25 weighting for product search'), 'NEW', NULL, '2026-02-04 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'tune bm25 weighting for product search'), 'WIP', NULL, '2026-02-04 09:15:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'tune bm25 weighting for product search'), 'IN_PR', NULL, '2026-02-05 11:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'tune bm25 weighting for product search'), 'IN_REVIEW', NULL, '2026-02-05 15:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'tune bm25 weighting for product search'), 'IN_PR', NULL, '2026-02-06 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'tune bm25 weighting for product search'), 'IN_REVIEW', NULL, '2026-02-06 14:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'tune bm25 weighting for product search'), 'CUT_RELEASE', NULL, '2026-02-09 10:15:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'tune bm25 weighting for product search'), 'TESTING', 'v4.10.0', '2026-02-11 09:30:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'tune bm25 weighting for product search'), 'UAT', NULL, '2026-02-12 09:30:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'tune bm25 weighting for product search'), 'DONE', NULL, '2026-02-13 17:30:00'),
+
+    -- NEB-925 / add search relevance debug panel
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add search relevance debug panel'), 'NEW', NULL, '2026-02-04 09:05:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add search relevance debug panel'), 'WIP', NULL, '2026-02-04 09:20:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add search relevance debug panel'), 'IN_REVIEW', NULL, '2026-02-05 15:30:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add search relevance debug panel'), 'CUT_RELEASE', NULL, '2026-02-06 10:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add search relevance debug panel'), 'TESTING', 'v4.10.0', '2026-02-11 09:45:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add search relevance debug panel'), 'UAT', NULL, '2026-02-12 09:45:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add search relevance debug panel'), 'DONE', NULL, '2026-02-13 17:45:00'),
+
+    -- NEB-931 / detect duplicate accounts by email+phone
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'detect duplicate accounts by email+phone'), 'NEW', NULL, '2026-02-06 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'detect duplicate accounts by email+phone'), 'WIP', NULL, '2026-02-06 09:15:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'detect duplicate accounts by email+phone'), 'IN_PR', NULL, '2026-02-09 11:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'detect duplicate accounts by email+phone'), 'IN_REVIEW', NULL, '2026-02-09 16:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'detect duplicate accounts by email+phone'), 'CUT_RELEASE', NULL, '2026-02-10 10:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'detect duplicate accounts by email+phone'), 'TESTING', 'v4.10.1', '2026-02-12 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'detect duplicate accounts by email+phone'), 'UAT', NULL, '2026-02-13 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'detect duplicate accounts by email+phone'), 'DONE', NULL, '2026-02-14 17:00:00'),
+
+    -- NEB-931 / merge order history across accounts - two rounds of pr comments
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'merge order history across accounts'), 'NEW', NULL, '2026-02-06 09:05:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'merge order history across accounts'), 'WIP', NULL, '2026-02-06 09:20:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'merge order history across accounts'), 'IN_REVIEW', NULL, '2026-02-09 14:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'merge order history across accounts'), 'PR_COMMENTS', NULL, '2026-02-10 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'merge order history across accounts'), 'IN_REVIEW', NULL, '2026-02-10 15:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'merge order history across accounts'), 'PR_COMMENTS', NULL, '2026-02-11 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'merge order history across accounts'), 'IN_REVIEW', NULL, '2026-02-11 15:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'merge order history across accounts'), 'CUT_RELEASE', NULL, '2026-02-12 10:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'merge order history across accounts'), 'TESTING', 'v4.10.1', '2026-02-13 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'merge order history across accounts'), 'UAT', NULL, '2026-02-14 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'merge order history across accounts'), 'DONE', NULL, '2026-02-15 17:00:00'),
+
+    -- NEB-931 / notify user after account merge - skips pr_comments
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'notify user after account merge'), 'NEW', NULL, '2026-02-09 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'notify user after account merge'), 'WIP', NULL, '2026-02-09 09:15:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'notify user after account merge'), 'IN_PR', NULL, '2026-02-10 11:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'notify user after account merge'), 'IN_REVIEW', NULL, '2026-02-10 15:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'notify user after account merge'), 'CUT_RELEASE', NULL, '2026-02-11 10:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'notify user after account merge'), 'TESTING', 'v4.10.1', '2026-02-13 09:30:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'notify user after account merge'), 'UAT', NULL, '2026-02-14 09:30:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'notify user after account merge'), 'DONE', NULL, '2026-02-15 17:30:00'),
+
+    -- NEB-940 / add recurring charge scheduler
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add recurring charge scheduler'), 'NEW', NULL, '2026-02-16 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add recurring charge scheduler'), 'WIP', NULL, '2026-02-16 09:15:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add recurring charge scheduler'), 'IN_PR', NULL, '2026-02-18 11:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add recurring charge scheduler'), 'IN_REVIEW', NULL, '2026-02-18 15:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add recurring charge scheduler'), 'CUT_RELEASE', NULL, '2026-02-19 10:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add recurring charge scheduler'), 'TESTING', 'v4.11.0', '2026-02-23 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add recurring charge scheduler'), 'UAT', NULL, '2026-02-25 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add recurring charge scheduler'), 'DONE', NULL, '2026-02-26 17:00:00'),
+
+    -- NEB-940 / show subscription management page - one round of pr comments
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'show subscription management page'), 'NEW', NULL, '2026-02-16 09:05:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'show subscription management page'), 'WIP', NULL, '2026-02-16 09:20:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'show subscription management page'), 'IN_REVIEW', NULL, '2026-02-18 14:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'show subscription management page'), 'PR_COMMENTS', NULL, '2026-02-19 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'show subscription management page'), 'IN_REVIEW', NULL, '2026-02-19 15:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'show subscription management page'), 'CUT_RELEASE', NULL, '2026-02-20 10:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'show subscription management page'), 'TESTING', 'v4.11.0', '2026-02-23 09:15:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'show subscription management page'), 'UAT', NULL, '2026-02-25 09:15:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'show subscription management page'), 'DONE', NULL, '2026-02-26 17:15:00'),
+
+    -- NEB-945 / add csv export endpoint - skips pr_comments
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add csv export endpoint'), 'NEW', NULL, '2026-02-19 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add csv export endpoint'), 'WIP', NULL, '2026-02-19 09:15:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add csv export endpoint'), 'IN_PR', NULL, '2026-02-20 11:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add csv export endpoint'), 'IN_REVIEW', NULL, '2026-02-20 15:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add csv export endpoint'), 'CUT_RELEASE', NULL, '2026-02-23 10:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add csv export endpoint'), 'TESTING', 'v4.11.0', '2026-02-25 09:30:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add csv export endpoint'), 'UAT', NULL, '2026-02-26 09:30:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add csv export endpoint'), 'DONE', NULL, '2026-02-27 17:00:00'),
+
+    -- NEB-945 / add export button to support console
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add export button to support console'), 'NEW', NULL, '2026-02-19 09:05:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add export button to support console'), 'WIP', NULL, '2026-02-19 09:20:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add export button to support console'), 'IN_REVIEW', NULL, '2026-02-20 15:30:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add export button to support console'), 'CUT_RELEASE', NULL, '2026-02-23 10:15:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add export button to support console'), 'TESTING', 'v4.11.0', '2026-02-25 09:45:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add export button to support console'), 'UAT', NULL, '2026-02-26 09:45:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add export button to support console'), 'DONE', NULL, '2026-02-27 17:15:00'),
+
+    -- NEB-951 / lazy-load non-critical checkout scripts - two rounds of in_review <-> pr_comments
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'lazy-load non-critical checkout scripts'), 'NEW', NULL, '2026-02-20 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'lazy-load non-critical checkout scripts'), 'WIP', NULL, '2026-02-20 09:15:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'lazy-load non-critical checkout scripts'), 'IN_REVIEW', NULL, '2026-02-23 14:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'lazy-load non-critical checkout scripts'), 'PR_COMMENTS', NULL, '2026-02-24 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'lazy-load non-critical checkout scripts'), 'IN_REVIEW', NULL, '2026-02-24 15:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'lazy-load non-critical checkout scripts'), 'PR_COMMENTS', NULL, '2026-02-25 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'lazy-load non-critical checkout scripts'), 'IN_REVIEW', NULL, '2026-02-25 15:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'lazy-load non-critical checkout scripts'), 'CUT_RELEASE', NULL, '2026-02-26 10:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'lazy-load non-critical checkout scripts'), 'TESTING', 'v4.11.1', '2026-02-27 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'lazy-load non-critical checkout scripts'), 'UAT', NULL, '2026-02-28 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'lazy-load non-critical checkout scripts'), 'DONE', NULL, '2026-03-01 17:00:00'),
+
+    -- NEB-951 / add cdn caching for static checkout assets
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add cdn caching for static checkout assets'), 'NEW', NULL, '2026-02-20 09:05:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add cdn caching for static checkout assets'), 'WIP', NULL, '2026-02-20 09:20:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add cdn caching for static checkout assets'), 'IN_PR', NULL, '2026-02-23 11:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add cdn caching for static checkout assets'), 'IN_REVIEW', NULL, '2026-02-23 15:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add cdn caching for static checkout assets'), 'CUT_RELEASE', NULL, '2026-02-24 10:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add cdn caching for static checkout assets'), 'TESTING', 'v4.11.1', '2026-02-27 09:15:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add cdn caching for static checkout assets'), 'UAT', NULL, '2026-02-28 09:15:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add cdn caching for static checkout assets'), 'DONE', NULL, '2026-03-01 17:15:00');
+
+-- tags: reuses several existing custom/repo tags, plus a handful of new
+-- ones for the product areas these earlier sprints introduce.
+INSERT INTO tags (name, tag_type) VALUES
+    ('apple-pay', 'custom'),
+    ('search', 'custom'),
+    ('account-merge', 'custom'),
+    ('billing', 'custom'),
+    ('performance', 'custom'),
+    ('export', 'custom'),
+    ('search-service', 'repo'),
+    ('user-service', 'repo');
+
+INSERT INTO entity_tags (entity_type, entity_id, tag_id) VALUES
+    -- NEB-901: guest checkout, spanning payments + checkout + notifications
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-901'), (SELECT id FROM tags WHERE name = 'checkout')),
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-901'), (SELECT id FROM tags WHERE name = 'payments-service')),
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-901'), (SELECT id FROM tags WHERE name = 'checkout-web')),
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-901'), (SELECT id FROM tags WHERE name = 'notifications-service')),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'scaffold guest checkout page'), (SELECT id FROM tags WHERE name = 'frontend')),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add guest order creation endpoint'), (SELECT id FROM tags WHERE name = 'backend')),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'send guest checkout confirmation email'), (SELECT id FROM tags WHERE name = 'backend')),
+
+    -- NEB-905: address autocomplete, backend + frontend
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-905'), (SELECT id FROM tags WHERE name = 'checkout')),
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-905'), (SELECT id FROM tags WHERE name = 'payments-service')),
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-905'), (SELECT id FROM tags WHERE name = 'checkout-web')),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'integrate address lookup api client'), (SELECT id FROM tags WHERE name = 'backend')),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'wire autocomplete widget into checkout form'), (SELECT id FROM tags WHERE name = 'frontend')),
+
+    -- NEB-912: promo stacking rules
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-912'), (SELECT id FROM tags WHERE name = 'payments')),
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-912'), (SELECT id FROM tags WHERE name = 'payments-service')),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'enforce promo stacking rules in pricing engine'), (SELECT id FROM tags WHERE name = 'backend')),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'surface stacking error message in checkout ui'), (SELECT id FROM tags WHERE name = 'frontend')),
+
+    -- NEB-920: apple pay, backend + frontend
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-920'), (SELECT id FROM tags WHERE name = 'apple-pay')),
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-920'), (SELECT id FROM tags WHERE name = 'payments-service')),
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-920'), (SELECT id FROM tags WHERE name = 'checkout-web')),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'integrate apple pay merchant session api'), (SELECT id FROM tags WHERE name = 'backend')),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add apple pay button to checkout'), (SELECT id FROM tags WHERE name = 'frontend')),
+
+    -- NEB-925: search ranking, new search-service repo
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-925'), (SELECT id FROM tags WHERE name = 'search')),
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-925'), (SELECT id FROM tags WHERE name = 'search-service')),
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-925'), (SELECT id FROM tags WHERE name = 'checkout-web')),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'tune bm25 weighting for product search'), (SELECT id FROM tags WHERE name = 'backend')),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add search relevance debug panel'), (SELECT id FROM tags WHERE name = 'frontend')),
+
+    -- NEB-931: account merge, new user-service repo
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-931'), (SELECT id FROM tags WHERE name = 'account-merge')),
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-931'), (SELECT id FROM tags WHERE name = 'user-service')),
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-931'), (SELECT id FROM tags WHERE name = 'notifications-service')),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'detect duplicate accounts by email+phone'), (SELECT id FROM tags WHERE name = 'backend')),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'merge order history across accounts'), (SELECT id FROM tags WHERE name = 'backend')),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'notify user after account merge'), (SELECT id FROM tags WHERE name = 'backend')),
+
+    -- NEB-940: subscription billing
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-940'), (SELECT id FROM tags WHERE name = 'billing')),
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-940'), (SELECT id FROM tags WHERE name = 'payments-service')),
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-940'), (SELECT id FROM tags WHERE name = 'checkout-web')),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add recurring charge scheduler'), (SELECT id FROM tags WHERE name = 'backend')),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'show subscription management page'), (SELECT id FROM tags WHERE name = 'frontend')),
+
+    -- NEB-945: csv export for support console
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-945'), (SELECT id FROM tags WHERE name = 'export')),
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-945'), (SELECT id FROM tags WHERE name = 'support-tooling')),
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-945'), (SELECT id FROM tags WHERE name = 'support-console')),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add csv export endpoint'), (SELECT id FROM tags WHERE name = 'backend')),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add export button to support console'), (SELECT id FROM tags WHERE name = 'frontend')),
+
+    -- NEB-951: checkout latency, checkout-web only
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-951'), (SELECT id FROM tags WHERE name = 'performance')),
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-951'), (SELECT id FROM tags WHERE name = 'checkout-web')),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'lazy-load non-critical checkout scripts'), (SELECT id FROM tags WHERE name = 'frontend')),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add cdn caching for static checkout assets'), (SELECT id FROM tags WHERE name = 'frontend'));

@@ -9,6 +9,8 @@ import type {
     ComplexityStats,
     ComplexityTimingPoint,
     StoryComplexity,
+    VelocityPoint,
+    VelocitySelection,
 } from "../../shared/types.js";
 import { computeStoryStatus } from "./storyService.js";
 import { getStatusFlow } from "./statusFlowService.js";
@@ -400,4 +402,90 @@ export function getCalendarEntries(filter: CalendarFilter) {
     }
 
     return entries;
+}
+
+interface VelocitySprintRow {
+    id: number;
+    name: string;
+    start_date: string;
+    end_date: string | null;
+}
+
+export function getVelocityHistory(sprintId: number, selection: VelocitySelection): VelocityPoint[] {
+    let sprintRows: VelocitySprintRow[];
+
+    if (selection.mode === "all") {
+        sprintRows = db
+            .prepare("SELECT id, name, start_date, end_date FROM sprints ORDER BY start_date ASC")
+            .all() as VelocitySprintRow[];
+    } else if (selection.mode === "range") {
+        sprintRows = db
+            .prepare(
+                `SELECT id, name, start_date, end_date FROM sprints
+                 WHERE start_date >= ? AND start_date <= ? ORDER BY start_date ASC`
+            )
+            .all(selection.from, selection.to) as VelocitySprintRow[];
+    } else {
+        const anchor = db.prepare("SELECT start_date FROM sprints WHERE id = ?").get(sprintId) as
+            | { start_date: string }
+            | undefined;
+        if (!anchor) {
+            return [];
+        }
+        sprintRows = (
+            db
+                .prepare(
+                    `SELECT id, name, start_date, end_date FROM sprints
+                     WHERE start_date <= ? ORDER BY start_date DESC LIMIT ?`
+                )
+                .all(anchor.start_date, selection.n) as VelocitySprintRow[]
+        ).reverse();
+    }
+
+    return sprintRows.map((sprint) => {
+        const storyRows = db
+            .prepare("SELECT id, story_points, awaiting_more_subtasks FROM stories WHERE sprint_id = ?")
+            .all(sprint.id) as { id: number; story_points: number | null; awaiting_more_subtasks: number }[];
+
+        let completedPoints = 0;
+        let unpointedDoneStoryCount = 0;
+        let completedStoryCount = 0;
+
+        for (const story of storyRows) {
+            const subtaskStatusesForStory = (
+                db.prepare("SELECT status FROM subtasks WHERE story_id = ?").all(story.id) as { status: SubtaskStatus }[]
+            ).map((row) => row.status);
+            const status = computeStoryStatus(subtaskStatusesForStory, !!story.awaiting_more_subtasks);
+            if (status !== "DONE") {
+                continue;
+            }
+            completedStoryCount += 1;
+            if (story.story_points === null) {
+                unpointedDoneStoryCount += 1;
+            } else {
+                completedPoints += story.story_points;
+            }
+        }
+
+        const completedSubtaskCount = (
+            db
+                .prepare(
+                    `SELECT COUNT(*) AS count FROM subtasks
+                     JOIN stories ON stories.id = subtasks.story_id
+                     WHERE stories.sprint_id = ? AND subtasks.status = 'DONE'`
+                )
+                .get(sprint.id) as { count: number }
+        ).count;
+
+        return {
+            sprintId: sprint.id,
+            sprintName: sprint.name,
+            startDate: sprint.start_date,
+            endDate: sprint.end_date,
+            completedPoints,
+            unpointedDoneStoryCount,
+            completedStoryCount,
+            completedSubtaskCount,
+        } as VelocityPoint;
+    });
 }

@@ -41,6 +41,7 @@ const story: StoryDetail = {
     jiraLabels: [],
     status: "JIRA_ONLY",
     awaitingMoreSubtasks: false,
+    storyPoints: null,
     tags: [{ id: 1, name: "payments", tagType: "custom" }],
     prCount: 0,
     subtasks: [],
@@ -169,6 +170,15 @@ describe("StoryDetailPage", () => {
         await screen.findByText("support saved cards");
         await userEvent.click(screen.getByRole("checkbox"));
         expect(api.updateStory).toHaveBeenCalledWith(1, { awaitingMoreSubtasks: true });
+    });
+
+    it("updates storyPoints via the select", async () => {
+        vi.mocked(api.getStory).mockResolvedValue(story);
+        vi.mocked(api.updateStory).mockResolvedValue({ ...story, storyPoints: 5 });
+        renderPage();
+        await screen.findByText("support saved cards");
+        await userEvent.selectOptions(screen.getByRole("combobox"), "5");
+        expect(api.updateStory).toHaveBeenCalledWith(1, { storyPoints: 5 });
     });
 
     it("exports a pdf with one section per subtask plus a summary section, fetching each subtask's history first", async () => {

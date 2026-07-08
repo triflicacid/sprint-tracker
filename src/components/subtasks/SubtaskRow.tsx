@@ -2,9 +2,12 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { Subtask, SubtaskStatus, StatusFlowConfig, FlowField } from "@shared/types";
 import { StatusBadge } from "../StatusBadge";
+import { RatingSelect } from "../RatingSelect";
 import { api } from "../../api/client";
 import { useToast } from "../Toast";
 import "./SubtaskRow.css";
+
+const COMPLEXITY_OPTIONS = [1, 2, 3, 4, 5];
 
 interface SubtaskRowProps {
     subtask: Subtask;
@@ -144,23 +147,15 @@ export function SubtaskRow({ subtask, flow, onChanged, disableNavigation }: Subt
                 <span className="subtask-title">{subtask.title}</span>
                 {subtask.url && (
                     <div className="subtask-complexity-info" onClick={(event) => event.stopPropagation()}>
-                        <label className="complexity-label">
-                            complexity:
-                            <select
-                                value={subtask.complexityRating ?? ""}
-                                onChange={(event) => handleComplexityChange(event.target.value)}
-                                className="complexity-select"
-                                disabled={complexityLocked}
-                                title={complexityLocked ? "complexity is locked once a subtask has passed cut release" : undefined}
-                            >
-                                <option value="">-</option>
-                                {[1, 2, 3, 4, 5].map((value) => (
-                                    <option key={value} value={value}>
-                                        {value}
-                                    </option>
-                                ))}
-                            </select>
-                        </label>
+                        <RatingSelect
+                            label="complexity:"
+                            value={subtask.complexityRating}
+                            options={COMPLEXITY_OPTIONS}
+                            onChange={handleComplexityChange}
+                            disabled={complexityLocked}
+                            title={complexityLocked ? "complexity is locked once a subtask has passed cut release" : undefined}
+                            selectClassName="complexity-select"
+                        />
                         {subtask.releaseVersion && <span className="release-version">{subtask.releaseVersion}</span>}
                     </div>
                 )}
