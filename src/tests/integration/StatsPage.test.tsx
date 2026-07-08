@@ -158,6 +158,21 @@ describe("StatsPage", () => {
         expect(api.getStatusBreakdown).toHaveBeenCalledWith(1, "story");
     });
 
+    it("renders a burndown section driven by the same granularity toggle as status breakdown", async () => {
+        const { container } = renderPage();
+        await userEvent.selectOptions(await screen.findByRole("combobox"), "1");
+        await screen.findByText("pull requests");
+
+        expect(await screen.findByText("Burndown")).toBeInTheDocument();
+        expect(container.textContent).toContain("actual");
+        expect(container.textContent).toContain("ideal");
+
+        // there is only one toggle now - it drives both the burndown chart and status breakdown
+        expect(screen.getAllByRole("button", { name: "stories" })).toHaveLength(1);
+        await userEvent.click(screen.getByRole("button", { name: "stories" }));
+        expect(api.getStatusBreakdown).toHaveBeenCalledWith(1, "story");
+    });
+
     it("renders the sprint's calendar once loaded", async () => {
         renderPage();
         await userEvent.selectOptions(await screen.findByRole("combobox"), "1");

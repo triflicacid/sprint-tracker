@@ -25,11 +25,13 @@ import type {
 } from "@shared/types";
 import { api } from "../api/client";
 import { StatusBreakdownChart } from "../components/stats/StatusBreakdownChart";
+import { BurndownChart } from "../components/stats/BurndownChart";
 import { SprintActivityCalendar } from "../components/calendar/SprintActivityCalendar";
 import { SUBTASK_STATUSES, STORY_STATUSES, STATUS_LABELS } from "../components/StatusBadge";
 import { parseIsoDate, formatIsoDate } from "../utils/calendarGrid";
 import { exportSectionsAsPdf, type PdfSection } from "../utils/pdfExport";
 import { colorForStory } from "../utils/storyColor";
+import { computeBurndownPoints } from "../utils/burndown";
 import "./StatsPage.css";
 
 const COMPLEXITY_RATINGS = [1, 2, 3, 4, 5];
@@ -317,6 +319,7 @@ export function StatsPage() {
     const totalWeekdays = selectedSprint && sprintEndDate ? countWeekdays(selectedSprint.startDate, sprintEndDate) : 0;
     const holidayWeekdays = Array.from(holidays).filter(isWeekday).length;
     const isCompleted = selectedSprint ? selectedSprint.endDate !== null : false;
+    const burndownPoints = computeBurndownPoints(statusBreakdown, (date) => isWeekday(date) && !holidays.has(date));
     // don't show average points in the graph if there is only one rating (as rating == average)
     const complexityChartAverages = complexity
         ? averageRunningTimeByComplexity(complexity.points).filter((average) => average.pointCount > 1)
@@ -527,26 +530,29 @@ export function StatsPage() {
                     </div>
 
                     <div className="page-header">
-                        <h2>Status breakdown</h2>
-                        <div className="page-header-actions">
-                            <div className="granularity-toggle">
-                                <button
-                                    className={granularity === "subtask" ? "active" : ""}
-                                    onClick={() => setGranularity("subtask")}
-                                >
-                                    subtasks
-                                </button>
-                                <button
-                                    className={granularity === "story" ? "active" : ""}
-                                    onClick={() => setGranularity("story")}
-                                >
-                                    stories
-                                </button>
-                            </div>
-                            <button onClick={() => handleExportSection(4, "status-breakdown")}>
-                                export pdf
+                        <h2>Burndown</h2>
+                        <div className="granularity-toggle">
+                            <button
+                                className={granularity === "subtask" ? "active" : ""}
+                                onClick={() => setGranularity("subtask")}
+                            >
+                                subtasks
+                            </button>
+                            <button
+                                className={granularity === "story" ? "active" : ""}
+                                onClick={() => setGranularity("story")}
+                            >
+                                stories
                             </button>
                         </div>
+                    </div>
+                    <BurndownChart points={burndownPoints} />
+
+                    <div className="page-header">
+                        <h2>Status breakdown</h2>
+                        <button onClick={() => handleExportSection(4, "status-breakdown")}>
+                            export pdf
+                        </button>
                     </div>
                     <div ref={statusBreakdownRef}>
                         <StatusBreakdownChart
