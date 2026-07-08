@@ -131,6 +131,24 @@ export interface SprintStats {
   storyTimeDays: { storyId: number; storyLabel: string; description: string; days: number }[];
 }
 
+// which sprints to include in a velocity history query.
+export type VelocitySelection =
+  | { mode: "all" }
+  | { mode: "range"; from: string; to: string }
+  | { mode: "lastN"; n: number };
+
+// one sprint's completed-work tally for the velocity chart.
+export interface VelocityPoint {
+  sprintId: number;
+  sprintName: string;
+  startDate: string;
+  endDate: string | null;
+  completedPoints: number;
+  unpointedDoneStoryCount: number;
+  completedStoryCount: number;
+  completedSubtaskCount: number;
+}
+
 // one rated, DONE subtask, plotted as complexity vs. running time
 export interface ComplexityTimingPoint {
   subtaskId: number;

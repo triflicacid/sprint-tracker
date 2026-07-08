@@ -13,6 +13,7 @@ vi.mock("../../api/client", () => ({
         getComplexityTiming: vi.fn(),
         getDayActivity: vi.fn(),
         getStatusBreakdown: vi.fn(),
+        getVelocityHistory: vi.fn(),
         listHolidays: vi.fn(),
         addHoliday: vi.fn(),
         removeHoliday: vi.fn(),
@@ -49,6 +50,19 @@ const complexity = {
     storyComplexity: [{ storyId: 1, storyLabel: "NEB-1", totalComplexity: 3 }],
 };
 
+const velocityPoints = [
+    {
+        sprintId: 1,
+        sprintName: "Sprint 1",
+        startDate: "2026-03-02",
+        endDate: "2026-03-16",
+        completedPoints: 8,
+        unpointedDoneStoryCount: 1,
+        completedStoryCount: 2,
+        completedSubtaskCount: 3,
+    },
+];
+
 beforeEach(() => {
     Object.values(api).forEach((fn) => vi.mocked(fn).mockReset());
     vi.mocked(api.listSprints).mockResolvedValue([sprint]);
@@ -56,6 +70,7 @@ beforeEach(() => {
     vi.mocked(api.getComplexityTiming).mockResolvedValue(complexity);
     vi.mocked(api.getDayActivity).mockResolvedValue({});
     vi.mocked(api.getStatusBreakdown).mockResolvedValue([{ date: "2026-03-10", counts: { NEW: 1, WIP: 1 } }]);
+    vi.mocked(api.getVelocityHistory).mockResolvedValue(velocityPoints);
     vi.mocked(api.listHolidays).mockResolvedValue([]);
     vi.mocked(exportSectionsAsPdf).mockReset();
 });
@@ -197,6 +212,35 @@ describe("StatsPage", () => {
         expect(visible.getByText("done")).toBeInTheDocument();
     });
 
+    it("renders the velocity chart on the generic /stats page (no sprint selected), anchored on the most recent sprint", async () => {
+        renderPage();
+
+        expect(await screen.findByText("Velocity")).toBeInTheDocument();
+        expect(api.getVelocityHistory).toHaveBeenCalledWith(1, { mode: "lastN", n: 5 });
+
+        await userEvent.click(screen.getByRole("button", { name: "all sprints" }));
+        expect(api.getVelocityHistory).toHaveBeenLastCalledWith(1, { mode: "all" });
+
+        await userEvent.click(screen.getByRole("button", { name: "date range" }));
+        expect(api.getVelocityHistory).toHaveBeenLastCalledWith(1, {
+            mode: "range",
+            from: expect.any(String),
+            to: expect.any(String),
+        });
+    });
+
+    it("hides the velocity chart once a sprint is selected, showing a numeric velocity tile in the summary instead", async () => {
+        renderPage();
+        await screen.findByText("Velocity");
+
+        await userEvent.selectOptions(await screen.findByRole("combobox"), "1");
+        await screen.findByText("pull requests");
+
+        expect(screen.queryByRole("button", { name: "all sprints" })).not.toBeInTheDocument();
+        expect(api.getVelocityHistory).toHaveBeenCalledWith(1, { mode: "lastN", n: 1 });
+        expect(screen.getByText("velocity (pts)").previousElementSibling).toHaveTextContent("8");
+    });
+
     it("renders the sprint's calendar once loaded", async () => {
         renderPage();
         await userEvent.selectOptions(await screen.findByRole("combobox"), "1");
@@ -272,6 +316,9 @@ describe("StatsPage", () => {
         // written stats underneath.
         expect(sections[0].element).toBeUndefined();
         sections.slice(1).forEach((section) => expect(section.element).toBeInstanceOf(HTMLElement));
+
+        const summarySection = sections[0];
+        expect(summarySection.lines).toContain("Velocity: 8 pts (1 stories unpointed)");
 
         const repoSection = sections[1];
         expect(repoSection.title).toBe("Repo distribution");

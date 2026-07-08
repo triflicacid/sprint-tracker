@@ -3,6 +3,8 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import {
     BarChart,
     Bar,
+    Cell,
+    LabelList,
     XAxis,
     YAxis,
     CartesianGrid,
@@ -23,6 +25,8 @@ import type {
     DayActivityMap,
     StoryStatus, StoryComplexity,
     SubtaskStatus,
+    VelocityPoint,
+    VelocitySelection,
 } from "@shared/types";
 import { api } from "../api/client";
 import { StatusBreakdownChart } from "../components/stats/StatusBreakdownChart";
@@ -111,6 +115,43 @@ function ComplexityTooltip({
     );
 }
 
+function VelocityTooltip({
+    active,
+    payload,
+}: {
+    active?: boolean;
+    payload?: { payload: VelocityPoint }[];
+}) {
+    if (!active || !payload || payload.length === 0) {
+        return null;
+    }
+    const point = payload[0].payload;
+    return (
+        <div style={{ backgroundColor: "#1a1a1a", border: "1px solid #333", padding: "6px 10px" }}>
+            <div>{point.sprintName}</div>
+            <div>
+                {point.completedPoints} pt{point.completedPoints === 1 ? "" : "s"}
+                {point.unpointedDoneStoryCount > 0 ? ` (${point.unpointedDoneStoryCount} stories unpointed)` : ""}
+            </div>
+            <div>
+                {point.completedStoryCount} stor{point.completedStoryCount === 1 ? "y" : "ies"}, {point.completedSubtaskCount} subtask
+                {point.completedSubtaskCount === 1 ? "" : "s"} done
+            </div>
+        </div>
+    );
+}
+
+// describes which sprints a velocity selection covers, for the pdf report.
+function describeVelocitySelection(selection: VelocitySelection): string {
+    if (selection.mode === "range") {
+        return `${selection.from || "?"} to ${selection.to || "?"}`;
+    }
+    if (selection.mode === "lastN") {
+        return `last ${selection.n} sprints`;
+    }
+    return "all sprints";
+}
+
 // counts weekdays (mon-fri) in an inclusive date range.
 function countWeekdays(start: string, end: string) {
     let count = 0;
@@ -162,9 +203,16 @@ export function StatsPage() {
     const [dayActivity, setDayActivity] = useState<DayActivityMap>({});
     const [holidays, setHolidays] = useState<Set<string>>(new Set());
     const [exportingKey, setExportingKey] = useState<string | null>(null);
+    const [velocityMode, setVelocityMode] = useState<VelocitySelection["mode"]>("lastN");
+    const [velocityN, setVelocityN] = useState<number>(5);
+    const [velocityRangeFrom, setVelocityRangeFrom] = useState<string>("");
+    const [velocityRangeTo, setVelocityRangeTo] = useState<string>("");
+    const [velocityPoints, setVelocityPoints] = useState<VelocityPoint[]>([]);
+    const [velocitySummary, setVelocitySummary] = useState<VelocityPoint | null>(null);
 
     const repoChartRef = useRef<HTMLDivElement>(null);
     const timeChartRef = useRef<HTMLDivElement>(null);
+    const velocityChartRef = useRef<HTMLDivElement>(null);
     const complexityChartRef = useRef<HTMLDivElement>(null);
     const burndownExportRef = useRef<HTMLDivElement>(null);
     const statusBreakdownRef = useRef<HTMLDivElement>(null);
@@ -176,6 +224,8 @@ export function StatsPage() {
     const sprintEndDate: string | null = selectedSprint
         ? selectedSprint.endDate ?? formatIsoDate(new Date())
         : null;
+    // used as the velocity chart's anchor when no specific sprint is selected
+    const latestSprintId: number | undefined = sprints[0]?.id;
 
     useEffect(() => {
         api.listSprints().then(setSprints);
@@ -196,6 +246,42 @@ export function StatsPage() {
         }
         api.getStatusBreakdown(Number(selectedSprintId), granularity).then(setStatusBreakdown);
     }, [selectedSprintId, granularity]);
+
+    // velocity range defaults
+    useEffect(() => {
+        if (sprints.length === 0 || velocityRangeFrom || velocityRangeTo) {
+            return;
+        }
+        const sorted = [...sprints].sort((a, b) => a.startDate.localeCompare(b.startDate));
+        const lastFive = sorted.slice(-5);
+        setVelocityRangeFrom(lastFive[0]?.startDate ?? "");
+        setVelocityRangeTo(formatIsoDate(new Date()));
+    }, [sprints]);
+
+    // only show velocity charts when no specific sprint is selected
+    useEffect(() => {
+        if (selectedSprintId || !latestSprintId) {
+            return;
+        }
+        const selection: VelocitySelection =
+            velocityMode === "range"
+                ? { mode: "range", from: velocityRangeFrom, to: velocityRangeTo }
+                : velocityMode === "lastN"
+                  ? { mode: "lastN", n: velocityN }
+                  : { mode: "all" };
+        api.getVelocityHistory(latestSprintId, selection).then(setVelocityPoints);
+    }, [selectedSprintId, latestSprintId, velocityMode, velocityN, velocityRangeFrom, velocityRangeTo]);
+
+    // this sprint's own completed-points figure, shown as a Summary tile.
+    useEffect(() => {
+        if (!selectedSprintId) {
+            setVelocitySummary(null);
+            return;
+        }
+        api
+            .getVelocityHistory(Number(selectedSprintId), { mode: "lastN", n: 1 })
+            .then((points) => setVelocitySummary(points[0] ?? null));
+    }, [selectedSprintId]);
 
     useEffect(() => {
         if (!selectedSprint || !sprintEndDate) {
@@ -244,6 +330,11 @@ export function StatsPage() {
                     `Repos touched: ${stats.repoCounts.length}`,
                     `Sprint days (excl. weekends): ${totalWeekdays}`,
                     `Holidays: ${holidayWeekdays}`,
+                    `Velocity: ${velocitySummary?.completedPoints ?? 0} pts${
+                        velocitySummary && velocitySummary.unpointedDoneStoryCount > 0
+                            ? ` (${velocitySummary.unpointedDoneStoryCount} stories unpointed)`
+                            : ""
+                    }`,
                 ],
             },
             {
@@ -360,6 +451,34 @@ export function StatsPage() {
         }
     }
 
+    async function handleExportVelocity() {
+        setExportingKey("velocity");
+        try {
+            const section: PdfSection = {
+                title: "Velocity",
+                element: velocityChartRef.current ?? undefined,
+                lines: [
+                    `Showing: ${describeVelocitySelection(velocitySelection)}`,
+                    ...(velocityPoints.length > 0
+                        ? velocityPoints.map(
+                              (point) =>
+                                  `${point.sprintName}: ${point.completedPoints} pts (${point.unpointedDoneStoryCount} stories unpointed)`
+                          )
+                        : ["No sprints in this selection."]),
+                ],
+            };
+            await exportSectionsAsPdf([section], `velocity-${formatIsoDate(new Date())}.pdf`);
+        } finally {
+            setExportingKey(null);
+        }
+    }
+
+    const velocitySelection: VelocitySelection =
+        velocityMode === "range"
+            ? { mode: "range", from: velocityRangeFrom, to: velocityRangeTo }
+            : velocityMode === "lastN"
+              ? { mode: "lastN", n: velocityN }
+              : { mode: "all" };
     const totalWeekdays = selectedSprint && sprintEndDate ? countWeekdays(selectedSprint.startDate, sprintEndDate) : 0;
     const holidayWeekdays = Array.from(holidays).filter(isWeekday).length;
     const isCompleted = selectedSprint ? selectedSprint.endDate !== null : false;
@@ -405,6 +524,88 @@ export function StatsPage() {
                 )}
             </div>
 
+            {!selectedSprintId && latestSprintId && (
+                <>
+                    <div className="page-header">
+                        <h2>Velocity</h2>
+                        <div className="page-header-actions">
+                            <div className="granularity-toggle">
+                                <button
+                                    className={velocityMode === "all" ? "active" : ""}
+                                    onClick={() => setVelocityMode("all")}
+                                >
+                                    all sprints
+                                </button>
+                                <button
+                                    className={velocityMode === "range" ? "active" : ""}
+                                    onClick={() => setVelocityMode("range")}
+                                >
+                                    date range
+                                </button>
+                                <button
+                                    className={velocityMode === "lastN" ? "active" : ""}
+                                    onClick={() => setVelocityMode("lastN")}
+                                >
+                                    last N
+                                </button>
+                            </div>
+                            {velocityMode === "range" && (
+                                <>
+                                    <input
+                                        type="date"
+                                        value={velocityRangeFrom}
+                                        onChange={(event) => setVelocityRangeFrom(event.target.value)}
+                                    />
+                                    <input
+                                        type="date"
+                                        value={velocityRangeTo}
+                                        onChange={(event) => setVelocityRangeTo(event.target.value)}
+                                    />
+                                </>
+                            )}
+                            {velocityMode === "lastN" && (
+                                <input
+                                    type="number"
+                                    min={1}
+                                    value={velocityN}
+                                    style={{ width: 60 }}
+                                    onChange={(event) => setVelocityN(Math.max(1, Number(event.target.value) || 1))}
+                                />
+                            )}
+                            <ExportButton onClick={handleExportVelocity} loading={exportingKey === "velocity"} />
+                        </div>
+                    </div>
+                    <div ref={velocityChartRef}>
+                        {velocityPoints.length > 0 ? (
+                            <ResponsiveContainer width="100%" height={280}>
+                                <BarChart data={velocityPoints}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
+                                    <XAxis dataKey="sprintName" stroke="#9ca3af" />
+                                    <YAxis stroke="#9ca3af" allowDecimals={false} />
+                                    <Tooltip content={<VelocityTooltip />} />
+                                    <Bar dataKey="completedPoints" name="completed points">
+                                        {velocityPoints.map((point) => (
+                                            <Cell
+                                                key={point.sprintId}
+                                                fill={point.sprintId === latestSprintId ? "#facc15" : "#16a34a"}
+                                            />
+                                        ))}
+                                        <LabelList
+                                            dataKey="unpointedDoneStoryCount"
+                                            position="top"
+                                            fill="#9ca3af"
+                                            formatter={(value: number) => (value > 0 ? `${value} unpointed` : "")}
+                                        />
+                                    </Bar>
+                                </BarChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <p className="complexity-note">No sprints in this selection yet.</p>
+                        )}
+                    </div>
+                </>
+            )}
+
             {stats && selectedSprint && sprintEndDate && (
                 <>
                     <div className="page-header">
@@ -422,6 +623,10 @@ export function StatsPage() {
                         <div className="stat-tile">
                             <span className="stat-value">{stats.storyCount}</span>
                             <span className="stat-label">stories</span>
+                        </div>
+                        <div className="stat-tile">
+                            <span className="stat-value">{velocitySummary?.completedPoints ?? 0}</span>
+                            <span className="stat-label">velocity (pts)</span>
                         </div>
                         <div className="stat-tile">
                             <span className="stat-value">{stats.repoCounts.length}</span>
