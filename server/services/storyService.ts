@@ -14,6 +14,7 @@ interface StoryRow {
     jira_title: string | null;
     jira_labels: string | null;
     awaiting_more_subtasks: number;
+    story_points: number | null;
     created_at: string;
 }
 
@@ -59,6 +60,7 @@ function rowToSummary(row: StoryRow) {
         jiraLabels: row.jira_labels ? JSON.parse(row.jira_labels) : [],
         status: computeStoryStatus(subtaskStatuses, !!row.awaiting_more_subtasks),
         awaitingMoreSubtasks: !!row.awaiting_more_subtasks,
+        storyPoints: row.story_points,
         tags: getTagsForEntity("story", row.id),
         prCount,
     } as StorySummary;
@@ -110,6 +112,14 @@ export function updateStoryJiraInfo(storyId: number, title: string, labels: stri
 
 export function updateStoryAwaitingMoreSubtasks(storyId: number, awaitingMoreSubtasks: boolean) {
     db.prepare("UPDATE stories SET awaiting_more_subtasks = ? WHERE id = ?").run(awaitingMoreSubtasks ? 1 : 0, storyId);
+    const row = db
+        .prepare("SELECT * FROM stories WHERE id = ?")
+        .get(storyId) as StoryRow | undefined;
+    return row ? rowToSummary(row) : null;
+}
+
+export function updateStoryPoints(storyId: number, storyPoints: number | null) {
+    db.prepare("UPDATE stories SET story_points = ? WHERE id = ?").run(storyPoints, storyId);
     const row = db
         .prepare("SELECT * FROM stories WHERE id = ?")
         .get(storyId) as StoryRow | undefined;

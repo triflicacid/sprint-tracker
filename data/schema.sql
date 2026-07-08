@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS stories (
     jira_title TEXT,
     jira_labels TEXT,
     awaiting_more_subtasks INTEGER NOT NULL DEFAULT 0,
+    story_points INTEGER,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 

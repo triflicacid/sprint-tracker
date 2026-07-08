@@ -136,7 +136,7 @@ export const api = {
 
     getStatusFlow: (): Promise<StatusFlowConfig> => request("/status-flow"),
 
-    updateStory: (id: number, input: { awaitingMoreSubtasks: boolean }): Promise<StorySummary> =>
+    updateStory: (id: number, input: { awaitingMoreSubtasks?: boolean; storyPoints?: number | null }): Promise<StorySummary> =>
         request(`/stories/${id}`, { method: "PATCH", body: JSON.stringify(input) }),
 
     updateSprint: (id: number, input: { comment?: string }): Promise<SprintDetail> =>

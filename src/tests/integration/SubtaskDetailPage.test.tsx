@@ -54,6 +54,7 @@ const story: StoryDetail = {
     jiraLabels: [],
     status: "WORK_REMAINING",
     awaitingMoreSubtasks: false,
+    storyPoints: null,
     tags: [],
     prCount: 1,
     subtasks: [

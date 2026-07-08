@@ -130,8 +130,12 @@ paths:
               schema: { $ref: "#/components/schemas/Error" }
     patch:
       tags: [Stories]
-      summary: Set whether a story is awaiting more subtasks
-      description: While true, forces the derived story status to WORK_REMAINING even once every subtask is DONE.
+      summary: Partially update a story's awaitingMoreSubtasks and/or storyPoints
+      description: >
+        Both fields are optional - whichever is present in the body is applied, the other is left
+        unchanged. While awaitingMoreSubtasks is true, it forces the derived story status to
+        WORK_REMAINING even once every subtask is DONE. storyPoints is nullable ("unpointed") and
+        editable at any story status - unlike a subtask's complexityRating, it is never locked.
       requestBody:
         required: true
         content:
@@ -647,7 +651,7 @@ components:
 
     StorySummary:
       type: object
-      required: [id, sprintId, jiraUrl, jiraKey, description, jiraTitle, jiraLabels, status, awaitingMoreSubtasks, tags, prCount]
+      required: [id, sprintId, jiraUrl, jiraKey, description, jiraTitle, jiraLabels, status, awaitingMoreSubtasks, storyPoints, tags, prCount]
       properties:
         id: { type: integer }
         sprintId: { type: integer }
@@ -660,6 +664,7 @@ components:
           items: { type: string }
         status: { $ref: "#/components/schemas/StoryStatus" }
         awaitingMoreSubtasks: { type: boolean }
+        storyPoints: { type: integer, nullable: true }
         tags:
           type: array
           items: { $ref: "#/components/schemas/Tag" }
@@ -684,9 +689,10 @@ components:
 
     UpdateStoryInput:
       type: object
-      required: [awaitingMoreSubtasks]
+      description: Both fields are optional - whichever is present is applied, the other is left unchanged.
       properties:
         awaitingMoreSubtasks: { type: boolean }
+        storyPoints: { type: integer, nullable: true }
 
     AddTagInput:
       type: object

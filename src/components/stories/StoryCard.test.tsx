@@ -13,6 +13,7 @@ const baseStory = {
     jiraLabels: [],
     status: "WIP" as const,
     awaitingMoreSubtasks: false,
+    storyPoints: null,
     tags: [{ id: 1, name: "payments", tagType: "custom" as const }],
     prCount: 2,
 };

@@ -8,6 +8,7 @@ import {
     createStory,
     updateStoryJiraInfo,
     updateStoryAwaitingMoreSubtasks,
+    updateStoryPoints,
 } from "./storyService.js";
 
 function insertSprint(): number {
@@ -64,6 +65,7 @@ describe("createStory / getStoryDetail", () => {
         expect(story.status).toBe("JIRA_ONLY");
         expect(story.tags).toEqual([]);
         expect(story.prCount).toBe(0);
+        expect(story.storyPoints).toBeNull();
     });
 
     it("leaves jiraKey null when the url has no browse segment", () => {
@@ -115,5 +117,26 @@ describe("updateStoryAwaitingMoreSubtasks", () => {
 
     it("returns null for a missing story", () => {
         expect(updateStoryAwaitingMoreSubtasks(999999, true)).toBeNull();
+    });
+});
+
+describe("updateStoryPoints", () => {
+    it("sets story points", () => {
+        const sprintId = insertSprint();
+        const story = createStory(sprintId, { jiraUrl: "https://x/browse/NEB-1", description: "d" });
+        const updated = updateStoryPoints(story.id, 5);
+        expect(updated?.storyPoints).toBe(5);
+    });
+
+    it("clears story points back to null", () => {
+        const sprintId = insertSprint();
+        const story = createStory(sprintId, { jiraUrl: "https://x/browse/NEB-1", description: "d" });
+        updateStoryPoints(story.id, 5);
+        const cleared = updateStoryPoints(story.id, null);
+        expect(cleared?.storyPoints).toBeNull();
+    });
+
+    it("returns null for a missing story", () => {
+        expect(updateStoryPoints(999999, 3)).toBeNull();
     });
 });

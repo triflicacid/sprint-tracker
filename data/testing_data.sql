@@ -21,10 +21,10 @@ INSERT OR IGNORE INTO holidays (date) VALUES ('2026-03-23');
 
 -- story: NEB-1001, 3 subtasks, all DONE (one with a two-round pr-comments
 -- oscillation).
-INSERT INTO stories (sprint_id, jira_url, jira_key, description) VALUES
+INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) VALUES
     ((SELECT id FROM sprints WHERE name = 'Nebula Checkout Sprint 1'),
      'https://nebula.atlassian.net/browse/NEB-1001', 'NEB-1001',
-     'Support saved payment methods at checkout');
+     'Support saved payment methods at checkout', 8);
 
 INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1001'),
@@ -42,7 +42,8 @@ INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, rele
      'https://github.com/nebula-labs/payments-service/pull/215', 'payments-service', 'v4.12.0', 3);
 
 -- story: NEB-1004, jira only, no subtasks yet - kept as a "just a jira
--- ticket, no code work started" example.
+-- ticket, no code work started" example. Left unpointed (story_points NULL)
+-- to exercise the "unpointed" case downstream.
 INSERT INTO stories (sprint_id, jira_url, jira_key, description) VALUES
     ((SELECT id FROM sprints WHERE name = 'Nebula Checkout Sprint 1'),
      'https://nebula.atlassian.net/browse/NEB-1004', 'NEB-1004',
@@ -50,10 +51,10 @@ INSERT INTO stories (sprint_id, jira_url, jira_key, description) VALUES
 
 -- story: NEB-1010, 2 subtasks, both DONE (one with a single-round
 -- in_pr <-> in_review oscillation).
-INSERT INTO stories (sprint_id, jira_url, jira_key, description) VALUES
+INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) VALUES
     ((SELECT id FROM sprints WHERE name = 'Nebula Checkout Sprint 1'),
      'https://nebula.atlassian.net/browse/NEB-1010', 'NEB-1010',
-     'Add fraud-score check before charging');
+     'Add fraud-score check before charging', 5);
 
 INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1010'),
@@ -71,10 +72,10 @@ INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, rele
 
 -- story: NEB-1032, 2 subtasks, both DONE (one continues the existing
 -- in_pr <-> in_review oscillation through to release).
-INSERT INTO stories (sprint_id, jira_url, jira_key, description) VALUES
+INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) VALUES
     ((SELECT id FROM sprints WHERE name = 'Nebula Checkout Sprint 2'),
      'https://nebula.atlassian.net/browse/NEB-1032', 'NEB-1032',
-     'Add regional tax calculation for EU checkout');
+     'Add regional tax calculation for EU checkout', 5);
 
 INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1032'),
@@ -88,10 +89,10 @@ INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, rele
 
 -- story: NEB-1040, 2 subtasks, both DONE (one continues the existing
 -- pr-comments <-> in-review oscillation - two rounds of feedback total).
-INSERT INTO stories (sprint_id, jira_url, jira_key, description) VALUES
+INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) VALUES
     ((SELECT id FROM sprints WHERE name = 'Nebula Checkout Sprint 2'),
      'https://nebula.atlassian.net/browse/NEB-1040', 'NEB-1040',
-     'Retry failed webhook deliveries automatically');
+     'Retry failed webhook deliveries automatically', 8);
 
 INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1040'),
@@ -104,10 +105,10 @@ INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, rele
      'https://github.com/nebula-labs/notifications-service/pull/302', 'notifications-service', 'v4.13.0', 3);
 
 -- story: NEB-1045, 2 subtasks, both DONE.
-INSERT INTO stories (sprint_id, jira_url, jira_key, description) VALUES
+INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) VALUES
     ((SELECT id FROM sprints WHERE name = 'Nebula Checkout Sprint 2'),
      'https://nebula.atlassian.net/browse/NEB-1045', 'NEB-1045',
-     'Send webhook delivery status to customer dashboard');
+     'Send webhook delivery status to customer dashboard', 3);
 
 INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1045'),
@@ -126,10 +127,10 @@ INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, rele
 
 -- story: NEB-1058, 1 subtask - pushed all the way to DONE this time, to
 -- show a current-sprint item that's actually finished.
-INSERT INTO stories (sprint_id, jira_url, jira_key, description) VALUES
+INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) VALUES
     ((SELECT id FROM sprints WHERE name = 'Nebula Checkout Sprint 3'),
      'https://nebula.atlassian.net/browse/NEB-1058', 'NEB-1058',
-     'Allow partial refunds from the support console');
+     'Allow partial refunds from the support console', 2);
 
 INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1058'),
@@ -138,10 +139,10 @@ INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, rele
 
 -- story: NEB-1061, 1 subtask - deliberately left at UAT (not done yet),
 -- showing work still in flight this sprint.
-INSERT INTO stories (sprint_id, jira_url, jira_key, description) VALUES
+INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) VALUES
     ((SELECT id FROM sprints WHERE name = 'Nebula Checkout Sprint 3'),
      'https://nebula.atlassian.net/browse/NEB-1061', 'NEB-1061',
-     'Show refund status timeline to support agents');
+     'Show refund status timeline to support agents', 3);
 
 INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1061'),
@@ -150,10 +151,10 @@ INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, rele
 
 -- story: NEB-1070, 3 subtasks spanning done / done / just started,
 -- including a two-round in_review <-> pr_comments oscillation.
-INSERT INTO stories (sprint_id, jira_url, jira_key, description) VALUES
+INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) VALUES
     ((SELECT id FROM sprints WHERE name = 'Nebula Checkout Sprint 3'),
      'https://nebula.atlassian.net/browse/NEB-1070', 'NEB-1070',
-     'Support multi-currency refunds');
+     'Support multi-currency refunds', 13);
 
 INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1070'),
@@ -170,10 +171,10 @@ INSERT INTO subtasks (story_id, title, branch_name, status) VALUES
      'add currency selector to refund form', 'feature/neb-1070-fx-selector', 'WIP');
 
 -- story: NEB-1075, 2 subtasks, both early/mid-flight (one not started at all).
-INSERT INTO stories (sprint_id, jira_url, jira_key, description) VALUES
+INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) VALUES
     ((SELECT id FROM sprints WHERE name = 'Nebula Checkout Sprint 3'),
      'https://nebula.atlassian.net/browse/NEB-1075', 'NEB-1075',
-     'Add refund audit log');
+     'Add refund audit log', 5);
 
 INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, complexity_rating) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1075'),
@@ -185,7 +186,8 @@ INSERT INTO subtasks (story_id, title, status) VALUES
      'expose audit log to support ui', 'NEW');
 
 -- story: NEB-1080, jira only, no subtasks yet - not every ticket in the
--- current sprint has code work started either.
+-- current sprint has code work started either. Left unpointed (story_points
+-- NULL) to exercise the "unpointed" case downstream.
 INSERT INTO stories (sprint_id, jira_url, jira_key, description) VALUES
     ((SELECT id FROM sprints WHERE name = 'Nebula Checkout Sprint 3'),
      'https://nebula.atlassian.net/browse/NEB-1080', 'NEB-1080',

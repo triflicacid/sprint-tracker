@@ -17,3 +17,4 @@
 - [?] Add code auto-formatter to project
 
 ## Bugs
+- `jira_labels` is a TEXT, shall we use tags for this instead of a separate field

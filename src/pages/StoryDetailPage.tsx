@@ -17,6 +17,8 @@ interface SubtaskHistorySnapshot {
     history: StatusHistoryEntry[];
 }
 
+const STORY_POINTS_OPTIONS = [1, 2, 3, 5, 8, 13];
+
 // a story ("/stories/:id"): its subtasks, tags, and Jira refresh action.
 export function StoryDetailPage(): React.ReactElement {
     const { id } = useParams<{ id: string }>();
@@ -51,6 +53,11 @@ export function StoryDetailPage(): React.ReactElement {
 
     async function handleAwaitingMoreSubtasksChange(checked: boolean) {
         await api.updateStory(storyId, { awaitingMoreSubtasks: checked });
+        loadStory();
+    }
+
+    async function handleStoryPointsChange(value: string) {
+        await api.updateStory(storyId, { storyPoints: value === "" ? null : Number(value) });
         loadStory();
     }
 
@@ -171,14 +178,31 @@ export function StoryDetailPage(): React.ReactElement {
                     </MetaRow>
                 </div>
                 <div className="page-header-actions">
-                    {story.jiraKey && (
-                        <button onClick={handleFetchJiraInfo} disabled={jiraLoading}>
-                            {jiraLoading ? "fetching..." : "refresh from jira"}
+                    <div className="page-header-buttons">
+                        {story.jiraKey && (
+                            <button onClick={handleFetchJiraInfo} disabled={jiraLoading}>
+                                {jiraLoading ? "fetching..." : "refresh from jira"}
+                            </button>
+                        )}
+                        <button onClick={handleExportPdf} disabled={exporting}>
+                            {exporting ? "exporting..." : "export pdf"}
                         </button>
-                    )}
-                    <button onClick={handleExportPdf} disabled={exporting}>
-                        {exporting ? "exporting..." : "export pdf"}
-                    </button>
+                    </div>
+                    <label className="story-points-label">
+                        story points:
+                        <select
+                            value={story.storyPoints ?? ""}
+                            onChange={(event) => handleStoryPointsChange(event.target.value)}
+                            className="story-points-select"
+                        >
+                            <option value="">-</option>
+                            {STORY_POINTS_OPTIONS.map((value) => (
+                                <option key={value} value={value}>
+                                    {value}
+                                </option>
+                            ))}
+                        </select>
+                    </label>
                 </div>
             </div>
 

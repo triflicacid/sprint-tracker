@@ -98,6 +98,7 @@ export interface StorySummary {
   jiraLabels: string[];
   status: StoryStatus;
   awaitingMoreSubtasks: boolean;
+  storyPoints: number | null;
   tags: Tag[];
   prCount: number;
 }
