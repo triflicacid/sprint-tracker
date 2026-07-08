@@ -22,6 +22,7 @@ import type {
     StatusBreakdownGranularity,
     DayActivityMap,
     StoryStatus, StoryComplexity,
+    SubtaskStatus,
 } from "@shared/types";
 import { api } from "../api/client";
 import { StatusBreakdownChart } from "../components/stats/StatusBreakdownChart";
@@ -139,6 +140,12 @@ function describeStatusCounts(counts: Record<string, number>, statusLabels: Stor
     return parts.length > 0 ? parts.join(", ") : "no statuses recorded";
 }
 
+// renders one day's remaining-until-milestone counts as "label: count, label: count" -
+// used to describe an AdvancedBurndownPoint in the pdf report.
+function describeMilestones(counts: Record<string, number>, milestones: SubtaskStatus[]) {
+    return milestones.map((milestone) => `${STATUS_LABELS[milestone]}: ${counts[milestone] ?? 0}`).join(", ");
+}
+
 // "/stats": charts and activity calendar for one selected sprint.
 export function StatsPage() {
     const { sprintId: sprintIdParam } = useParams<{ sprintId?: string }>();
@@ -157,6 +164,7 @@ export function StatsPage() {
     const repoChartRef = useRef<HTMLDivElement>(null);
     const timeChartRef = useRef<HTMLDivElement>(null);
     const complexityChartRef = useRef<HTMLDivElement>(null);
+    const burndownExportRef = useRef<HTMLDivElement>(null);
     const statusBreakdownRef = useRef<HTMLDivElement>(null);
     const calendarRef = useRef<HTMLDivElement>(null);
 
@@ -214,6 +222,10 @@ export function StatsPage() {
         const statusLabels = granularity === "subtask" ? SUBTASK_STATUSES : STORY_STATUSES;
         const firstBreakdown = statusBreakdown[0];
         const lastBreakdown = statusBreakdown[statusBreakdown.length - 1];
+        const firstBurndown = burndownPoints[0];
+        const lastBurndown = burndownPoints[burndownPoints.length - 1];
+        const firstAdvancedBurndown = advancedBurndownPoints[0];
+        const lastAdvancedBurndown = advancedBurndownPoints[advancedBurndownPoints.length - 1];
         const activeDayCount = Object.keys(dayActivity).length;
         const storyDayCounts = stats.storyTimeDays.map((story) => story.days);
         const averageStoryDays =
@@ -282,6 +294,23 @@ export function StatsPage() {
                           ];
                       })()
                     : [],
+            },
+            {
+                title: "Burndown",
+                element: burndownExportRef.current ?? undefined,
+                lines: !firstBurndown
+                    ? ["No status history recorded yet."]
+                    : firstBurndown.date === lastBurndown.date
+                      ? [
+                            `${firstBurndown.date}: ${firstBurndown.actual} remaining (ideal ${firstBurndown.ideal})`,
+                            `Milestones remaining (${firstAdvancedBurndown.date}): ${describeMilestones(firstAdvancedBurndown.counts, BURNDOWN_MILESTONES)}`,
+                        ]
+                      : [
+                            `Start (${firstBurndown.date}): ${firstBurndown.actual} remaining (ideal ${firstBurndown.ideal})`,
+                            `End (${lastBurndown.date}): ${lastBurndown.actual} remaining (ideal ${lastBurndown.ideal})`,
+                            `Milestones remaining at start (${firstAdvancedBurndown.date}): ${describeMilestones(firstAdvancedBurndown.counts, BURNDOWN_MILESTONES)}`,
+                            `Milestones remaining at end (${lastAdvancedBurndown.date}): ${describeMilestones(lastAdvancedBurndown.counts, BURNDOWN_MILESTONES)}`,
+                        ],
             },
             {
                 title: `Status breakdown (${granularity === "story" ? "stories" : granularity + "s"})`,
@@ -569,17 +598,37 @@ export function StatsPage() {
                                     stories
                                 </button>
                             </div>
+                            <button onClick={() => handleExportSection(4, "burndown")}>export pdf</button>
                         </div>
                     </div>
-                    {burndownMode === "basic" ? (
-                        <BurndownChart points={burndownPoints} />
-                    ) : (
-                        <AdvancedBurndownChart points={advancedBurndownPoints} milestones={BURNDOWN_MILESTONES} />
-                    )}
+                    <div data-testid="burndown-chart-visible">
+                        {burndownMode === "basic" ? (
+                            <BurndownChart points={burndownPoints} />
+                        ) : (
+                            <AdvancedBurndownChart points={advancedBurndownPoints} milestones={BURNDOWN_MILESTONES} />
+                        )}
+                    </div>
+                    {/* always-mounted off-screen: the pdf export shows both charts side by side,
+                        independent of which one the basic/advanced toggle currently shows on screen */}
+                    <div
+                        data-testid="burndown-chart-export"
+                        style={{ position: "fixed", top: 0, left: -10000, width: 1000, pointerEvents: "none" }}
+                    >
+                        <div ref={burndownExportRef} style={{ display: "flex", gap: 20 }}>
+                            <div style={{ flex: 1 }}>
+                                <div style={{ color: "#9ca3af", fontSize: 14, marginBottom: 8 }}>Basic</div>
+                                <BurndownChart points={burndownPoints} />
+                            </div>
+                            <div style={{ flex: 1 }}>
+                                <div style={{ color: "#9ca3af", fontSize: 14, marginBottom: 8 }}>Advanced</div>
+                                <AdvancedBurndownChart points={advancedBurndownPoints} milestones={BURNDOWN_MILESTONES} />
+                            </div>
+                        </div>
+                    </div>
 
                     <div className="page-header">
                         <h2>Status breakdown</h2>
-                        <button onClick={() => handleExportSection(4, "status-breakdown")}>
+                        <button onClick={() => handleExportSection(5, "status-breakdown")}>
                             export pdf
                         </button>
                     </div>
@@ -592,7 +641,7 @@ export function StatsPage() {
 
                     <div className="page-header">
                         <h2>Calendar</h2>
-                        <button onClick={() => handleExportSection(5, "calendar")}>export pdf</button>
+                        <button onClick={() => handleExportSection(6, "calendar")}>export pdf</button>
                     </div>
                     <div ref={calendarRef}>
                         <SprintActivityCalendar

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { StatsPage } from "../../pages/StatsPage";
@@ -174,25 +174,27 @@ describe("StatsPage", () => {
     });
 
     it("switches the burndown chart to the advanced per-milestone view", async () => {
-        const { container } = renderPage();
+        renderPage();
         await userEvent.selectOptions(await screen.findByRole("combobox"), "1");
         await screen.findByText("pull requests");
         await screen.findByText("Burndown");
 
+        const visible = within(screen.getByTestId("burndown-chart-visible"));
+
         // basic view is the default: one actual line, one ideal line
-        expect(container.textContent).toContain("actual");
-        expect(container.textContent).toContain("ideal");
+        expect(visible.getByText("actual")).toBeInTheDocument();
+        expect(visible.getByText("ideal")).toBeInTheDocument();
 
         await userEvent.click(screen.getByRole("button", { name: "advanced" }));
 
         // advanced view: no more "actual" legend, one line per milestone status instead,
         // still alongside the same shared ideal reference line
-        expect(container.textContent).not.toContain("actual");
-        expect(container.textContent).toContain("ideal");
-        expect(container.textContent).toContain("new");
-        expect(container.textContent).toContain("testing");
-        expect(container.textContent).toContain("uat");
-        expect(container.textContent).toContain("done");
+        expect(visible.queryByText("actual")).not.toBeInTheDocument();
+        expect(visible.getByText("ideal")).toBeInTheDocument();
+        expect(visible.getByText("new")).toBeInTheDocument();
+        expect(visible.getByText("testing")).toBeInTheDocument();
+        expect(visible.getByText("uat")).toBeInTheDocument();
+        expect(visible.getByText("done")).toBeInTheDocument();
     });
 
     it("renders the sprint's calendar once loaded", async () => {
@@ -230,6 +232,31 @@ describe("StatsPage", () => {
         expect(filename).toMatch(/^sprint-stats-summary-\d{4}-\d{2}-\d{2}\.pdf$/);
     });
 
+    it("exports the burndown section as a pdf with both basic and advanced charts side by side", async () => {
+        renderPage();
+        await userEvent.selectOptions(await screen.findByRole("combobox"), "1");
+        await screen.findByText("pull requests");
+        await screen.findByText("Burndown");
+
+        // Summary, Repo distribution, Time per story, Complexity, Burndown, ...
+        const exportButtons = screen.getAllByRole("button", { name: "export pdf" });
+        await userEvent.click(exportButtons[4]);
+
+        expect(exportSectionsAsPdf).toHaveBeenCalledTimes(1);
+        const [sections, filename] = vi.mocked(exportSectionsAsPdf).mock.calls[0];
+        expect(sections).toHaveLength(1);
+        expect(sections[0].title).toBe("Burndown");
+
+        // the exported element is the off-screen container with both charts,
+        // independent of which one the on-screen toggle is currently showing.
+        const exportContainer = within(screen.getByTestId("burndown-chart-export"));
+        expect(sections[0].element).toBe(screen.getByTestId("burndown-chart-export").firstElementChild);
+        expect(exportContainer.getByText("Basic")).toBeInTheDocument();
+        expect(exportContainer.getByText("Advanced")).toBeInTheDocument();
+
+        expect(filename).toMatch(/^sprint-stats-burndown-\d{4}-\d{2}-\d{2}\.pdf$/);
+    });
+
     it("exports every section as one multi-page pdf via the header button, with charts and written stats", async () => {
         renderPage();
         await userEvent.selectOptions(await screen.findByRole("combobox"), "1");
@@ -239,7 +266,7 @@ describe("StatsPage", () => {
 
         expect(exportSectionsAsPdf).toHaveBeenCalledTimes(1);
         const [sections, filename] = vi.mocked(exportSectionsAsPdf).mock.calls[0];
-        expect(sections).toHaveLength(6);
+        expect(sections).toHaveLength(7);
 
         // summary is text-only; the rest pair a chart/calendar screenshot with
         // written stats underneath.
@@ -266,7 +293,14 @@ describe("StatsPage", () => {
             "Unrated/not done: 1",
         ]);
 
-        const statusSection = sections[4];
+        const burndownSection = sections[4];
+        expect(burndownSection.title).toBe("Burndown");
+        expect(burndownSection.lines).toEqual([
+            "2026-03-10: 2 remaining (ideal 0)",
+            "Milestones remaining (2026-03-10): new: 0, testing: 2, uat: 2, done: 2",
+        ]);
+
+        const statusSection = sections[5];
         expect(statusSection.lines).toEqual(["2026-03-10: new: 1, wip: 1"]);
 
         expect(filename).toMatch(/^sprint-stats-\d{4}-\d{2}-\d{2}\.pdf$/);
@@ -285,7 +319,7 @@ describe("StatsPage", () => {
         await userEvent.click(screen.getByRole("button", { name: "export all as pdf" }));
 
         const [sections] = vi.mocked(exportSectionsAsPdf).mock.calls[0];
-        expect(sections[4].lines).toEqual([
+        expect(sections[5].lines).toEqual([
             "Start (2026-03-02): new: 2",
             "End (2026-03-16): wip: 1, done: 1",
         ]);
