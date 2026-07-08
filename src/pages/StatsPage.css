@@ -34,3 +34,8 @@
     color: var(--text-dim);
     font-size: var(--font-small);
 }
+
+.complexity-note {
+    color: var(--text-dim);
+    font-size: var(--font-small);
+}

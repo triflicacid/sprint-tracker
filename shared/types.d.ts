@@ -128,6 +128,30 @@ export interface SprintStats {
   storyTimeDays: { storyId: number; storyLabel: string; description: string; days: number }[];
 }
 
+// one rated, DONE subtask, plotted as complexity vs. running time
+export interface ComplexityTimingPoint {
+  subtaskId: number;
+  storyId: number;
+  storyLabel: string;
+  complexityRating: number;
+  runningTimeDays: number;
+}
+
+export interface StoryComplexity {
+  storyId: number;
+  storyLabel: string;
+  totalComplexity: number;
+}
+
+// complexity-vs-running-time data for a sprint's stats
+export interface ComplexityStats {
+  points: ComplexityTimingPoint[];
+  ratingCounts: Record<number, number>;
+  unratedCount: number;
+  inProgressRatedCount: number;
+  storyComplexity: StoryComplexity[];
+}
+
 // one day's status tally: `counts` is keyed by SubtaskStatus or
 // StoryStatus depending on the requested granularity.
 export interface StatusBreakdownPoint {

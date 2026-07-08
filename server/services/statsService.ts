@@ -6,6 +6,9 @@ import type {
     CalendarEntry,
     SubtaskStatus,
     DayActivityMap,
+    ComplexityStats,
+    ComplexityTimingPoint,
+    StoryComplexity,
 } from "../../shared/types.js";
 import { computeStoryStatus } from "./storyService.js";
 import { getStatusFlow } from "./statusFlowService.js";
@@ -92,6 +95,81 @@ export function getSprintStats(sprintId: number) {
     });
 
     return { sprintId, prCount, storyCount, repoCounts, storyTimeDays } as SprintStats;
+}
+
+interface ComplexitySubtaskRow {
+    id: number;
+    story_id: number;
+    jira_key: string | null;
+    complexity_rating: number | null;
+    status: SubtaskStatus;
+    first_activity: string | null;
+    last_activity: string | null;
+}
+
+// complexity-vs-running-time data for the sprint stats.
+// running time is only meaningful for DONE subtasks, so subtasks
+// that aren't DONE yet (or with no rating at all) are counted but excluded
+export function getComplexityTiming(sprintId: number): ComplexityStats {
+    const rows = db
+        .prepare(
+            `SELECT subtasks.id AS id, subtasks.story_id AS story_id, stories.jira_key AS jira_key,
+                subtasks.complexity_rating AS complexity_rating, subtasks.status AS status,
+                (SELECT MIN(status_history.changed_at) FROM status_history
+                    WHERE status_history.entity_type = 'subtask' AND status_history.entity_id = subtasks.id) AS first_activity,
+                (SELECT MAX(status_history.changed_at) FROM status_history
+                    WHERE status_history.entity_type = 'subtask' AND status_history.entity_id = subtasks.id) AS last_activity
+             FROM subtasks
+             JOIN stories ON stories.id = subtasks.story_id
+             WHERE stories.sprint_id = ?`
+        )
+        .all(sprintId) as ComplexitySubtaskRow[];
+
+    const ratingCounts: Record<number, number> = {};
+    let unratedCount = 0;
+    let inProgressRatedCount = 0;
+    const points: ComplexityTimingPoint[] = [];
+
+    for (const row of rows) {
+        if (row.complexity_rating === null) {
+            unratedCount += 1;
+            continue;
+        }
+        ratingCounts[row.complexity_rating] = (ratingCounts[row.complexity_rating] ?? 0) + 1;
+
+        if (row.status !== "DONE") {
+            inProgressRatedCount += 1;
+            continue;
+        }
+        if (!row.first_activity || !row.last_activity) {
+            continue;
+        }
+        const days = (new Date(row.last_activity).getTime() - new Date(row.first_activity).getTime()) / (1000 * 60 * 60 * 24);
+        points.push({
+            subtaskId: row.id,
+            storyId: row.story_id,
+            storyLabel: row.jira_key ?? `#${row.story_id}`,
+            complexityRating: row.complexity_rating,
+            runningTimeDays: Math.round(Math.max(0, days) * 10) / 10,
+        });
+    }
+
+    const complexityByStory = new Map<number, { storyLabel: string; total: number }>();
+    for (const point of points) {
+        const existing = complexityByStory.get(point.storyId);
+        if (existing) {
+            existing.total += point.complexityRating;
+        } else {
+            complexityByStory.set(point.storyId, { storyLabel: point.storyLabel, total: point.complexityRating });
+        }
+    }
+    const storyComplexity: StoryComplexity[] = Array.from(complexityByStory.entries()).map(([storyId, entry]) => ({
+        storyId,
+        storyLabel: entry.storyLabel,
+        totalComplexity: entry.total,
+    }));
+
+    return { points, ratingCounts, unratedCount, inProgressRatedCount, storyComplexity };
 }
 
 // per-day status tally: for each day in the sprint, count subtasks/stories
