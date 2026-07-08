@@ -61,6 +61,16 @@ const velocityPoints = [
         completedStoryCount: 2,
         completedSubtaskCount: 3,
     },
+    {
+        sprintId: 2,
+        sprintName: "Sprint 2",
+        startDate: "2026-03-16",
+        endDate: "2026-03-30",
+        completedPoints: 4,
+        unpointedDoneStoryCount: 0,
+        completedStoryCount: 1,
+        completedSubtaskCount: 2,
+    },
 ];
 
 beforeEach(() => {
@@ -227,6 +237,19 @@ describe("StatsPage", () => {
             from: expect.any(String),
             to: expect.any(String),
         });
+    });
+
+    it("draws a running-average line on the velocity chart", async () => {
+        renderPage();
+        await screen.findByText("Velocity");
+
+        expect(screen.getByText("completed points")).toBeInTheDocument();
+        expect(screen.getByText("average velocity")).toBeInTheDocument();
+
+        const lines = document.querySelectorAll(".recharts-line");
+        expect(lines).toHaveLength(1);
+        const dots = document.querySelectorAll(".recharts-line-dot");
+        expect(dots).toHaveLength(2);
     });
 
     it("hides the velocity chart once a sprint is selected, showing a numeric velocity tile in the summary instead", async () => {

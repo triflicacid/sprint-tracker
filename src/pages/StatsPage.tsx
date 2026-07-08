@@ -3,6 +3,8 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import {
     BarChart,
     Bar,
+    ComposedChart,
+    Line,
     Cell,
     LabelList,
     XAxis,
@@ -115,12 +117,18 @@ function ComplexityTooltip({
     );
 }
 
+// VelocityPoint plus the running average up to (and including) that sprint,
+// computed client-side purely for the chart's red "average velocity" line.
+interface VelocityChartPoint extends VelocityPoint {
+    averageVelocity: number;
+}
+
 function VelocityTooltip({
     active,
     payload,
 }: {
     active?: boolean;
-    payload?: { payload: VelocityPoint }[];
+    payload?: { payload: VelocityChartPoint }[];
 }) {
     if (!active || !payload || payload.length === 0) {
         return null;
@@ -137,6 +145,7 @@ function VelocityTooltip({
                 {point.completedStoryCount} stor{point.completedStoryCount === 1 ? "y" : "ies"}, {point.completedSubtaskCount} subtask
                 {point.completedSubtaskCount === 1 ? "" : "s"} done
             </div>
+            <div>average so far: {point.averageVelocity} pts</div>
         </div>
     );
 }
@@ -150,6 +159,13 @@ function describeVelocitySelection(selection: VelocitySelection): string {
         return `last ${selection.n} sprints`;
     }
     return "all sprints";
+}
+
+// calculate the average velocity of all given sprints
+function averageVelocity(points: VelocityPoint[]) {
+    return points.length === 0
+        ? undefined
+        : Math.round(points.map((point => point.completedPoints)).reduce((a, b) => a + b) / points.length * 10) / 10;
 }
 
 // counts weekdays (mon-fri) in an inclusive date range.
@@ -465,6 +481,7 @@ export function StatsPage() {
                                   `${point.sprintName}: ${point.completedPoints} pts (${point.unpointedDoneStoryCount} stories unpointed)`
                           )
                         : ["No sprints in this selection."]),
+                    `Average velocity: ${averageVelocity(velocityPoints) ?? 'N/A'}`,
                 ],
             };
             await exportSectionsAsPdf([section], `velocity-${formatIsoDate(new Date())}.pdf`);
@@ -479,6 +496,14 @@ export function StatsPage() {
             : velocityMode === "lastN"
               ? { mode: "lastN", n: velocityN }
               : { mode: "all" };
+    // running average of completedPoints, sprint by sprint (chronological,
+    // per getVelocityHistory's ordering) - shows how the average itself has
+    // trended over time, not just a single flat average line.
+    const velocityChartData: VelocityChartPoint[] = velocityPoints.map((point, index) => {
+        const pointsSoFar = velocityPoints.slice(0, index + 1);
+        const average = pointsSoFar.reduce((sum, p) => sum + p.completedPoints, 0) / pointsSoFar.length;
+        return { ...point, averageVelocity: Math.round(average * 10) / 10 };
+    });
     const totalWeekdays = selectedSprint && sprintEndDate ? countWeekdays(selectedSprint.startDate, sprintEndDate) : 0;
     const holidayWeekdays = Array.from(holidays).filter(isWeekday).length;
     const isCompleted = selectedSprint ? selectedSprint.endDate !== null : false;
@@ -576,15 +601,16 @@ export function StatsPage() {
                         </div>
                     </div>
                     <div ref={velocityChartRef}>
-                        {velocityPoints.length > 0 ? (
+                        {velocityChartData.length > 0 ? (
                             <ResponsiveContainer width="100%" height={280}>
-                                <BarChart data={velocityPoints}>
+                                <ComposedChart data={velocityChartData}>
                                     <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
                                     <XAxis dataKey="sprintName" stroke="#9ca3af" />
                                     <YAxis stroke="#9ca3af" allowDecimals={false} />
                                     <Tooltip content={<VelocityTooltip />} />
+                                    <Legend />
                                     <Bar dataKey="completedPoints" name="completed points">
-                                        {velocityPoints.map((point) => (
+                                        {velocityChartData.map((point) => (
                                             <Cell
                                                 key={point.sprintId}
                                                 fill={point.sprintId === latestSprintId ? "#facc15" : "#16a34a"}
@@ -597,12 +623,23 @@ export function StatsPage() {
                                             formatter={(value: number) => (value > 0 ? `${value} unpointed` : "")}
                                         />
                                     </Bar>
-                                </BarChart>
+                                    <Line
+                                        type="monotone"
+                                        dataKey="averageVelocity"
+                                        name="average velocity"
+                                        stroke="#ef4444"
+                                        strokeWidth={2}
+                                        dot={{ r: 3, fill: "#ef4444" }}
+                                        isAnimationActive={false}
+                                    />
+                                </ComposedChart>
                             </ResponsiveContainer>
                         ) : (
                             <p className="complexity-note">No sprints in this selection yet.</p>
                         )}
                     </div>
+                    {velocityPoints.length > 0 &&
+                            <p>The average velocity within the selection is {averageVelocity(velocityPoints)} points per sprint</p>}
                 </>
             )}
 
