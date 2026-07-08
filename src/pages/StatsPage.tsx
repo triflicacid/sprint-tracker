@@ -21,7 +21,7 @@ import type {
     StatusBreakdownPoint,
     StatusBreakdownGranularity,
     DayActivityMap,
-    StoryStatus,
+    StoryStatus, StoryComplexity,
 } from "@shared/types";
 import { api } from "../api/client";
 import { StatusBreakdownChart } from "../components/stats/StatusBreakdownChart";
@@ -33,6 +33,7 @@ import { colorForStory } from "../utils/storyColor";
 import "./StatsPage.css";
 
 const COMPLEXITY_RATINGS = [1, 2, 3, 4, 5];
+const AVERAGE_POINT_COLOR = "#ffffff";
 
 // groups the complexity/running-time points by story
 function groupPointsByStory(points: ComplexityTimingPoint[]) {
@@ -48,12 +49,52 @@ function groupPointsByStory(points: ComplexityTimingPoint[]) {
     return Array.from(byStory.values());
 }
 
-// custom scatter tooltip
-function ComplexityTooltip({ active, payload }: { active?: boolean; payload?: { payload: ComplexityTimingPoint }[] }) {
+interface ComplexityAveragePoint {
+    complexityRating: number;
+    runningTimeDays: number;
+    pointCount: number;
+    isAverage: true;
+}
+
+// calculate the average running time for each rated complexity
+function averageRunningTimeByComplexity(points: ComplexityTimingPoint[]): ComplexityAveragePoint[] {
+    const totals = new Map<number, { sum: number; count: number }>();
+    for (const point of points) {
+        const entry = totals.get(point.complexityRating) ?? { sum: 0, count: 0 };
+        entry.sum += point.runningTimeDays;
+        entry.count += 1;
+        totals.set(point.complexityRating, entry);
+    }
+    return Array.from(totals.entries())
+        .map(([complexityRating, { sum, count }]) => ({
+            complexityRating,
+            runningTimeDays: Math.round((sum / count) * 10) / 10,
+            pointCount: count,
+            isAverage: true as const,
+        }))
+        .sort((a, b) => a.complexityRating - b.complexityRating);
+}
+
+// custom scatter tooltip - handles both a per-subtask point and an average marker.
+function ComplexityTooltip({
+    active,
+    payload,
+}: {
+    active?: boolean;
+    payload?: { payload: ComplexityTimingPoint | ComplexityAveragePoint }[];
+}) {
     if (!active || !payload || payload.length === 0) {
         return null;
     }
     const point = payload[0].payload;
+    if ("isAverage" in point) {
+        return (
+            <div style={{ backgroundColor: "#1a1a1a", border: "1px solid #333", padding: "6px 10px" }}>
+                <div>average for complexity {point.complexityRating}</div>
+                <div>running time: {point.runningTimeDays} day{point.runningTimeDays === 1 ? "" : "s"}</div>
+            </div>
+        );
+    }
     return (
         <div style={{ backgroundColor: "#1a1a1a", border: "1px solid #333", padding: "6px 10px" }}>
             <div>
@@ -217,18 +258,25 @@ export function StatsPage() {
                 title: "Complexity",
                 element: complexityChartRef.current ?? undefined,
                 lines: complexity
-                    ? [
-                          ...COMPLEXITY_RATINGS.map(
-                              (rating) => `Complexity ${rating}: ${complexity.ratingCounts[rating] ?? 0} subtask${(complexity.ratingCounts[rating] ?? 0) === 1 ? "" : "s"}`
-                          ),
-                          `Unrated: ${complexity.unratedCount}`,
-                          `Rated but still in progress (not charted): ${complexity.inProgressRatedCount}`,
-                          ...(complexity.storyComplexity.length > 0
-                              ? complexity.storyComplexity.map(
-                                    (story) => `${story.storyLabel}: complexity ${story.totalComplexity}`
-                                )
-                              : ["No done, rated subtasks yet to summarise per story."]),
-                      ]
+                    ? (() => {
+                          const complexityAverages = averageRunningTimeByComplexity(complexity.points);
+                          let complexitiesByRating: StoryComplexity[];
+                          let averageRunningTime: ComplexityAveragePoint | undefined;
+                          return [
+                              ...COMPLEXITY_RATINGS.map(
+                                  (rating) => `Complexity ${rating}: ${complexity.ratingCounts[rating] ?? 0} subtask${(complexity.ratingCounts[rating] ?? 0) === 1 ? "" : "s"}`
+                                    + ((complexitiesByRating = complexity.storyComplexity.filter((story) => story.totalComplexity === rating)).length > 0
+                                          ? ` (${complexitiesByRating
+                                              .map((story) => story.storyLabel)
+                                              .join(', ')})`
+                                          : '')
+                                    + ((averageRunningTime = complexityAverages.find((average) => average.complexityRating === rating))
+                                          ? `, with an average running time of ${averageRunningTime.runningTimeDays} day${averageRunningTime.runningTimeDays === 1 ? '' : 's'}`
+                                          : '')
+                              ),
+                              `Unrated/not done: ${complexity.unratedCount + complexity.inProgressRatedCount}`,
+                          ];
+                      })()
                     : [],
             },
             {
@@ -269,6 +317,10 @@ export function StatsPage() {
     const totalWeekdays = selectedSprint && sprintEndDate ? countWeekdays(selectedSprint.startDate, sprintEndDate) : 0;
     const holidayWeekdays = Array.from(holidays).filter(isWeekday).length;
     const isCompleted = selectedSprint ? selectedSprint.endDate !== null : false;
+    // don't show average points in the graph if there is only one rating (as rating == average)
+    const complexityChartAverages = complexity
+        ? averageRunningTimeByComplexity(complexity.points).filter((average) => average.pointCount > 1)
+        : [];
 
     return (
         <div className="page">
@@ -413,7 +465,7 @@ export function StatsPage() {
                                         type="number"
                                         dataKey="complexityRating"
                                         name="complexity"
-                                        domain={[1, 5]}
+                                        domain={[Math.min(...COMPLEXITY_RATINGS), Math.max(...COMPLEXITY_RATINGS)]}
                                         ticks={COMPLEXITY_RATINGS}
                                         stroke="#9ca3af"
                                     >
@@ -438,11 +490,32 @@ export function StatsPage() {
                                             fill={colorForStory(story.storyId)}
                                         />
                                     ))}
+                                    {complexityChartAverages.length > 0 && (
+                                        <Scatter
+                                            name="average"
+                                            data={complexityChartAverages}
+                                            shape="square"
+                                            fill={AVERAGE_POINT_COLOR}
+                                        />
+                                    )}
                                 </ScatterChart>
                             </ResponsiveContainer>
                         ) : (
                             <p className="complexity-note">
                                 No done, rated subtasks yet to chart complexity against running time.
+                            </p>
+                        )}
+
+                        {complexity && averageRunningTimeByComplexity(complexity.points).length > 0 && (
+                            <p className="complexity-note">
+                                Average running time by complexity (ratings with more than one point are also shown as a
+                                square on the chart above):{" "}
+                                {averageRunningTimeByComplexity(complexity.points)
+                                    .map(
+                                        (average) =>
+                                            `${average.complexityRating}: ${average.runningTimeDays} day${average.runningTimeDays === 1 ? "" : "s"}`
+                                    )
+                                    .join(", ")}
                             </p>
                         )}
 

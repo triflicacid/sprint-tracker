@@ -111,6 +111,46 @@ describe("StatsPage", () => {
         expect(screen.getByText("unrated").previousElementSibling).toHaveTextContent("1");
     });
 
+    it("still lists the average running time in the text below the chart for a complexity rating with only one point", async () => {
+        renderPage();
+        await userEvent.selectOptions(await screen.findByRole("combobox"), "1");
+        await screen.findByText("Complexity");
+
+        expect(screen.getByText(/Average running time by complexity/)).toHaveTextContent("3: 4 days");
+    });
+
+    it("does not draw the average square marker on the chart for a complexity rating with only one point", async () => {
+        const { container } = renderPage();
+        await userEvent.selectOptions(await screen.findByRole("combobox"), "1");
+        await screen.findByText("Complexity");
+
+        // the fixture has exactly one point (complexity 3) - its "average" is
+        // itself, so no square marker (fill #ffffff) should be drawn.
+        expect(container.querySelectorAll('[fill="#ffffff"]')).toHaveLength(0);
+    });
+
+    it("draws the average square marker on the chart for a complexity rating with more than one point", async () => {
+        vi.mocked(api.getComplexityTiming).mockResolvedValue({
+            points: [
+                { subtaskId: 1, storyId: 1, storyLabel: "NEB-1", complexityRating: 3, runningTimeDays: 2 },
+                { subtaskId: 2, storyId: 2, storyLabel: "NEB-2", complexityRating: 3, runningTimeDays: 6 },
+            ],
+            ratingCounts: { 3: 2 },
+            unratedCount: 0,
+            inProgressRatedCount: 0,
+            storyComplexity: [
+                { storyId: 1, storyLabel: "NEB-1", totalComplexity: 3 },
+                { storyId: 2, storyLabel: "NEB-2", totalComplexity: 3 },
+            ],
+        });
+        const { container } = renderPage();
+        await userEvent.selectOptions(await screen.findByRole("combobox"), "1");
+        await screen.findByText("Complexity");
+
+        expect(screen.getByText(/Average running time by complexity/)).toHaveTextContent("3: 4 days");
+        expect(container.querySelectorAll('[fill="#ffffff"]').length).toBeGreaterThan(0);
+    });
+
     it("switches status breakdown granularity via the toggle buttons", async () => {
         renderPage();
         await userEvent.selectOptions(await screen.findByRole("combobox"), "1");
@@ -188,6 +228,7 @@ describe("StatsPage", () => {
                 "Unrated: 1",
                 "Rated but still in progress (not charted): 0",
                 "NEB-1: complexity 3",
+                "Average running time by complexity: 3: 4 days",
             ])
         );
 
