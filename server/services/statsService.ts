@@ -110,7 +110,7 @@ interface ComplexitySubtaskRow {
 // complexity-vs-running-time data for the sprint stats.
 // running time is only meaningful for DONE subtasks, so subtasks
 // that aren't DONE yet (or with no rating at all) are counted but excluded
-export function getComplexityTiming(sprintId: number): ComplexityStats {
+export function getComplexityTiming(sprintId: number) {
     const rows = db
         .prepare(
             `SELECT subtasks.id AS id, subtasks.story_id AS story_id, stories.jira_key AS jira_key,
@@ -169,7 +169,7 @@ export function getComplexityTiming(sprintId: number): ComplexityStats {
         totalComplexity: entry.total,
     }));
 
-    return { points, ratingCounts, unratedCount, inProgressRatedCount, storyComplexity };
+    return { points, ratingCounts, unratedCount, inProgressRatedCount, storyComplexity } as ComplexityStats;
 }
 
 // per-day status tally: for each day in the sprint, count subtasks/stories

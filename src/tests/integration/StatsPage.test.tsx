@@ -123,9 +123,7 @@ describe("StatsPage", () => {
         const { container } = renderPage();
         await userEvent.selectOptions(await screen.findByRole("combobox"), "1");
         await screen.findByText("Complexity");
-
-        // the fixture has exactly one point (complexity 3) - its "average" is
-        // itself, so no square marker (fill #ffffff) should be drawn.
+        
         expect(container.querySelectorAll('[fill="#ffffff"]')).toHaveLength(0);
     });
 
