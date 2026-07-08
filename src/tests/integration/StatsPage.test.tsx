@@ -222,15 +222,14 @@ describe("StatsPage", () => {
 
         const complexitySection = sections[3];
         expect(complexitySection.title).toBe("Complexity");
-        expect(complexitySection.lines).toEqual(
-            expect.arrayContaining([
-                "Complexity 3: 1 subtask",
-                "Unrated: 1",
-                "Rated but still in progress (not charted): 0",
-                "NEB-1: complexity 3",
-                "Average running time by complexity: 3: 4 days",
-            ])
-        );
+        expect(complexitySection.lines).toEqual([
+            "Complexity 1: 0 subtasks",
+            "Complexity 2: 0 subtasks",
+            "Complexity 3: 1 subtask (NEB-1), with an average running time of 4 days",
+            "Complexity 4: 0 subtasks",
+            "Complexity 5: 0 subtasks",
+            "Unrated/not done: 1",
+        ]);
 
         const statusSection = sections[4];
         expect(statusSection.lines).toEqual(["2026-03-10: new: 1, wip: 1"]);
