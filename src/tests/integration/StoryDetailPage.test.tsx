@@ -243,6 +243,6 @@ describe("StoryDetailPage", () => {
         expect(sections[2].title).toBe("wire up client");
         expect(sections[2].lines).toEqual(["No status history recorded yet."]);
 
-        expect(filename).toMatch(/^story-1-export-\d{4}-\d{2}-\d{2}\.pdf$/);
+        expect(filename).toMatch(/^NEB-1-export-\d{4}-\d{2}-\d{2}\.pdf$/);
     });
 });

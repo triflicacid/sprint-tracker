@@ -1,6 +1,6 @@
-import type { StatusHistoryEntry, SubtaskStatus } from "@shared/types";
+import type { StatusHistoryEntry, Subtask, SubtaskStatus } from "@shared/types";
 import { STATUS_LABELS, STATUS_COLORS, SUBTASK_STATUSES } from "../components/StatusBadge";
-import type { PdfTable } from "./pdfExport";
+import type { PdfSection, PdfTable } from "./pdfExport";
 
 export interface SubtaskTiming {
     // total days from the first history entry to the last
@@ -168,9 +168,19 @@ export function buildTransitionsPdfTable(history: StatusHistoryEntry[]): PdfTabl
     };
 }
 
-// the "total time per phase" summary alone, as flat text lines - used
-// alongside buildTransitionsPdfTable so the pdf still gets that summary
-// without repeating the full "Transitions:" text list the table replaces.
+// the "total time per phase" summary
 export function buildPhaseTotalsLines(history: StatusHistoryEntry[], now: Date = new Date()): string[] {
     return computePhaseTotals(buildTransitionRows(history), now).lines;
+}
+
+// one subtask's export page
+export function buildSubtaskPdfSection(subtask: Subtask, history: StatusHistoryEntry[]): PdfSection {
+    return {
+        title: subtask.branchName === "(unknown)" ? subtask.title : `${subtask.title} (${subtask.branchName})`,
+        table: history.length > 0 ? buildTransitionsPdfTable(history) : undefined,
+        lines: [
+            ...(subtask.url ? [{ text: `Pull request: ${subtask.url}`, url: subtask.url }] : []),
+            ...(history.length > 0 ? buildPhaseTotalsLines(history) : ["No status history recorded yet."]),
+        ],
+    };
 }

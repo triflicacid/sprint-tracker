@@ -34,7 +34,7 @@ test("exporting a story downloads one pdf page for the summary plus one per subt
         page.getByRole("button", { name: "export pdf" }).click(),
     ]);
 
-    expect(download.suggestedFilename()).toMatch(new RegExp(`^story-${story.id}-export-\\d{4}-\\d{2}-\\d{2}\\.pdf$`));
+    expect(download.suggestedFilename()).toMatch(/^PDF-2-export-\d{4}-\d{2}-\d{2}\.pdf$/);
     // one page for the story summary + one per subtask (2 subtasks seeded),
     // no flow-diagram page per subtask.
     const savedPath = await download.path();

@@ -6,12 +6,30 @@ import {
     formatDateTime,
     buildTransitionsPdfTable,
     buildPhaseTotalsLines,
+    buildSubtaskPdfSection,
 } from "./subtaskTiming";
-import type { StatusHistoryEntry, SubtaskStatus } from "@shared/types";
+import type { StatusHistoryEntry, Subtask, SubtaskStatus } from "@shared/types";
 
 let nextId = 1;
 function entry(status: SubtaskStatus, changedAt: string): StatusHistoryEntry {
     return { id: nextId++, entityType: "subtask", entityId: 1, status, releaseVersion: null, changedAt };
+}
+
+function subtask(overrides: Partial<Subtask> = {}): Subtask {
+    return {
+        id: 1,
+        storyId: 1,
+        title: "add endpoint",
+        comment: null,
+        branchName: "(unknown)",
+        status: "NEW",
+        url: null,
+        repoName: null,
+        complexityRating: null,
+        releaseVersion: null,
+        createdAt: "2026-01-01",
+        ...overrides,
+    };
 }
 
 describe("buildTransitionRows", () => {
@@ -242,5 +260,44 @@ describe("buildPhaseTotalsLines", () => {
         // and computeSubtaskTiming's full report still ends with the exact
         // same two lines, proving the extraction didn't change either one.
         expect(computeSubtaskTiming(history, now).lines.slice(-2)).toEqual(buildPhaseTotalsLines(history, now));
+    });
+});
+
+describe("buildSubtaskPdfSection", () => {
+    it("appends the branch name to the title when it is known", () => {
+        const section = buildSubtaskPdfSection(subtask({ title: "add endpoint", branchName: "feature/x" }), []);
+        expect(section.title).toBe("add endpoint (feature/x)");
+    });
+
+    it("leaves the title bare when the branch name is unknown", () => {
+        const section = buildSubtaskPdfSection(subtask({ title: "add endpoint", branchName: "(unknown)" }), []);
+        expect(section.title).toBe("add endpoint");
+    });
+
+    it("has no table and reports no status history when there is none", () => {
+        const section = buildSubtaskPdfSection(subtask(), []);
+        expect(section.table).toBeUndefined();
+        expect(section.lines).toEqual(["No status history recorded yet."]);
+    });
+
+    it("draws the transitions table and phase totals when history is present", () => {
+        const history = [entry("NEW", "2026-07-01T00:00:00.000Z"), entry("WIP", "2026-07-03T00:00:00.000Z")];
+        const section = buildSubtaskPdfSection(subtask(), history);
+
+        expect(section.table).toEqual(buildTransitionsPdfTable(history));
+        expect(section.lines).toEqual(expect.arrayContaining(["Total time in each phase:"]));
+    });
+
+    it("includes the pull request link as the first line when the subtask has a url", () => {
+        const section = buildSubtaskPdfSection(subtask({ url: "https://github.com/acme/repo/pull/7" }), []);
+        expect(section.lines?.[0]).toEqual({
+            text: "Pull request: https://github.com/acme/repo/pull/7",
+            url: "https://github.com/acme/repo/pull/7",
+        });
+    });
+
+    it("omits the pull request line when the subtask has no url", () => {
+        const section = buildSubtaskPdfSection(subtask({ url: null }), []);
+        expect(section.lines).not.toEqual(expect.arrayContaining([expect.objectContaining({ url: expect.anything() })]));
     });
 });

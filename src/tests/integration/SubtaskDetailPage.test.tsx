@@ -2,10 +2,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import type { StatusFlowConfig, Subtask } from "@shared/types";
+import type { StatusFlowConfig, StoryDetail, Subtask } from "@shared/types";
 import { SubtaskDetailPage } from "../../pages/SubtaskDetailPage";
 import { ToastProvider } from "../../components/Toast";
 import { api } from "../../api/client";
+import { exportSectionsAsPdf } from "../../utils/pdfExport";
 
 vi.mock("../../api/client", () => ({
     api: {
@@ -13,7 +14,12 @@ vi.mock("../../api/client", () => ({
         getSubtaskHistory: vi.fn(),
         getStatusFlow: vi.fn(),
         updateSubtask: vi.fn(),
+        getStory: vi.fn(),
     },
+}));
+
+vi.mock("../../utils/pdfExport", () => ({
+    exportSectionsAsPdf: vi.fn(),
 }));
 
 const flow: StatusFlowConfig = {
@@ -38,10 +44,30 @@ const subtask: Subtask = {
     createdAt: "2026-01-01",
 };
 
+const story: StoryDetail = {
+    id: 1,
+    sprintId: 9,
+    jiraUrl: "https://nebula.atlassian.net/browse/NEB-1",
+    jiraKey: "NEB-1",
+    description: "support saved cards",
+    jiraTitle: null,
+    jiraLabels: [],
+    status: "WORK_REMAINING",
+    awaitingMoreSubtasks: false,
+    tags: [],
+    prCount: 1,
+    subtasks: [
+        { ...subtask, id: 3, title: "earlier subtask" },
+        subtask,
+    ],
+};
+
 beforeEach(() => {
     Object.values(api).forEach((fn) => vi.mocked(fn).mockReset());
     vi.mocked(api.getStatusFlow).mockResolvedValue(flow);
     vi.mocked(api.getSubtaskHistory).mockResolvedValue([]);
+    vi.mocked(api.getStory).mockResolvedValue(story);
+    vi.mocked(exportSectionsAsPdf).mockReset();
 });
 
 function renderPage() {
@@ -158,5 +184,51 @@ describe("SubtaskDetailPage", () => {
         renderPage();
         await screen.findByRole("heading", { name: "add saved card list endpoint" });
         expect(document.querySelector(".transitions-table")).not.toBeInTheDocument();
+    });
+
+    it("exports just this subtask as a single-section pdf when its export button is clicked", async () => {
+        vi.mocked(api.getSubtask).mockResolvedValue(subtask);
+        vi.mocked(api.getSubtaskHistory).mockResolvedValue([
+            { id: 1, entityType: "subtask", entityId: 5, status: "NEW", releaseVersion: null, changedAt: "2026-03-01T00:00:00.000Z" },
+            { id: 2, entityType: "subtask", entityId: 5, status: "WIP", releaseVersion: null, changedAt: "2026-03-03T00:00:00.000Z" },
+        ]);
+        renderPage();
+        await screen.findByRole("heading", { name: "add saved card list endpoint" });
+        await vi.waitFor(() => expect(screen.getByRole("button", { name: "export pdf" })).toBeEnabled());
+
+        await userEvent.click(screen.getByRole("button", { name: "export pdf" }));
+
+        expect(exportSectionsAsPdf).toHaveBeenCalledTimes(1);
+        const [sections, filename] = vi.mocked(exportSectionsAsPdf).mock.calls[0];
+        expect(sections).toHaveLength(1);
+        expect(sections[0].title).toBe("add saved card list endpoint (feature/x)");
+        expect(sections[0].element).toBeUndefined();
+        expect(sections[0].table).toEqual({
+            headers: ["date/time", "state", "time in previous"],
+            columnWidths: [55, 45, 55],
+            rows: [
+                [{ text: "2026-03-01 00:00" }, { text: "new", color: [107, 114, 128] }, { text: "-" }],
+                [{ text: "2026-03-03 00:00" }, { text: "wip", color: [217, 89, 38] }, { text: "2d 0h 0m" }],
+            ],
+        });
+        expect(sections[0].lines).toEqual(
+            expect.arrayContaining([{ text: "Pull request: https://github.com/org/repo/pull/1", url: "https://github.com/org/repo/pull/1" }])
+        );
+        // subtask 5 sits second in the story's subtask list (NEB-1's jira
+        // key, not either internal id, drives the filename).
+        expect(filename).toMatch(/^NEB-1-subtask-2-export-\d{4}-\d{2}-\d{2}\.pdf$/);
+    });
+
+    it("disables the export button until the parent story (needed for its jira key) has loaded", async () => {
+        vi.mocked(api.getSubtask).mockResolvedValue(subtask);
+        let resolveStory!: (value: StoryDetail) => void;
+        vi.mocked(api.getStory).mockReturnValue(new Promise((resolve) => (resolveStory = resolve)));
+
+        renderPage();
+        await screen.findByRole("heading", { name: "add saved card list endpoint" });
+        expect(screen.getByRole("button", { name: "export pdf" })).toBeDisabled();
+
+        resolveStory(story);
+        await vi.waitFor(() => expect(screen.getByRole("button", { name: "export pdf" })).toBeEnabled());
     });
 });
