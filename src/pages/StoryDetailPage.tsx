@@ -9,6 +9,7 @@ import { exportSectionsAsPdf, type PdfSection } from "../utils/pdfExport";
 import { computeSubtaskTiming, buildSubtaskPdfSection } from "../utils/subtaskTiming";
 import { buildStoryPdfFilename } from "../utils/pdfFilename";
 import { MetaRow } from "../components/MetaRow";
+import { RatingSelect } from "../components/RatingSelect";
 import "../components/stories/story-tags.css";
 import "./StoryDetailPage.css";
 
@@ -188,21 +189,12 @@ export function StoryDetailPage(): React.ReactElement {
                             {exporting ? "exporting..." : "export pdf"}
                         </button>
                     </div>
-                    <label className="story-points-label">
-                        story points:
-                        <select
-                            value={story.storyPoints ?? ""}
-                            onChange={(event) => handleStoryPointsChange(event.target.value)}
-                            className="story-points-select"
-                        >
-                            <option value="">-</option>
-                            {STORY_POINTS_OPTIONS.map((value) => (
-                                <option key={value} value={value}>
-                                    {value}
-                                </option>
-                            ))}
-                        </select>
-                    </label>
+                    <RatingSelect
+                        label="story points:"
+                        value={story.storyPoints}
+                        options={STORY_POINTS_OPTIONS}
+                        onChange={handleStoryPointsChange}
+                    />
                 </div>
             </div>
 
