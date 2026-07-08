@@ -11,6 +11,7 @@ import {
     ScatterChart,
     Scatter,
     Legend,
+    Label,
 } from "recharts";
 import type {
     SprintSummary,
@@ -405,8 +406,8 @@ export function StatsPage() {
                         )}
 
                         {complexity && complexity.points.length > 0 ? (
-                            <ResponsiveContainer width="100%" height={320}>
-                                <ScatterChart margin={{ top: 10, right: 20, bottom: 10, left: 0 }}>
+                            <ResponsiveContainer width="100%" height={380}>
+                                <ScatterChart margin={{ top: 10, right: 20, bottom: 50, left: 20 }}>
                                     <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
                                     <XAxis
                                         type="number"
@@ -415,10 +416,20 @@ export function StatsPage() {
                                         domain={[1, 5]}
                                         ticks={COMPLEXITY_RATINGS}
                                         stroke="#9ca3af"
-                                    />
-                                    <YAxis type="number" dataKey="runningTimeDays" name="running time (days)" stroke="#9ca3af" />
+                                    >
+                                        <Label value="complexity rating" position="bottom" fill="#9ca3af" />
+                                    </XAxis>
+                                    <YAxis type="number" dataKey="runningTimeDays" name="running time (days)" stroke="#9ca3af">
+                                        <Label
+                                            value="running time (days)"
+                                            angle={-90}
+                                            position="insideLeft"
+                                            style={{ textAnchor: "middle" }}
+                                            fill="#9ca3af"
+                                        />
+                                    </YAxis>
                                     <Tooltip content={<ComplexityTooltip />} />
-                                    <Legend />
+                                    <Legend verticalAlign="bottom" wrapperStyle={{ paddingTop: 30 }} />
                                     {groupPointsByStory(complexity.points).map((story) => (
                                         <Scatter
                                             key={story.storyId}
