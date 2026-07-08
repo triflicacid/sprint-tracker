@@ -7,6 +7,7 @@ import { SubtaskFlowDiagram } from "../components/subtasks/SubtaskFlowDiagram";
 import { SubtaskTransitionsTable } from "../components/subtasks/SubtaskTransitionsTable";
 import { SubtaskActivityCalendar } from "../components/calendar/SubtaskActivityCalendar";
 import { CommentEditor } from "../components/CommentEditor";
+import { ExportButton } from "../components/ExportButton";
 import { exportSectionsAsPdf } from "../utils/pdfExport";
 import { buildSubtaskPdfSection } from "../utils/subtaskTiming";
 import { buildSubtaskPdfFilename } from "../utils/pdfFilename";
@@ -97,9 +98,7 @@ export function SubtaskDetailPage(): React.ReactElement {
                     <h1>{subtask.title}</h1>
                 </div>
                 <div className="page-header-actions">
-                    <button onClick={handleExportPdf} disabled={exporting || !story}>
-                        {exporting ? "exporting..." : "export pdf"}
-                    </button>
+                    <ExportButton onClick={handleExportPdf} loading={exporting} disabled={!story} />
                 </div>
             </div>
 

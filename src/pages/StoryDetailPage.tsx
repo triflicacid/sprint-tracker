@@ -10,6 +10,7 @@ import { computeSubtaskTiming, buildSubtaskPdfSection } from "../utils/subtaskTi
 import { buildStoryPdfFilename } from "../utils/pdfFilename";
 import { MetaRow } from "../components/MetaRow";
 import { RatingSelect } from "../components/RatingSelect";
+import { ExportButton } from "../components/ExportButton";
 import "../components/stories/story-tags.css";
 import "./StoryDetailPage.css";
 
@@ -185,9 +186,7 @@ export function StoryDetailPage(): React.ReactElement {
                                 {jiraLoading ? "fetching..." : "refresh from jira"}
                             </button>
                         )}
-                        <button onClick={handleExportPdf} disabled={exporting}>
-                            {exporting ? "exporting..." : "export pdf"}
-                        </button>
+                        <ExportButton onClick={handleExportPdf} loading={exporting} />
                     </div>
                     <RatingSelect
                         label="story points:"

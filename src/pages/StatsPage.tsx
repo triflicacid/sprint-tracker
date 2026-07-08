@@ -29,6 +29,7 @@ import { StatusBreakdownChart } from "../components/stats/StatusBreakdownChart";
 import { BurndownChart } from "../components/stats/BurndownChart";
 import { AdvancedBurndownChart } from "../components/stats/AdvancedBurndownChart";
 import { SprintActivityCalendar } from "../components/calendar/SprintActivityCalendar";
+import { ExportButton } from "../components/ExportButton";
 import { SUBTASK_STATUSES, STORY_STATUSES, STATUS_LABELS, BURNDOWN_MILESTONES } from "../components/StatusBadge";
 import { parseIsoDate, formatIsoDate } from "../utils/calendarGrid";
 import { exportSectionsAsPdf, type PdfSection } from "../utils/pdfExport";
@@ -160,6 +161,7 @@ export function StatsPage() {
     const [statusBreakdown, setStatusBreakdown] = useState<StatusBreakdownPoint[]>([]);
     const [dayActivity, setDayActivity] = useState<DayActivityMap>({});
     const [holidays, setHolidays] = useState<Set<string>>(new Set());
+    const [exportingKey, setExportingKey] = useState<string | null>(null);
 
     const repoChartRef = useRef<HTMLDivElement>(null);
     const timeChartRef = useRef<HTMLDivElement>(null);
@@ -336,15 +338,26 @@ export function StatsPage() {
         ] as PdfSection[];
     }
 
-    function handleExportSection(index: number, section: string) {
+    async function handleExportSection(index: number, section: string) {
         const target = buildReportSections()[index];
-        if (target) {
-            exportSectionsAsPdf([target], `sprint-stats-${section}-${formatIsoDate(new Date())}.pdf`);
+        if (!target) {
+            return;
+        }
+        setExportingKey(section);
+        try {
+            await exportSectionsAsPdf([target], `sprint-stats-${section}-${formatIsoDate(new Date())}.pdf`);
+        } finally {
+            setExportingKey(null);
         }
     }
 
-    function handleExportAll() {
-        exportSectionsAsPdf(buildReportSections(), `sprint-stats-${formatIsoDate(new Date())}.pdf`);
+    async function handleExportAll() {
+        setExportingKey("all");
+        try {
+            await exportSectionsAsPdf(buildReportSections(), `sprint-stats-${formatIsoDate(new Date())}.pdf`);
+        } finally {
+            setExportingKey(null);
+        }
     }
 
     const totalWeekdays = selectedSprint && sprintEndDate ? countWeekdays(selectedSprint.startDate, sprintEndDate) : 0;
@@ -384,7 +397,11 @@ export function StatsPage() {
                     ))}
                 </select>
                 {stats && (
-                    <button onClick={handleExportAll}>export all as pdf</button>
+                    <ExportButton
+                        onClick={handleExportAll}
+                        loading={exportingKey === "all"}
+                        label="export all as pdf"
+                    />
                 )}
             </div>
 
@@ -392,7 +409,10 @@ export function StatsPage() {
                 <>
                     <div className="page-header">
                         <h2>Summary</h2>
-                        <button onClick={() => handleExportSection(0, "summary")}>export pdf</button>
+                        <ExportButton
+                            onClick={() => handleExportSection(0, "summary")}
+                            loading={exportingKey === "summary"}
+                        />
                     </div>
                     <div className="stats-summary">
                         <div className="stat-tile">
@@ -431,9 +451,10 @@ export function StatsPage() {
 
                     <div className="page-header">
                         <h2>Repo distribution</h2>
-                        <button onClick={() => handleExportSection(1, "repo-distribution")}>
-                            export pdf
-                        </button>
+                        <ExportButton
+                            onClick={() => handleExportSection(1, "repo-distribution")}
+                            loading={exportingKey === "repo-distribution"}
+                        />
                     </div>
                     <div ref={repoChartRef}>
                         <ResponsiveContainer width="100%" height={280}>
@@ -449,9 +470,10 @@ export function StatsPage() {
 
                     <div className="page-header">
                         <h2>Time per story (days)</h2>
-                        <button onClick={() => handleExportSection(2, "time-per-story")}>
-                            export pdf
-                        </button>
+                        <ExportButton
+                            onClick={() => handleExportSection(2, "time-per-story")}
+                            loading={exportingKey === "time-per-story"}
+                        />
                     </div>
                     <div ref={timeChartRef}>
                         <ResponsiveContainer width="100%" height={280}>
@@ -470,7 +492,10 @@ export function StatsPage() {
 
                     <div className="page-header">
                         <h2>Complexity</h2>
-                        <button onClick={() => handleExportSection(3, "complexity")}>export pdf</button>
+                        <ExportButton
+                            onClick={() => handleExportSection(3, "complexity")}
+                            loading={exportingKey === "complexity"}
+                        />
                     </div>
                     <div ref={complexityChartRef}>
                         <div className="stats-summary">
@@ -598,7 +623,10 @@ export function StatsPage() {
                                     stories
                                 </button>
                             </div>
-                            <button onClick={() => handleExportSection(4, "burndown")}>export pdf</button>
+                            <ExportButton
+                                onClick={() => handleExportSection(4, "burndown")}
+                                loading={exportingKey === "burndown"}
+                            />
                         </div>
                     </div>
                     <div data-testid="burndown-chart-visible">
@@ -628,9 +656,10 @@ export function StatsPage() {
 
                     <div className="page-header">
                         <h2>Status breakdown</h2>
-                        <button onClick={() => handleExportSection(5, "status-breakdown")}>
-                            export pdf
-                        </button>
+                        <ExportButton
+                            onClick={() => handleExportSection(5, "status-breakdown")}
+                            loading={exportingKey === "status-breakdown"}
+                        />
                     </div>
                     <div ref={statusBreakdownRef}>
                         <StatusBreakdownChart
@@ -641,7 +670,10 @@ export function StatsPage() {
 
                     <div className="page-header">
                         <h2>Calendar</h2>
-                        <button onClick={() => handleExportSection(6, "calendar")}>export pdf</button>
+                        <ExportButton
+                            onClick={() => handleExportSection(6, "calendar")}
+                            loading={exportingKey === "calendar"}
+                        />
                     </div>
                     <div ref={calendarRef}>
                         <SprintActivityCalendar
