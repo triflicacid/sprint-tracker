@@ -6,8 +6,8 @@ import { api } from "../api/client";
 import { StatusBadge, STATUS_LABELS } from "../components/StatusBadge";
 import { SubtaskRow } from "../components/subtasks/SubtaskRow";
 import { exportSectionsAsPdf, type PdfSection } from "../utils/pdfExport";
-import { computeSubtaskTiming, buildTransitionsPdfTable, buildPhaseTotalsLines } from "../utils/subtaskTiming";
-import { formatIsoDate } from "../utils/calendarGrid";
+import { computeSubtaskTiming, buildSubtaskPdfSection } from "../utils/subtaskTiming";
+import { buildStoryPdfFilename } from "../utils/pdfFilename";
 import { MetaRow } from "../components/MetaRow";
 import "../components/stories/story-tags.css";
 import "./StoryDetailPage.css";
@@ -122,18 +122,11 @@ export function StoryDetailPage(): React.ReactElement {
                 },
                 ...story.subtasks.map((subtask) => {
                     const history = exportSnapshot.find((snapshot) => snapshot.subtaskId === subtask.id)?.history ?? [];
-                    return {
-                        title: subtask.branchName === "(unknown)" ? subtask.title : `${subtask.title} (${subtask.branchName})`,
-                        table: history.length > 0 ? buildTransitionsPdfTable(history) : undefined,
-                        lines: [
-                            ...(subtask.url ? [{ text: `Pull request: ${subtask.url}`, url: subtask.url }] : []),
-                            ...(history.length > 0 ? buildPhaseTotalsLines(history) : ["No status history recorded yet."]),
-                        ],
-                    };
+                    return buildSubtaskPdfSection(subtask, history);
                 }),
             ];
 
-            await exportSectionsAsPdf(sections, `story-${storyId}-export-${formatIsoDate(new Date())}.pdf`);
+            await exportSectionsAsPdf(sections, buildStoryPdfFilename(story));
             setExportSnapshot(null);
             setExporting(false);
         })();
