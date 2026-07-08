@@ -584,6 +584,9 @@ components:
         locksComplexity:
           type: boolean
           description: When true, a subtask's complexityRating can no longer be changed once it reaches this state.
+        burndownMilestone:
+          type: boolean
+          description: When true, this state is drawn as its own checkpoint line on the stats page's advanced burndown chart.
 
     StatusFlowConfig:
       type: object

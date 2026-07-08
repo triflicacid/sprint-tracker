@@ -1,12 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { statusColors, statusLabels, storyStatuses, subtaskStatuses } from "./statusCatalog.js";
+import { statusColors, statusLabels, storyStatuses, subtaskStatuses, burndownMilestones } from "./statusCatalog.js";
 import type { StatusFlowConfig } from "./types.js";
 
 const flow: StatusFlowConfig = {
     states: [
-        { id: "NEW", label: "new", rank: 0, color: "#111111", description: "" },
+        { id: "NEW", label: "new", rank: 0, color: "#111111", description: "", burndownMilestone: true },
         { id: "WIP", label: "wip", rank: 1, color: "#222222", description: "" },
-        { id: "DONE", label: "done", rank: 2, color: "#333333", description: "" },
+        { id: "DONE", label: "done", rank: 2, color: "#333333", description: "", burndownMilestone: true },
     ],
     transitions: [],
 };
@@ -50,5 +50,19 @@ describe("statusLabels", () => {
         const labels = statusLabels(flow);
         expect(labels.JIRA_ONLY).toBe("jira only");
         expect(labels.WORK_REMAINING).toBe("work remaining");
+    });
+});
+
+describe("burndownMilestones", () => {
+    it("returns only the state ids flagged burndownMilestone, in rank order", () => {
+        expect(burndownMilestones(flow)).toEqual(["NEW", "DONE"]);
+    });
+
+    it("returns an empty array when no state is flagged", () => {
+        const noMilestones: StatusFlowConfig = {
+            states: flow.states.map((state) => ({ ...state, burndownMilestone: false })),
+            transitions: [],
+        };
+        expect(burndownMilestones(noMilestones)).toEqual([]);
     });
 });

@@ -173,6 +173,28 @@ describe("StatsPage", () => {
         expect(api.getStatusBreakdown).toHaveBeenCalledWith(1, "story");
     });
 
+    it("switches the burndown chart to the advanced per-milestone view", async () => {
+        const { container } = renderPage();
+        await userEvent.selectOptions(await screen.findByRole("combobox"), "1");
+        await screen.findByText("pull requests");
+        await screen.findByText("Burndown");
+
+        // basic view is the default: one actual line, one ideal line
+        expect(container.textContent).toContain("actual");
+        expect(container.textContent).toContain("ideal");
+
+        await userEvent.click(screen.getByRole("button", { name: "advanced" }));
+
+        // advanced view: no more "actual" legend, one line per milestone status instead,
+        // still alongside the same shared ideal reference line
+        expect(container.textContent).not.toContain("actual");
+        expect(container.textContent).toContain("ideal");
+        expect(container.textContent).toContain("new");
+        expect(container.textContent).toContain("testing");
+        expect(container.textContent).toContain("uat");
+        expect(container.textContent).toContain("done");
+    });
+
     it("renders the sprint's calendar once loaded", async () => {
         renderPage();
         await userEvent.selectOptions(await screen.findByRole("combobox"), "1");

@@ -26,12 +26,13 @@ import type {
 import { api } from "../api/client";
 import { StatusBreakdownChart } from "../components/stats/StatusBreakdownChart";
 import { BurndownChart } from "../components/stats/BurndownChart";
+import { AdvancedBurndownChart } from "../components/stats/AdvancedBurndownChart";
 import { SprintActivityCalendar } from "../components/calendar/SprintActivityCalendar";
-import { SUBTASK_STATUSES, STORY_STATUSES, STATUS_LABELS } from "../components/StatusBadge";
+import { SUBTASK_STATUSES, STORY_STATUSES, STATUS_LABELS, BURNDOWN_MILESTONES } from "../components/StatusBadge";
 import { parseIsoDate, formatIsoDate } from "../utils/calendarGrid";
 import { exportSectionsAsPdf, type PdfSection } from "../utils/pdfExport";
 import { colorForStory } from "../utils/storyColor";
-import { computeBurndownPoints } from "../utils/burndown";
+import { computeBurndownPoints, computeAdvancedBurndownPoints } from "../utils/burndown";
 import "./StatsPage.css";
 
 const COMPLEXITY_RATINGS = [1, 2, 3, 4, 5];
@@ -148,6 +149,7 @@ export function StatsPage() {
     const [stats, setStats] = useState<SprintStats | null>(null);
     const [complexity, setComplexity] = useState<ComplexityStats | null>(null);
     const [granularity, setGranularity] = useState<StatusBreakdownGranularity>("subtask");
+    const [burndownMode, setBurndownMode] = useState<"basic" | "advanced">("basic");
     const [statusBreakdown, setStatusBreakdown] = useState<StatusBreakdownPoint[]>([]);
     const [dayActivity, setDayActivity] = useState<DayActivityMap>({});
     const [holidays, setHolidays] = useState<Set<string>>(new Set());
@@ -319,7 +321,14 @@ export function StatsPage() {
     const totalWeekdays = selectedSprint && sprintEndDate ? countWeekdays(selectedSprint.startDate, sprintEndDate) : 0;
     const holidayWeekdays = Array.from(holidays).filter(isWeekday).length;
     const isCompleted = selectedSprint ? selectedSprint.endDate !== null : false;
-    const burndownPoints = computeBurndownPoints(statusBreakdown, (date) => isWeekday(date) && !holidays.has(date));
+    const isWorkingDay = (date: string) => isWeekday(date) && !holidays.has(date);
+    const burndownPoints = computeBurndownPoints(statusBreakdown, isWorkingDay);
+    const advancedBurndownPoints = computeAdvancedBurndownPoints(
+        statusBreakdown,
+        granularity === "subtask" ? SUBTASK_STATUSES : STORY_STATUSES,
+        BURNDOWN_MILESTONES,
+        isWorkingDay
+    );
     // don't show average points in the graph if there is only one rating (as rating == average)
     const complexityChartAverages = complexity
         ? averageRunningTimeByComplexity(complexity.points).filter((average) => average.pointCount > 1)
@@ -531,22 +540,42 @@ export function StatsPage() {
 
                     <div className="page-header">
                         <h2>Burndown</h2>
-                        <div className="granularity-toggle">
-                            <button
-                                className={granularity === "subtask" ? "active" : ""}
-                                onClick={() => setGranularity("subtask")}
-                            >
-                                subtasks
-                            </button>
-                            <button
-                                className={granularity === "story" ? "active" : ""}
-                                onClick={() => setGranularity("story")}
-                            >
-                                stories
-                            </button>
+                        <div className="page-header-actions">
+                            <div className="granularity-toggle">
+                                <button
+                                    className={burndownMode === "basic" ? "active" : ""}
+                                    onClick={() => setBurndownMode("basic")}
+                                >
+                                    basic
+                                </button>
+                                <button
+                                    className={burndownMode === "advanced" ? "active" : ""}
+                                    onClick={() => setBurndownMode("advanced")}
+                                >
+                                    advanced
+                                </button>
+                            </div>
+                            <div className="granularity-toggle">
+                                <button
+                                    className={granularity === "subtask" ? "active" : ""}
+                                    onClick={() => setGranularity("subtask")}
+                                >
+                                    subtasks
+                                </button>
+                                <button
+                                    className={granularity === "story" ? "active" : ""}
+                                    onClick={() => setGranularity("story")}
+                                >
+                                    stories
+                                </button>
+                            </div>
                         </div>
                     </div>
-                    <BurndownChart points={burndownPoints} />
+                    {burndownMode === "basic" ? (
+                        <BurndownChart points={burndownPoints} />
+                    ) : (
+                        <AdvancedBurndownChart points={advancedBurndownPoints} milestones={BURNDOWN_MILESTONES} />
+                    )}
 
                     <div className="page-header">
                         <h2>Status breakdown</h2>

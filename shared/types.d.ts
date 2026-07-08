@@ -44,6 +44,8 @@ export interface FlowState {
   description: string;
   // once a subtask reaches this state, its complexity rating is frozen
   locksComplexity?: boolean;
+  // included as a checkpoint line in the advanced burndown chart
+  burndownMilestone?: boolean;
 }
 
 // statusFlow.json
