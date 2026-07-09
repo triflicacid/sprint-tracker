@@ -5,6 +5,7 @@ import { BurndownChart } from "./BurndownChart";
 import { AdvancedBurndownChart } from "./AdvancedBurndownChart";
 import { ExportButton } from "../ExportButton";
 import { BURNDOWN_MILESTONES } from "../StatusBadge";
+import "./statsShared.css";
 
 interface BurndownSectionProps {
     granularity: StatusBreakdownGranularity;

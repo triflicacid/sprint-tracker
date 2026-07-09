@@ -12,7 +12,6 @@ import { CalendarSection, type CalendarSectionHandle } from "../components/stats
 import { ExportButton } from "../components/ExportButton";
 import { parseIsoDate, formatIsoDate } from "../utils/calendarGrid";
 import { exportSectionsAsPdf, type PdfSection } from "../utils/pdfExport";
-import "./StatsPage.css";
 
 // counts weekdays (mon-fri) in an inclusive date range.
 function countWeekdays(start: string, end: string) {

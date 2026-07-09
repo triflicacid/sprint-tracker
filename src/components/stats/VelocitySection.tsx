@@ -5,6 +5,7 @@ import { api } from "../../api/client";
 import { ExportButton } from "../ExportButton";
 import { formatIsoDate } from "../../utils/calendarGrid";
 import { exportSectionsAsPdf, type PdfSection } from "../../utils/pdfExport";
+import "./statsShared.css";
 
 // chart also contains computed average
 interface VelocityChartPoint extends VelocityPoint {

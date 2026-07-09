@@ -23,6 +23,7 @@ import {
     type ComplexityAveragePoint,
 } from "../../utils/complexityStats";
 import type { PdfSection } from "../../utils/pdfExport";
+import "./statsShared.css";
 
 const AVERAGE_POINT_COLOR = "#ffffff";
 

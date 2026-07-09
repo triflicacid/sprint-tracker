@@ -3,6 +3,7 @@ import type { SprintSummary, SprintStats, VelocityPoint } from "@shared/types";
 import { api } from "../../api/client";
 import { ExportButton } from "../ExportButton";
 import type { PdfSection } from "../../utils/pdfExport";
+import "./statsShared.css";
 
 export interface SummarySectionHandle {
     getReportSection(): PdfSection;
