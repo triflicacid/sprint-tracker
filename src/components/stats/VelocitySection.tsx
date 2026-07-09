@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Bar, ComposedChart, Line, Cell, LabelList, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import type { SprintSummary, VelocityPoint, VelocitySelection } from "@shared/types";
 import { api } from "../../api/client";
@@ -63,6 +64,7 @@ interface VelocitySectionProps {
 }
 
 export function VelocitySection({ sprints, latestSprintId }: VelocitySectionProps) {
+    const navigate = useNavigate();
     const [velocityMode, setVelocityMode] = useState<VelocitySelection["mode"]>("lastN");
     const [velocityN, setVelocityN] = useState<number>(5);
     const [velocityRangeFrom, setVelocityRangeFrom] = useState<string>("");
@@ -184,7 +186,14 @@ export function VelocitySection({ sprints, latestSprintId }: VelocitySectionProp
                             <YAxis stroke="#9ca3af" allowDecimals={false} />
                             <Tooltip content={<VelocityTooltip />} />
                             <Legend />
-                            <Bar dataKey="completedPoints" name="completed points">
+                            <Bar
+                                dataKey="completedPoints"
+                                name="completed points"
+                                cursor="pointer"
+                                onClick={(data: { payload: VelocityChartPoint }) =>
+                                    navigate(`/stats/${data.payload.sprintId}`)
+                                }
+                            >
                                 {velocityChartData.map((point) => (
                                     <Cell
                                         key={point.sprintId}
