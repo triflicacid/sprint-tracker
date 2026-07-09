@@ -1,34 +1,72 @@
-import React from "react";
+import React, { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import type { SprintSummary, SprintStats, VelocityPoint } from "@shared/types";
+import { api } from "../../api/client";
 import { ExportButton } from "../ExportButton";
+import type { PdfSection } from "../../utils/pdfExport";
+
+export interface SummarySectionHandle {
+    getReportSection(): PdfSection;
+}
 
 interface SummarySectionProps {
+    sprintId: number;
     stats: SprintStats;
-    velocitySummary: VelocityPoint | null;
+    selectedSprint: SprintSummary;
+    sprintEndDate: string;
     totalWeekdays: number;
     holidayWeekdays: number;
-    selectedSprint: SprintSummary;
     isCompleted: boolean;
-    onExport: () => void;
-    loading: boolean;
+    onExport: () => Promise<void>;
 }
 
 // grid of headline stat tiles for the selected sprint.
-export function SummarySection({
-    stats,
-    velocitySummary,
-    totalWeekdays,
-    holidayWeekdays,
-    selectedSprint,
-    isCompleted,
-    onExport,
-    loading,
-}: SummarySectionProps) {
+export const SummarySection = forwardRef<SummarySectionHandle, SummarySectionProps>(function SummarySection(
+    { sprintId, stats, selectedSprint, sprintEndDate, totalWeekdays, holidayWeekdays, isCompleted, onExport },
+    ref
+) {
+    const [velocitySummary, setVelocitySummary] = useState<VelocityPoint | null>(null);
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        api.getVelocityHistory(sprintId, { mode: "lastN", n: 1 }).then((points) => setVelocitySummary(points[0] ?? null));
+    }, [sprintId]);
+
+    async function handleExport() {
+        setLoading(true);
+        try {
+            await onExport();
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    useImperativeHandle(ref, () => ({
+        getReportSection() {
+            return {
+                title: `Summary - ${selectedSprint.name}`,
+                lines: [
+                    `Sprint: ${selectedSprint.name} (${selectedSprint.startDate} to ${sprintEndDate})`,
+                    `Completed: ${isCompleted ? "yes" : "ongoing"}`,
+                    `Pull requests: ${stats.prCount}`,
+                    `Stories: ${stats.storyCount}`,
+                    `Repos touched: ${stats.repoCounts.length}`,
+                    `Sprint days (excl. weekends): ${totalWeekdays}`,
+                    `Holidays: ${holidayWeekdays}`,
+                    `Velocity: ${velocitySummary?.completedPoints ?? 0} pts${
+                        velocitySummary && velocitySummary.unpointedDoneStoryCount > 0
+                            ? ` (${velocitySummary.unpointedDoneStoryCount} stories unpointed)`
+                            : ""
+                    }`,
+                ],
+            };
+        },
+    }));
+
     return (
         <>
             <div className="page-header">
                 <h2>Summary</h2>
-                <ExportButton onClick={onExport} loading={loading} />
+                <ExportButton onClick={handleExport} loading={loading} />
             </div>
             <div className="stats-summary">
                 <div className="stat-tile">
@@ -70,4 +108,4 @@ export function SummarySection({
             </div>
         </>
     );
-}
+});

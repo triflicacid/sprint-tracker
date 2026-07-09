@@ -1,22 +1,32 @@
-import React, { forwardRef } from "react";
+import React, { forwardRef, useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import type { SprintStats } from "@shared/types";
 import { ExportButton } from "../ExportButton";
 
 interface RepoDistributionSectionProps {
     repoCounts: SprintStats["repoCounts"];
-    onExport: () => void;
-    loading: boolean;
+    onExport: () => Promise<void>;
 }
 
 // bar chart of pull requests per repo for the selected sprint.
 export const RepoDistributionSection = forwardRef<HTMLDivElement, RepoDistributionSectionProps>(
-    function RepoDistributionSection({ repoCounts, onExport, loading }, ref) {
+    function RepoDistributionSection({ repoCounts, onExport }, ref) {
+        const [loading, setLoading] = useState(false);
+
+        async function handleExport() {
+            setLoading(true);
+            try {
+                await onExport();
+            } finally {
+                setLoading(false);
+            }
+        }
+
         return (
             <>
                 <div className="page-header">
                     <h2>Repo distribution</h2>
-                    <ExportButton onClick={onExport} loading={loading} />
+                    <ExportButton onClick={handleExport} loading={loading} />
                 </div>
                 <div ref={ref}>
                     <ResponsiveContainer width="100%" height={280}>

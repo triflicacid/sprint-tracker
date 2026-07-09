@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { createRef, type ComponentProps } from "react";
 import type { BurndownPoint, AdvancedBurndownPoint } from "../../utils/burndown";
 import { BurndownSection } from "./BurndownSection";
+import { deferred } from "../../testUtils/deferred";
 
 const burndownPoints: BurndownPoint[] = [
     { date: "2026-03-02", actual: 4, ideal: 4 },
@@ -18,14 +19,11 @@ const advancedBurndownPoints: AdvancedBurndownPoint[] = [
 function renderSection(overrides: Partial<ComponentProps<typeof BurndownSection>> = {}) {
     return render(
         <BurndownSection
-            burndownMode="basic"
-            setBurndownMode={vi.fn()}
             granularity="subtask"
             setGranularity={vi.fn()}
             burndownPoints={burndownPoints}
             advancedBurndownPoints={advancedBurndownPoints}
             onExport={vi.fn()}
-            loading={false}
             {...overrides}
         />
     );
@@ -39,8 +37,10 @@ describe("BurndownSection", () => {
         expect(visibleChart.getByText("ideal")).toBeInTheDocument();
     });
 
-    it("shows the per-milestone chart when mode is advanced", () => {
-        renderSection({ burndownMode: "advanced" });
+    it("switches to the per-milestone chart when the advanced toggle is clicked", async () => {
+        renderSection();
+        await userEvent.click(screen.getByRole("button", { name: "advanced" }));
+
         const visibleChart = within(screen.getByTestId("burndown-chart-visible"));
         expect(visibleChart.queryByText("actual")).not.toBeInTheDocument();
         expect(visibleChart.getByText("ideal")).toBeInTheDocument();
@@ -50,11 +50,13 @@ describe("BurndownSection", () => {
         expect(visibleChart.getByText("done")).toBeInTheDocument();
     });
 
-    it("calls setBurndownMode when the basic/advanced toggle is clicked", async () => {
-        const setBurndownMode = vi.fn();
-        renderSection({ setBurndownMode });
+    it("switches back to the basic chart when the basic toggle is clicked", async () => {
+        renderSection();
         await userEvent.click(screen.getByRole("button", { name: "advanced" }));
-        expect(setBurndownMode).toHaveBeenCalledWith("advanced");
+        await userEvent.click(screen.getByRole("button", { name: "basic" }));
+
+        const visibleChart = within(screen.getByTestId("burndown-chart-visible"));
+        expect(visibleChart.getByText("actual")).toBeInTheDocument();
     });
 
     it("calls setGranularity when the subtask/story toggle is clicked", async () => {
@@ -64,8 +66,10 @@ describe("BurndownSection", () => {
         expect(setGranularity).toHaveBeenCalledWith("story");
     });
 
-    it("always renders both basic and advanced charts side by side in the off-screen export twin", () => {
-        renderSection({ burndownMode: "basic" });
+    it("always renders both basic and advanced charts side by side in the off-screen export twin, regardless of the on-screen toggle", async () => {
+        renderSection();
+        await userEvent.click(screen.getByRole("button", { name: "advanced" }));
+
         const exportTwin = within(screen.getByTestId("burndown-chart-export"));
         expect(exportTwin.getByText("Basic")).toBeInTheDocument();
         expect(exportTwin.getByText("Advanced")).toBeInTheDocument();
@@ -76,23 +80,26 @@ describe("BurndownSection", () => {
         render(
             <BurndownSection
                 ref={ref}
-                burndownMode="basic"
-                setBurndownMode={vi.fn()}
                 granularity="subtask"
                 setGranularity={vi.fn()}
                 burndownPoints={burndownPoints}
                 advancedBurndownPoints={advancedBurndownPoints}
                 onExport={vi.fn()}
-                loading={false}
             />
         );
         expect(ref.current).toBe(screen.getByTestId("burndown-chart-export").firstElementChild);
     });
 
-    it("wires up the export button", async () => {
-        const onExport = vi.fn();
+    it("wires up the export button, owning its own loading state while the export is in flight", async () => {
+        const { promise, resolve } = deferred();
+        const onExport = vi.fn(() => promise);
         renderSection({ onExport });
+
         await userEvent.click(screen.getByRole("button", { name: "export pdf" }));
         expect(onExport).toHaveBeenCalledOnce();
+        expect(screen.getByRole("button", { name: "exporting..." })).toBeDisabled();
+
+        resolve();
+        expect(await screen.findByRole("button", { name: "export pdf" })).toBeEnabled();
     });
 });

@@ -1,4 +1,4 @@
-import React, { forwardRef } from "react";
+import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import {
     BarChart,
     Bar,
@@ -13,6 +13,7 @@ import {
     Label,
 } from "recharts";
 import type { ComplexityStats, ComplexityTimingPoint } from "@shared/types";
+import { api } from "../../api/client";
 import { ExportButton } from "../ExportButton";
 import { colorForStory } from "../../utils/storyColor";
 import {
@@ -21,9 +22,11 @@ import {
     groupPointsByStory,
     type ComplexityAveragePoint,
 } from "../../utils/complexityStats";
+import type { PdfSection } from "../../utils/pdfExport";
 
 const AVERAGE_POINT_COLOR = "#ffffff";
 
+// custom scatter tooltip - handles both a per-subtask point and an average marker.
 function ComplexityTooltip({
     active,
     payload,
@@ -54,16 +57,65 @@ function ComplexityTooltip({
     );
 }
 
+export interface ComplexitySectionHandle {
+    getReportSection(): PdfSection;
+}
+
 interface ComplexitySectionProps {
-    complexity: ComplexityStats | null;
-    onExport: () => void;
-    loading: boolean;
+    sprintId: number;
+    onExport: () => Promise<void>;
 }
 
 // per-rating tally, per-story total complexity, and complexity-vs-running-time
-// scatter for the selected sprint.
-export const ComplexitySection = forwardRef<HTMLDivElement, ComplexitySectionProps>(
-    function ComplexitySection({ complexity, onExport, loading }, ref) {
+export const ComplexitySection = forwardRef<ComplexitySectionHandle, ComplexitySectionProps>(
+    function ComplexitySection({ sprintId, onExport }, ref) {
+        const [complexity, setComplexity] = useState<ComplexityStats | null>(null);
+        const [loading, setLoading] = useState(false);
+        const chartRef = useRef<HTMLDivElement>(null);
+
+        useEffect(() => {
+            api.getComplexityTiming(sprintId).then(setComplexity);
+        }, [sprintId]);
+
+        async function handleExport() {
+            setLoading(true);
+            try {
+                await onExport();
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        useImperativeHandle(ref, () => ({
+            getReportSection() {
+                return {
+                    title: "Complexity",
+                    element: chartRef.current ?? undefined,
+                    lines: complexity
+                        ? (() => {
+                              const complexityAverages = averageRunningTimeByComplexity(complexity.points);
+                              let complexitiesByRating: typeof complexity.storyComplexity;
+                              let averageRunningTime: ComplexityAveragePoint | undefined;
+                              return [
+                                  ...COMPLEXITY_RATINGS.map(
+                                      (rating) => `Complexity ${rating}: ${complexity.ratingCounts[rating] ?? 0} subtask${(complexity.ratingCounts[rating] ?? 0) === 1 ? "" : "s"}`
+                                        + ((complexitiesByRating = complexity.storyComplexity.filter((story) => story.totalComplexity === rating)).length > 0
+                                              ? ` (${complexitiesByRating
+                                                  .map((story) => story.storyLabel)
+                                                  .join(', ')})`
+                                              : '')
+                                        + ((averageRunningTime = complexityAverages.find((average) => average.complexityRating === rating))
+                                              ? `, with an average running time of ${averageRunningTime.runningTimeDays} day${averageRunningTime.runningTimeDays === 1 ? '' : 's'}`
+                                              : '')
+                                  ),
+                                  `Unrated/not done: ${complexity.unratedCount + complexity.inProgressRatedCount}`,
+                              ];
+                          })()
+                        : [],
+                };
+            },
+        }));
+
         // don't show average points in the graph if there is only one rating (as rating == average)
         const complexityChartAverages = complexity
             ? averageRunningTimeByComplexity(complexity.points).filter((average) => average.pointCount > 1)
@@ -73,9 +125,9 @@ export const ComplexitySection = forwardRef<HTMLDivElement, ComplexitySectionPro
             <>
                 <div className="page-header">
                     <h2>Complexity</h2>
-                    <ExportButton onClick={onExport} loading={loading} />
+                    <ExportButton onClick={handleExport} loading={loading} />
                 </div>
-                <div ref={ref}>
+                <div ref={chartRef}>
                     <div className="stats-summary">
                         {COMPLEXITY_RATINGS.map((rating) => (
                             <div className="stat-tile" key={rating}>

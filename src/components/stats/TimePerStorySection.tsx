@@ -1,22 +1,32 @@
-import React, { forwardRef } from "react";
+import React, { forwardRef, useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import type { SprintStats } from "@shared/types";
 import { ExportButton } from "../ExportButton";
 
 interface TimePerStorySectionProps {
     storyTimeDays: SprintStats["storyTimeDays"];
-    onExport: () => void;
-    loading: boolean;
+    onExport: () => Promise<void>;
 }
 
 // bar chart of days spent per completed story for the selected sprint.
 export const TimePerStorySection = forwardRef<HTMLDivElement, TimePerStorySectionProps>(
-    function TimePerStorySection({ storyTimeDays, onExport, loading }, ref) {
+    function TimePerStorySection({ storyTimeDays, onExport }, ref) {
+        const [loading, setLoading] = useState(false);
+
+        async function handleExport() {
+            setLoading(true);
+            try {
+                await onExport();
+            } finally {
+                setLoading(false);
+            }
+        }
+
         return (
             <>
                 <div className="page-header">
                     <h2>Time per story (days)</h2>
-                    <ExportButton onClick={onExport} loading={loading} />
+                    <ExportButton onClick={handleExport} loading={loading} />
                 </div>
                 <div ref={ref}>
                     <ResponsiveContainer width="100%" height={280}>

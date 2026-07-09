@@ -1,4 +1,4 @@
-import React, { forwardRef } from "react";
+import React, { forwardRef, useState } from "react";
 import type { StatusBreakdownGranularity } from "@shared/types";
 import type { BurndownPoint, AdvancedBurndownPoint } from "../../utils/burndown";
 import { BurndownChart } from "./BurndownChart";
@@ -7,30 +7,30 @@ import { ExportButton } from "../ExportButton";
 import { BURNDOWN_MILESTONES } from "../StatusBadge";
 
 interface BurndownSectionProps {
-    burndownMode: "basic" | "advanced";
-    setBurndownMode: (mode: "basic" | "advanced") => void;
     granularity: StatusBreakdownGranularity;
     setGranularity: (granularity: StatusBreakdownGranularity) => void;
     burndownPoints: BurndownPoint[];
     advancedBurndownPoints: AdvancedBurndownPoint[];
-    onExport: () => void;
-    loading: boolean;
+    onExport: () => Promise<void>;
 }
 
 // basic/advanced burndown
 export const BurndownSection = forwardRef<HTMLDivElement, BurndownSectionProps>(function BurndownSection(
-    {
-        burndownMode,
-        setBurndownMode,
-        granularity,
-        setGranularity,
-        burndownPoints,
-        advancedBurndownPoints,
-        onExport,
-        loading,
-    },
+    { granularity, setGranularity, burndownPoints, advancedBurndownPoints, onExport },
     ref
 ) {
+    const [burndownMode, setBurndownMode] = useState<"basic" | "advanced">("basic");
+    const [loading, setLoading] = useState(false);
+
+    async function handleExport() {
+        setLoading(true);
+        try {
+            await onExport();
+        } finally {
+            setLoading(false);
+        }
+    }
+
     return (
         <>
             <div className="page-header">
@@ -64,7 +64,7 @@ export const BurndownSection = forwardRef<HTMLDivElement, BurndownSectionProps>(
                             stories
                         </button>
                     </div>
-                    <ExportButton onClick={onExport} loading={loading} />
+                    <ExportButton onClick={handleExport} loading={loading} />
                 </div>
             </div>
             <div data-testid="burndown-chart-visible">
