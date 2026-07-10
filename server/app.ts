@@ -1,4 +1,4 @@
-import express, { Express, Request, Response, NextFunction } from "express";
+import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import path from "path";
 import { sprintsRouter } from "./routes/sprints.js";
@@ -43,7 +43,7 @@ export function createApp() {
     });
 
     // hacky way of handling errors, but oh well
-    app.use((error: Error, _req: Request, res: Response, _next: NextFunction) => {
+    app.use((error: Error, _req: Request, res: Response) => {
         console.error(error);
         res.status(500).json({ error: "internal server error" });
     });

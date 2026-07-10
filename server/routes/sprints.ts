@@ -28,7 +28,7 @@ sprintsRouter.get("/:id", (req: Request, res: Response) => {
 });
 
 sprintsRouter.patch("/:id", (req: Request, res: Response) => {
-    const sprintId: number = Number(req.params.id);
+    const sprintId = Number(req.params.id);
     updateSprint(sprintId, req.body);
     const sprint = getSprintDetail(sprintId);
     res.json(sprint);

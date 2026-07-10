@@ -416,7 +416,7 @@ describe("getVelocityHistory", () => {
     });
 
     it("mode 'lastN' returns the anchor sprint plus its n-1 most recent predecessors, chronological", () => {
-        const sprintA = insertSprint("2026-01-01", "2026-01-31");
+        insertSprint("2026-01-01", "2026-01-31");
         const sprintB = insertSprint("2026-02-01", "2026-02-28");
         const sprintC = insertSprint("2026-03-01", "2026-03-31");
         insertSprint("2026-04-01", "2026-04-30"); // after the anchor, excluded

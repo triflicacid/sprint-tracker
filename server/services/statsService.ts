@@ -192,8 +192,8 @@ export function getStatusBreakdown(sprintId: number, granularity: StatusBreakdow
         )
         .all(sprintId) as { id: number; story_id: number; status: SubtaskStatus }[];
 
-    const historyBySubtask: Map<number, { status: SubtaskStatus; changedAt: string }[]> = new Map();
-    const currentStatusBySubtask: Map<number, SubtaskStatus> = new Map();
+    const historyBySubtask = new Map<number, { status: SubtaskStatus; changedAt: string }[]>();
+    const currentStatusBySubtask = new Map<number, SubtaskStatus>();
     for (const row of subtaskRows) {
         const entries = db
             .prepare(
@@ -239,7 +239,7 @@ export function getStatusBreakdown(sprintId: number, granularity: StatusBreakdow
             for (const status of STORY_STATUSES) {
                 counts[status] = 0;
             }
-            const subtaskStatusesByStory: Map<number, SubtaskStatus[]> = new Map();
+            const subtaskStatusesByStory = new Map<number, SubtaskStatus[]>();
             for (const row of subtaskRows) {
                 const status = subtaskStatusAsOf(row.id, dateString);
                 const list = subtaskStatusesByStory.get(row.story_id) ?? [];
