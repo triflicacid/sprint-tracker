@@ -22,6 +22,9 @@ class ResizeObserverStub {
             this as unknown as ResizeObserver
         );
     }
+
+    unobserve() {}
+    disconnect() {}
 }
 
 vi.stubGlobal("ResizeObserver", ResizeObserverStub);
