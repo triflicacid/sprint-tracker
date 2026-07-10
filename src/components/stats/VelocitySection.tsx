@@ -1,6 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bar, ComposedChart, Line, Cell, LabelList, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import {
+    Bar, ComposedChart, Line, Cell, LabelList, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
+    RenderableText
+} from "recharts";
 import type { SprintSummary, VelocityPoint, VelocitySelection } from "@shared/types";
 import { api } from "../../api/client";
 import { ExportButton } from "../ExportButton";
@@ -190,8 +193,8 @@ export function VelocitySection({ sprints, latestSprintId }: VelocitySectionProp
                                 dataKey="completedPoints"
                                 name="completed points"
                                 cursor="pointer"
-                                onClick={(data: { payload: VelocityChartPoint }) =>
-                                    navigate(`/stats/${data.payload.sprintId}`)
+                                onClick={(data: { payload?: VelocityChartPoint }) =>
+                                    data.payload && navigate(`/stats/${data.payload.sprintId}`)
                                 }
                             >
                                 {velocityChartData.map((point) => (
@@ -204,7 +207,7 @@ export function VelocitySection({ sprints, latestSprintId }: VelocitySectionProp
                                     dataKey="unpointedDoneStoryCount"
                                     position="top"
                                     fill="#9ca3af"
-                                    formatter={(value: number) => (value > 0 ? `${value} unpointed` : "")}
+                                    formatter={(label) => (Number(label) > 0 ? `${label} unpointed` : "")}
                                 />
                             </Bar>
                             <Line

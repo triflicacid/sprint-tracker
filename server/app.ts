@@ -30,7 +30,7 @@ export function createApp() {
 
     const clientDist = path.join(process.cwd(), "dist", "client");
     app.use(express.static(clientDist));
-    app.get("*", (req: Request, res: Response, next: NextFunction) => {
+    app.get("/*splat", (req: Request, res: Response, next: NextFunction) => {
         if (req.path.startsWith("/api")) {
             next();
             return;
