@@ -1,10 +1,20 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter } from "react-router-dom";
+import type { ComponentProps } from "react";
 import type { SprintSummary, VelocityPoint } from "@shared/types";
 import { VelocitySection } from "./VelocitySection";
 import { api } from "../../api/client";
 import { exportSectionsAsPdf } from "../../utils/pdfExport";
+
+function renderVelocitySection(props: ComponentProps<typeof VelocitySection>) {
+    return render(
+        <MemoryRouter>
+            <VelocitySection {...props} />
+        </MemoryRouter>
+    );
+}
 
 vi.mock("../../api/client", () => ({
     api: {
@@ -58,13 +68,13 @@ beforeEach(() => {
 
 describe("VelocitySection", () => {
     it("loads the last-5-sprints window by default, anchored on the latest sprint", async () => {
-        render(<VelocitySection sprints={sprints} latestSprintId={1} />);
+        renderVelocitySection({ sprints, latestSprintId: 1 });
         await screen.findByText("completed points");
         expect(api.getVelocityHistory).toHaveBeenCalledWith(1, { mode: "lastN", n: 5 });
     });
 
     it("switches to all sprints when that toggle is clicked", async () => {
-        render(<VelocitySection sprints={sprints} latestSprintId={1} />);
+        renderVelocitySection({ sprints, latestSprintId: 1 });
         await screen.findByText("completed points");
 
         await userEvent.click(screen.getByRole("button", { name: "all sprints" }));
@@ -72,7 +82,7 @@ describe("VelocitySection", () => {
     });
 
     it("switches to a date range when that toggle is clicked", async () => {
-        render(<VelocitySection sprints={sprints} latestSprintId={1} />);
+        renderVelocitySection({ sprints, latestSprintId: 1 });
         await screen.findByText("completed points");
 
         await userEvent.click(screen.getByRole("button", { name: "date range" }));
@@ -84,7 +94,7 @@ describe("VelocitySection", () => {
     });
 
     it("draws a running-average line alongside the completed-points bars", async () => {
-        render(<VelocitySection sprints={sprints} latestSprintId={1} />);
+        renderVelocitySection({ sprints, latestSprintId: 1 });
         await screen.findByText("completed points");
 
         expect(screen.getByText("average velocity")).toBeInTheDocument();
@@ -93,18 +103,18 @@ describe("VelocitySection", () => {
     });
 
     it("shows the selection's average velocity as a caption below the chart", async () => {
-        render(<VelocitySection sprints={sprints} latestSprintId={1} />);
+        renderVelocitySection({ sprints, latestSprintId: 1 });
         expect(await screen.findByText(/average velocity within the selection is 6/)).toBeInTheDocument();
     });
 
     it("shows a placeholder when the selection has no sprints", async () => {
         vi.mocked(api.getVelocityHistory).mockResolvedValue([]);
-        render(<VelocitySection sprints={sprints} latestSprintId={1} />);
+        renderVelocitySection({ sprints, latestSprintId: 1 });
         expect(await screen.findByText("No sprints in this selection yet.")).toBeInTheDocument();
     });
 
     it("exports its own pdf independent of the page-level export-all", async () => {
-        render(<VelocitySection sprints={sprints} latestSprintId={1} />);
+        renderVelocitySection({ sprints, latestSprintId: 1 });
         await screen.findByText("completed points");
 
         await userEvent.click(screen.getByRole("button", { name: "export pdf" }));

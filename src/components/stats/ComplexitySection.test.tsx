@@ -59,8 +59,10 @@ describe("ComplexitySection", () => {
 
     it("does not draw the average square marker on the chart for a rating with only one point", async () => {
         const { container } = render(<ComplexitySection sprintId={1} onExport={vi.fn()} />);
-        await screen.findByText("complexity 3");
-        expect(container.querySelectorAll('[fill="#ffffff"]')).toHaveLength(0);
+        await screen.findByText(/Average running time by complexity/);
+        await vi.waitFor(() => {
+            expect(container.querySelectorAll('[fill="#ffffff"]')).toHaveLength(0);
+        });
     });
 
     it("draws the average square marker on the chart for a rating with more than one point", async () => {
@@ -80,7 +82,9 @@ describe("ComplexitySection", () => {
         const { container } = render(<ComplexitySection sprintId={1} onExport={vi.fn()} />);
 
         expect(await screen.findByText(/Average running time by complexity/)).toHaveTextContent("3: 4 days");
-        expect(container.querySelectorAll('[fill="#ffffff"]').length).toBeGreaterThan(0);
+        await vi.waitFor(() => {
+            expect(container.querySelectorAll('[fill="#ffffff"]').length).toBeGreaterThan(0);
+        });
     });
 
     it("exposes the Complexity pdf section (text and chart dom node) via the imperative handle", async () => {
