@@ -8,7 +8,7 @@ const rootElement = document.getElementById("root") as HTMLElement;
 
 ReactDOM.createRoot(rootElement).render(
     <React.StrictMode>
-        <BrowserRouter future={{ v7_startTransition: true }}>
+        <BrowserRouter>
             <App />
         </BrowserRouter>
     </React.StrictMode>

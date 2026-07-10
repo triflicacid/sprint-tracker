@@ -1,5 +1,6 @@
 import { Router, Request, Response } from "express";
 import { listHolidaysInRange, addHoliday, removeHoliday } from "../services/holidayService.js";
+import {getFirst} from "../utils/payload.js";
 
 export const holidaysRouter: Router = Router();
 
@@ -20,6 +21,6 @@ holidaysRouter.post("/", (req: Request, res: Response) => {
 });
 
 holidaysRouter.delete("/:date", (req: Request, res: Response) => {
-    removeHoliday(req.params.date);
+    removeHoliday(getFirst(req.params.date));
     res.status(204).send();
 });
