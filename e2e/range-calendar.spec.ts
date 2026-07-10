@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { seedSprint, seedStory, seedSubtask, transitionSubtask } from "./seed.js";
+import { seedSprint, seedStory, seedSubtask, transitionSubtask } from "./seed";
 
 test("calendar page renders sprints as range-lines, splitting a shared handoff day in half", async ({
     page,
@@ -10,11 +10,6 @@ test("calendar page renders sprints as range-lines, splitting a shared handoff d
         name: `E2E Range A ${suffix}`,
         startDate: "2026-05-01",
         endDate: "2026-05-15",
-    });
-    const sprintB = await seedSprint(request, {
-        name: `E2E Range B ${suffix}`,
-        startDate: "2026-05-15",
-        endDate: "2026-05-29",
     });
 
     await page.goto("/calendar");

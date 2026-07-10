@@ -20,7 +20,7 @@ import type {
     VelocitySelection,
 } from "@shared/types";
 
-const BASE_URL: string = "/api";
+const BASE_URL = "/api";
 
 // generic request helper. throws with the server's error message when
 // the response is not ok.

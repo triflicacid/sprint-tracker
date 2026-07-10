@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import type { SubtaskStatus, FlowField, StatusFlowConfig } from "../../shared/types.js";
+import type { SubtaskStatus, StatusFlowConfig } from "../../shared/types.js";
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 

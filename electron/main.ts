@@ -32,7 +32,7 @@ function createWindow(): void {
     const targetUrl: string = isDev ? "http://localhost:5173" : `http://localhost:${port}`;
     console.log("Attempting to load window", targetUrl)
     window.loadURL(targetUrl)
-        .then(_ => console.log("Success"))
+        .then(() => console.log("Success"))
         .catch(e => console.error(e));
 }
 

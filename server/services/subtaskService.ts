@@ -69,7 +69,7 @@ export function createSubtask(storyId: number, input: CreateSubtaskInput): Subta
     const result = db
         .prepare("INSERT INTO subtasks (story_id, title, status) VALUES (?, ?, 'NEW')")
         .run(storyId, input.title);
-    const id: number = Number(result.lastInsertRowid);
+    const id = Number(result.lastInsertRowid);
     recordStatusChange("subtask", id, "NEW", null);
     const created: SubtaskRow = db.prepare("SELECT * FROM subtasks WHERE id = ?").get(id) as SubtaskRow;
     return rowToSubtask(created);
