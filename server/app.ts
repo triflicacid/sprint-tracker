@@ -28,7 +28,7 @@ export function createApp() {
     app.use("/api/holidays", holidaysRouter);
     app.use("/api/export", exportRouter);
 
-    const clientDist = path.join(process.cwd(), "dist", "client");
+    const clientDist = process.env.CLIENT_DIST_PATH ?? path.join(process.cwd(), "dist", "client");
     app.use(express.static(clientDist));
     app.get("/*splat", (req: Request, res: Response, next: NextFunction) => {
         if (req.path.startsWith("/api")) {

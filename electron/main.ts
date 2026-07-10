@@ -16,6 +16,8 @@ async function startServer() {
         return;
     }
     process.env.DB_PATH = path.join(__dirname, "..", "..", "data", "sprint-tracker.sqlite3");
+    process.env.DATA_DIR = path.join(__dirname, "..", "..", "data");
+    process.env.CLIENT_DIST_PATH = path.join(__dirname, "..", "client");
     process.env.PORT = String(port);
     await import(pathToFileURL(path.join(__dirname, "..", "server", "index.js")).href);
 }
