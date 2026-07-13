@@ -4,6 +4,7 @@ import type { SprintDetail } from "@shared/types";
 import { api } from "../api/client";
 import { StoryCard } from "../components/stories/StoryCard";
 import { formatIsoDate } from "../utils/calendarGrid";
+import { isSprintLocked } from "../utils/sprintLock";
 import { loadExportFields } from "../utils/exportFields";
 import { downloadTextFile } from "../utils/download";
 import { useToast } from "../components/Toast";
@@ -112,6 +113,9 @@ export function SprintDetailPage(): React.ReactElement {
         return <div className="page">loading...</div>;
     }
 
+    const locked = isSprintLocked(sprint);
+    const lockedTitle = "this sprint has ended";
+
     return (
         <div className="page">
             <div className="page-header">
@@ -142,7 +146,12 @@ export function SprintDetailPage(): React.ReactElement {
                 {holidays.map((date) => (
                     <span key={date} className="holiday-chip">
                         {date}
-                        <button className="holiday-remove" onClick={() => handleRemoveHoliday(date)}>
+                        <button
+                            className="holiday-remove"
+                            onClick={() => handleRemoveHoliday(date)}
+                            disabled={locked}
+                            title={locked ? lockedTitle : undefined}
+                        >
                             x
                         </button>
                     </span>
@@ -153,8 +162,12 @@ export function SprintDetailPage(): React.ReactElement {
                     min={sprint.startDate}
                     max={sprint.endDate ?? undefined}
                     onChange={(event) => setNewHolidayDate(event.target.value)}
+                    disabled={locked}
+                    title={locked ? lockedTitle : undefined}
                 />
-                <button onClick={handleAddHoliday}>add holiday</button>
+                <button onClick={handleAddHoliday} disabled={locked} title={locked ? lockedTitle : undefined}>
+                    add holiday
+                </button>
             </div>
 
             {showForm && (

@@ -1,8 +1,14 @@
 import { Router, Request, Response } from "express";
-import { getStoryDetail, updateStoryAwaitingMoreSubtasks, updateStoryPoints } from "../services/storyService.js";
+import {
+    addTagToStory,
+    getStoryDetail,
+    removeTagFromStory,
+    updateStoryAwaitingMoreSubtasks,
+    updateStoryPoints,
+} from "../services/storyService.js";
 import type { StorySummary } from "../../shared/types.js";
 import { createSubtask } from "../services/subtaskService.js";
-import { findOrCreateTag, attachTag, getTagsForEntity, removeTag } from "../services/tagService.js";
+import { getTagsForEntity } from "../services/tagService.js";
 
 export const storiesRouter: Router = Router();
 
@@ -58,14 +64,13 @@ storiesRouter.post("/:id/tags", (req: Request, res: Response) => {
         res.status(400).json({ error: "name is required" });
         return;
     }
-    const tag = findOrCreateTag(name, "custom");
-    attachTag("story", storyId, tag.id);
+    const tag = addTagToStory(storyId, name, "custom");
     res.status(201).json(tag);
 });
 
 storiesRouter.delete("/:id/tags/:tagId", (req: Request, res: Response) => {
     const storyId = Number(req.params.id);
     const tagId = Number(req.params.tagId);
-    removeTag("story", storyId, tagId);
+    removeTagFromStory(storyId, tagId);
     res.status(204).send();
 });

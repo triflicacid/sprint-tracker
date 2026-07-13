@@ -4,6 +4,7 @@ import { recordStatusChange } from "./statusHistoryService.js";
 import { isTransitionAllowed, getRequiredFields, locksComplexityRating } from "./statusFlowService.js";
 import { extractRepoName } from "../utils/githubUrl.js";
 import { tagStoryWithRepo } from "./tagService.js";
+import { isSprintLocked, SprintLockedError } from "./sprintLockService.js";
 
 interface SubtaskRow {
     id: number;
@@ -34,6 +35,27 @@ interface UpdateSubtaskInput {
 }
 
 export class SubtaskUpdateError extends Error {}
+
+// looks up the end date of the sprint a story belongs to; undefined if the
+// story does not exist.
+function getSprintEndDateForStory(storyId: number): string | null | undefined {
+    const row = db
+        .prepare(
+            `SELECT sprints.end_date AS end_date
+             FROM stories
+             JOIN sprints ON sprints.id = stories.sprint_id
+             WHERE stories.id = ?`
+        )
+        .get(storyId) as { end_date: string | null } | undefined;
+    return row?.end_date;
+}
+
+function assertStorySprintUnlocked(storyId: number): void {
+    const endDate = getSprintEndDateForStory(storyId);
+    if (endDate !== undefined && isSprintLocked({ endDate })) {
+        throw new SprintLockedError("cannot modify a subtask in a sprint that has ended");
+    }
+}
 
 function rowToSubtask(row: SubtaskRow): Subtask {
     return {
@@ -66,6 +88,7 @@ export function getSubtaskById(id: number): Subtask | undefined {
 }
 
 export function createSubtask(storyId: number, input: CreateSubtaskInput): Subtask {
+    assertStorySprintUnlocked(storyId);
     const result = db
         .prepare("INSERT INTO subtasks (story_id, title, status) VALUES (?, ?, 'NEW')")
         .run(storyId, input.title);
@@ -85,6 +108,7 @@ export function updateSubtask(subtaskId: number, input: UpdateSubtaskInput): Sub
     if (!existing) {
         throw new SubtaskUpdateError("subtask not found");
     }
+    assertStorySprintUnlocked(existing.story_id);
 
     const nextStatus: SubtaskStatus = input.status ?? existing.status;
     const statusChanging: boolean = input.status !== undefined && input.status !== existing.status;
