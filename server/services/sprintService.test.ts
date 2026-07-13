@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { listSprintSummaries, createSprint, getSprintDetail, updateSprint } from "./sprintService.js";
-import { SprintLockedError } from "./sprintLockService.js";
+import { SprintLockedError } from "../../shared/sprintLock.js";
 
 describe("createSprint", () => {
     it("creates a sprint with the given fields", () => {

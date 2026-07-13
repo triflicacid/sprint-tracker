@@ -4,7 +4,7 @@ import { extractJiraKey } from "../utils/githubUrl.js";
 import { attachTag, findOrCreateTag, getTagsForEntity, removeTag } from "./tagService.js";
 import { getSubtasksForStory } from "./subtaskService.js";
 import { rankOf } from "./statusFlowService.js";
-import { isSprintLocked, SprintLockedError } from "./sprintLockService.js";
+import { isSprintLocked, SprintLockedError } from "../../shared/sprintLock.js";
 
 interface StoryRow {
     id: number;

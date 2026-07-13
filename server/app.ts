@@ -11,7 +11,7 @@ import { jiraRouter } from "./routes/jira.js";
 import { statusFlowRouter } from "./routes/statusFlow.js";
 import { holidaysRouter } from "./routes/holidays.js";
 import { exportRouter } from "./routes/export.js";
-import { SprintLockedError } from "./services/sprintLockService.js";
+import { SprintLockedError } from "../shared/sprintLock.js";
 
 export function createApp() {
     const app = express();

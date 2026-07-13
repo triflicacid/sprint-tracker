@@ -3,7 +3,7 @@ import { db } from "../db/connection.js";
 import { createSubtask, updateSubtask, getSubtaskById, getSubtasksForStory, SubtaskUpdateError } from "./subtaskService.js";
 import { getHistoryForEntity } from "./statusHistoryService.js";
 import { getTagsForEntity } from "./tagService.js";
-import { SprintLockedError } from "./sprintLockService.js";
+import { SprintLockedError } from "../../shared/sprintLock.js";
 
 let storyId: number;
 

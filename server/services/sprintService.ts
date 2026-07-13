@@ -1,7 +1,7 @@
 import { db } from "../db/connection.js";
 import type { SprintSummary, SprintDetail } from "../../shared/types.js";
 import { getStorySummariesForSprint } from "./storyService.js";
-import { isSprintLocked, SprintLockedError } from "./sprintLockService.js";
+import { isSprintLocked, SprintLockedError } from "../../shared/sprintLock.js";
 
 interface SprintRow {
     id: number;

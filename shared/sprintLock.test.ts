@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { isSprintLocked } from "./sprintLockService.js";
+import { isSprintLocked } from "./sprintLock.js";
 
 function offsetFromToday(days: number): string {
     const date = new Date();

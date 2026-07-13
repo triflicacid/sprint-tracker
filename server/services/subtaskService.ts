@@ -4,7 +4,7 @@ import { recordStatusChange } from "./statusHistoryService.js";
 import { isTransitionAllowed, getRequiredFields, locksComplexityRating } from "./statusFlowService.js";
 import { extractRepoName } from "../utils/githubUrl.js";
 import { tagStoryWithRepo } from "./tagService.js";
-import { isSprintLocked, SprintLockedError } from "./sprintLockService.js";
+import { isSprintLocked, SprintLockedError } from "../../shared/sprintLock.js";
 
 interface SubtaskRow {
     id: number;

@@ -12,7 +12,7 @@ import {
     addTagToStory,
     removeTagFromStory,
 } from "./storyService.js";
-import { SprintLockedError } from "./sprintLockService.js";
+import { SprintLockedError } from "../../shared/sprintLock.js";
 
 function insertSprint(): number {
     const result = db
