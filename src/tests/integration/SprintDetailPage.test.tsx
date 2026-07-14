@@ -125,6 +125,16 @@ describe("SprintDetailPage", () => {
         expect(heading.querySelector("svg.lock-icon")).toBeNull();
     });
 
+    it("disables the new-story button and comment editor once the sprint has ended", async () => {
+        vi.mocked(api.getSprint).mockResolvedValue(lockedSprint);
+        renderPage();
+        await screen.findByText("a story");
+
+        expect(screen.getByText("new story")).toBeDisabled();
+        await userEvent.click(screen.getByText("add comment"));
+        expect(document.querySelector(".comment-edit")).not.toBeInTheDocument();
+    });
+
     it("creates a story through the form", async () => {
         vi.mocked(api.createStory).mockResolvedValue({ ...sprint.stories[0], id: 2 });
         renderPage();

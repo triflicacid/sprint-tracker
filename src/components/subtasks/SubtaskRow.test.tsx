@@ -43,7 +43,7 @@ const baseSubtask: Subtask = {
     createdAt: "2026-01-01",
 };
 
-function renderRow(subtask: Subtask, disableNavigation = false) {
+function renderRow(subtask: Subtask, disableNavigation = false, sprintLocked = false) {
     const onChanged = vi.fn();
     render(
         <MemoryRouter initialEntries={["/stories/10"]}>
@@ -51,7 +51,15 @@ function renderRow(subtask: Subtask, disableNavigation = false) {
                 <Routes>
                     <Route
                         path="/stories/:id"
-                        element={<SubtaskRow subtask={subtask} flow={flow} onChanged={onChanged} disableNavigation={disableNavigation} />}
+                        element={
+                            <SubtaskRow
+                                subtask={subtask}
+                                flow={flow}
+                                onChanged={onChanged}
+                                disableNavigation={disableNavigation}
+                                sprintLocked={sprintLocked}
+                            />
+                        }
                     />
                     <Route path="/subtasks/:id" element={<div>subtask detail page</div>} />
                 </Routes>
@@ -168,6 +176,23 @@ describe("SubtaskRow - status transitions", () => {
     it("leaves the complexity select enabled for states that don't lock it", () => {
         renderRow({ ...baseSubtask, status: "IN_PR", url: "https://github.com/org/repo/pull/1" });
         expect(screen.getByRole("combobox")).toBeEnabled();
+    });
+});
+
+describe("SubtaskRow - sprint locked", () => {
+    it("does not start a transition when a status badge is clicked", async () => {
+        renderRow(baseSubtask, false, true);
+        await userEvent.click(screen.getByText("wip"));
+        expect(screen.queryByText("confirm")).not.toBeInTheDocument();
+    });
+
+    it("disables the complexity select even in a state that would otherwise allow it", () => {
+        renderRow(
+            { ...baseSubtask, status: "IN_PR", url: "https://github.com/org/repo/pull/1", complexityRating: 3 },
+            false,
+            true
+        );
+        expect(screen.getByRole("combobox")).toBeDisabled();
     });
 });
 

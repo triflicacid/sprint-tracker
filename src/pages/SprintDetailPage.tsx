@@ -137,12 +137,20 @@ export function SprintDetailPage(): React.ReactElement {
                         comment={sprint.comment}
                         displayClassName="sprint-card-comment"
                         onSave={saveComment}
+                        disabled={locked}
+                        title={lockedTitle}
                     />
                 </div>
                 <div className="page-header-actions">
                     <Link to={`/stats/${sprint.id}`}>stats</Link>
                     <ExportButton onClick={handleQuickExport} loading={exporting} label="export" />
-                    <button onClick={() => setShowForm(!showForm)}>new story</button>
+                    <button
+                        onClick={() => setShowForm(!showForm)}
+                        disabled={locked}
+                        title={locked ? lockedTitle : undefined}
+                    >
+                        new story
+                    </button>
                 </div>
             </div>
 
