@@ -47,6 +47,7 @@ const subtask: Subtask = {
 const story: StoryDetail = {
     id: 1,
     sprintId: 9,
+    sprintEndDate: null,
     jiraUrl: "https://nebula.atlassian.net/browse/NEB-1",
     jiraKey: "NEB-1",
     description: "support saved cards",
@@ -93,6 +94,22 @@ describe("SubtaskDetailPage", () => {
         expect(await screen.findByRole("heading", { name: "add saved card list endpoint" })).toBeInTheDocument();
         expect(screen.getByText("Flow")).toBeInTheDocument();
         expect(screen.getByText("Activity calendar")).toBeInTheDocument();
+    });
+
+    it("shows a lock icon in the title once the parent sprint has ended", async () => {
+        vi.mocked(api.getSubtask).mockResolvedValue(subtask);
+        vi.mocked(api.getStory).mockResolvedValue({ ...story, sprintEndDate: "2020-01-10" });
+        renderPage();
+        const heading = await screen.findByRole("heading", { name: /add saved card list endpoint/ });
+        await vi.waitFor(() => expect(heading.querySelector("svg.lock-icon")).not.toBeNull());
+    });
+
+    it("shows no lock icon while the parent sprint is still open", async () => {
+        vi.mocked(api.getSubtask).mockResolvedValue(subtask);
+        renderPage();
+        const heading = await screen.findByRole("heading", { name: /add saved card list endpoint/ });
+        await vi.waitFor(() => expect(api.getStory).toHaveBeenCalled());
+        expect(heading.querySelector("svg.lock-icon")).toBeNull();
     });
 
     it("links back to the parent story", async () => {

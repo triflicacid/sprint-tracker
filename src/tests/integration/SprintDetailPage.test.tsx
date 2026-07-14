@@ -112,6 +112,19 @@ describe("SprintDetailPage", () => {
         expect(api.addHoliday).not.toHaveBeenCalled();
     });
 
+    it("shows a lock icon in the title once the sprint has ended", async () => {
+        vi.mocked(api.getSprint).mockResolvedValue(lockedSprint);
+        renderPage();
+        const heading = await screen.findByRole("heading", { name: /Sprint 9/ });
+        expect(heading.querySelector("svg.lock-icon")).not.toBeNull();
+    });
+
+    it("shows no lock icon while the sprint is still open", async () => {
+        renderPage();
+        const heading = await screen.findByRole("heading", { name: /Sprint 9/ });
+        expect(heading.querySelector("svg.lock-icon")).toBeNull();
+    });
+
     it("creates a story through the form", async () => {
         vi.mocked(api.createStory).mockResolvedValue({ ...sprint.stories[0], id: 2 });
         renderPage();

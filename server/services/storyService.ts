@@ -110,8 +110,12 @@ export function getStoryDetail(storyId: number) {
         return null;
     }
     const summary = rowToSummary(row);
+    const sprint = db.prepare("SELECT end_date FROM sprints WHERE id = ?").get(row.sprint_id) as
+        | { end_date: string | null }
+        | undefined;
     return {
         ...summary,
+        sprintEndDate: sprint?.end_date ?? null,
         subtasks: getSubtasksForStory(storyId),
     } as StoryDetail;
 }

@@ -5,6 +5,7 @@ import { api } from "../api/client";
 import { StoryCard } from "../components/stories/StoryCard";
 import { formatIsoDate } from "../utils/calendarGrid";
 import { isSprintLocked } from "@shared/sprintLock";
+import { LockIcon } from "../components/LockIcon";
 import { loadExportFields } from "../utils/exportFields";
 import { downloadTextFile } from "../utils/download";
 import { useToast } from "../components/Toast";
@@ -123,7 +124,10 @@ export function SprintDetailPage(): React.ReactElement {
                     <Link to="/" className="back-link">
                         back to sprints
                     </Link>
-                    <h1>{sprint.name}</h1>
+                    <h1>
+                        {locked && <LockIcon />}
+                        {sprint.name}
+                    </h1>
                     <MetaRow>
                         <span className="sprint-card-dates">
                             {sprint.startDate} to {sprint.endDate ?? "present"}

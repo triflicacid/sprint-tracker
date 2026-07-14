@@ -101,6 +101,14 @@ describe("createStory / getStoryDetail", () => {
         expect(detail?.subtasks).toEqual([]);
     });
 
+    it("includes the parent sprint's end date", () => {
+        const story = createStory(sprintId, { jiraUrl: "https://x/browse/NEB-1", description: "d" });
+        expect(getStoryDetail(story.id)?.sprintEndDate).toBeNull();
+
+        const storyId = insertStoryInLockedSprint();
+        expect(getStoryDetail(storyId)?.sprintEndDate).toBe("2020-01-10");
+    });
+
     it("returns null for a missing story", () => {
         expect(getStoryDetail(999999)).toBeNull();
     });

@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import type { Subtask, StatusFlowConfig, StatusHistoryEntry, StoryDetail } from "@shared/types";
+import { isSprintLocked } from "@shared/sprintLock";
 import { api } from "../api/client";
+import { LockIcon } from "../components/LockIcon";
 import { SubtaskRow } from "../components/subtasks/SubtaskRow";
 import { SubtaskFlowDiagram } from "../components/subtasks/SubtaskFlowDiagram";
 import { SubtaskTransitionsTable } from "../components/subtasks/SubtaskTransitionsTable";
@@ -88,6 +90,8 @@ export function SubtaskDetailPage(): React.ReactElement {
         return <div className="page">loading...</div>;
     }
 
+    const locked = story ? isSprintLocked({ endDate: story.sprintEndDate }) : false;
+
     return (
         <div className="page">
             <div className="page-header">
@@ -95,7 +99,10 @@ export function SubtaskDetailPage(): React.ReactElement {
                     <Link to={`/stories/${subtask.storyId}`} className="back-link">
                         back to story
                     </Link>
-                    <h1>{subtask.title}</h1>
+                    <h1>
+                        {locked && <LockIcon />}
+                        {subtask.title}
+                    </h1>
                 </div>
                 <div className="page-header-actions">
                     <ExportButton onClick={handleExportPdf} loading={exporting} disabled={!story} />

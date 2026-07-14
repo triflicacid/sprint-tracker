@@ -2,7 +2,9 @@ import React, { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import type { StoryDetail, StatusFlowConfig, StatusHistoryEntry } from "@shared/types";
+import { isSprintLocked } from "@shared/sprintLock";
 import { api } from "../api/client";
+import { LockIcon } from "../components/LockIcon";
 import { StatusBadge, STATUS_LABELS } from "../components/StatusBadge";
 import { SubtaskRow } from "../components/subtasks/SubtaskRow";
 import { exportSectionsAsPdf, type PdfSection } from "../utils/pdfExport";
@@ -156,6 +158,8 @@ export function StoryDetailPage(): React.ReactElement {
         return <div className="page">loading...</div>;
     }
 
+    const locked = isSprintLocked({ endDate: story.sprintEndDate });
+
     return (
         <div className="page">
             <div className="page-header">
@@ -163,7 +167,10 @@ export function StoryDetailPage(): React.ReactElement {
                     <Link to={`/sprints/${story.sprintId}`} className="back-link">
                         back to sprint
                     </Link>
-                    <h1>{story.jiraTitle ?? story.description}</h1>
+                    <h1>
+                        {locked && <LockIcon />}
+                        {story.jiraTitle ?? story.description}
+                    </h1>
                     <MetaRow>
                         <a href={story.jiraUrl} target="_blank" rel="noreferrer">
                             {story.jiraKey ?? story.jiraUrl}
