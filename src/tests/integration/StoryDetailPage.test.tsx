@@ -43,6 +43,7 @@ const story: StoryDetail = {
     status: "JIRA_ONLY",
     awaitingMoreSubtasks: false,
     storyPoints: null,
+    isBug: false,
     tags: [{ id: 1, name: "payments", tagType: "custom" }],
     prCount: 0,
     subtasks: [],
@@ -102,6 +103,20 @@ describe("StoryDetailPage", () => {
         renderPage();
         const heading = await screen.findByRole("heading", { name: /support saved cards/ });
         expect(heading.querySelector("svg.lock-icon")).toBeNull();
+    });
+
+    it("shows the story icon in the title for a regular story", async () => {
+        vi.mocked(api.getStory).mockResolvedValue(story);
+        renderPage();
+        const heading = await screen.findByRole("heading", { name: /support saved cards/ });
+        expect(heading.querySelector("svg.story-type-icon title")?.textContent).toBe("story");
+    });
+
+    it("shows the bug icon in the title for a story flagged as a bug", async () => {
+        vi.mocked(api.getStory).mockResolvedValue({ ...story, isBug: true });
+        renderPage();
+        const heading = await screen.findByRole("heading", { name: /support saved cards/ });
+        expect(heading.querySelector("svg.story-type-icon title")?.textContent).toBe("bug");
     });
 
     it("disables story-level mutating controls once the parent sprint has ended", async () => {

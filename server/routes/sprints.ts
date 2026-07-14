@@ -37,10 +37,10 @@ sprintsRouter.patch("/:id", (req: Request, res: Response) => {
 // creating a story is nested under its parent sprint.
 sprintsRouter.post("/:id/stories", (req: Request, res: Response) => {
     const sprintId = Number(req.params.id);
-    const { jiraUrl, description } = req.body;
+    const { jiraUrl, description, isBug } = req.body;
     if (!jiraUrl || !description) {
         res.status(400).json({ error: "jiraUrl and description are required" });
         return;
     }
-    res.status(201).json(createStory(sprintId, { jiraUrl, description }));
+    res.status(201).json(createStory(sprintId, { jiraUrl, description, isBug: !!isBug }));
 });

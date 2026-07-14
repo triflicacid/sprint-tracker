@@ -101,6 +101,7 @@ export interface StorySummary {
   status: StoryStatus;
   awaitingMoreSubtasks: boolean;
   storyPoints: number | null;
+  isBug: boolean;
   tags: Tag[];
   prCount: number;
 }

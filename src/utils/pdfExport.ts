@@ -32,6 +32,10 @@ export interface PdfTable {
 // selectable/searchable text, not just pixels in an image.
 export interface PdfSection {
     title: string;
+    // a small filled dot drawn immediately before the title, e.g. to mark a
+    // story as a bug report vs. regular work without needing to render the
+    // full SVG icon into the pdf.
+    titleMarkerColor?: [number, number, number];
     element?: HTMLElement;
     table?: PdfTable;
     lines?: PdfLine[];
@@ -117,7 +121,14 @@ async function renderSection(pdf: jsPDF, section: PdfSection, isFirstPage: boole
     let y = MARGIN_MM + 4;
     pdf.setFontSize(16);
     pdf.setTextColor(0, 0, 0);
-    pdf.text(section.title, MARGIN_MM, y);
+    let titleX = MARGIN_MM;
+    if (section.titleMarkerColor) {
+        const markerRadiusMm = 1.8;
+        pdf.setFillColor(...section.titleMarkerColor);
+        pdf.circle(MARGIN_MM + markerRadiusMm, y - markerRadiusMm, markerRadiusMm, "F");
+        titleX = MARGIN_MM + markerRadiusMm * 2 + 3;
+    }
+    pdf.text(section.title, titleX, y);
     y += 10;
 
     if (section.element) {

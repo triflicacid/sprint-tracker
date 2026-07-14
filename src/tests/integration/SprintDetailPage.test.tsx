@@ -50,6 +50,7 @@ const sprint = {
             status: "JIRA_ONLY" as const,
             awaitingMoreSubtasks: false,
             storyPoints: null,
+            isBug: false,
             tags: [],
             prCount: 0,
         },
@@ -148,6 +149,25 @@ describe("SprintDetailPage", () => {
         expect(api.createStory).toHaveBeenCalledWith(9, {
             jiraUrl: "https://x/browse/NEB-2",
             description: "another story",
+            isBug: false,
+        });
+    });
+
+    it("creates a bug story when the bug checkbox is checked", async () => {
+        vi.mocked(api.createStory).mockResolvedValue({ ...sprint.stories[0], id: 2, isBug: true });
+        renderPage();
+        await screen.findByText("a story");
+
+        await userEvent.click(screen.getByText("new story"));
+        await userEvent.type(screen.getByPlaceholderText("jira link"), "https://x/browse/NEB-3");
+        await userEvent.type(screen.getByPlaceholderText("description"), "a bug report");
+        await userEvent.click(screen.getByRole("checkbox"));
+        await userEvent.click(screen.getByText("create"));
+
+        expect(api.createStory).toHaveBeenCalledWith(9, {
+            jiraUrl: "https://x/browse/NEB-3",
+            description: "a bug report",
+            isBug: true,
         });
     });
 

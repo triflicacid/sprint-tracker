@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import type { StorySummary } from "@shared/types";
 import { StatusBadge } from "../StatusBadge";
+import { StoryTypeIcon } from "./StoryTypeIcon";
 import "./story-tags.css";
 import "./StoryCard.css";
 
@@ -14,9 +15,12 @@ export function StoryCard({ story }: StoryCardProps): React.ReactElement {
     return (
         <div className="story-card">
             <div className="story-card-header">
-                <a href={story.jiraUrl} target="_blank" rel="noreferrer" className="story-jira-link">
-                    {story.jiraKey ?? story.jiraUrl}
-                </a>
+                <div className="story-card-title">
+                    <StoryTypeIcon isBug={story.isBug} />
+                    <a href={story.jiraUrl} target="_blank" rel="noreferrer" className="story-jira-link">
+                        {story.jiraKey ?? story.jiraUrl}
+                    </a>
+                </div>
                 <StatusBadge status={story.status} />
             </div>
             <Link to={`/stories/${story.id}`} className="story-description">

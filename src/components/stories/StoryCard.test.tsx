@@ -14,6 +14,7 @@ const baseStory = {
     status: "WIP" as const,
     awaitingMoreSubtasks: false,
     storyPoints: null,
+    isBug: false,
     tags: [{ id: 1, name: "payments", tagType: "custom" as const }],
     prCount: 2,
 };
@@ -60,5 +61,23 @@ describe("StoryCard", () => {
         );
         expect(screen.getByText("2 pull requests")).toBeInTheDocument();
         expect(screen.getByText("payments")).toBeInTheDocument();
+    });
+
+    it("shows the story icon for a regular story", () => {
+        render(
+            <MemoryRouter>
+                <StoryCard story={baseStory} />
+            </MemoryRouter>
+        );
+        expect(document.querySelector("svg.story-type-icon title")?.textContent).toBe("story");
+    });
+
+    it("shows the bug icon when the story is flagged as a bug", () => {
+        render(
+            <MemoryRouter>
+                <StoryCard story={{ ...baseStory, isBug: true }} />
+            </MemoryRouter>
+        );
+        expect(document.querySelector("svg.story-type-icon title")?.textContent).toBe("bug");
     });
 });

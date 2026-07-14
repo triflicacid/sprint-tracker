@@ -1,3 +1,8 @@
+.page-header h1 .story-type-icon {
+    width: 20px;
+    height: 20px;
+}
+
 .awaiting-more-subtasks {
     display: flex;
     align-items: center;

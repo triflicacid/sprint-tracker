@@ -24,6 +24,7 @@ export function SprintDetailPage(): React.ReactElement {
     const [showForm, setShowForm] = useState<boolean>(false);
     const [jiraUrl, setJiraUrl] = useState<string>("");
     const [description, setDescription] = useState<string>("");
+    const [isBug, setIsBug] = useState<boolean>(false);
     const [holidays, setHolidays] = useState<string[]>([]);
     const [newHolidayDate, setNewHolidayDate] = useState<string>("");
     const [exporting, setExporting] = useState<boolean>(false);
@@ -92,9 +93,10 @@ export function SprintDetailPage(): React.ReactElement {
         if (!jiraUrl.trim() || !description.trim()) {
             return;
         }
-        await api.createStory(sprintId, { jiraUrl: jiraUrl.trim(), description: description.trim() });
+        await api.createStory(sprintId, { jiraUrl: jiraUrl.trim(), description: description.trim(), isBug });
         setJiraUrl("");
         setDescription("");
+        setIsBug(false);
         setShowForm(false);
         loadSprint();
     }
@@ -196,6 +198,14 @@ export function SprintDetailPage(): React.ReactElement {
                         value={description}
                         onChange={(event) => setDescription(event.target.value)}
                     />
+                    <label className="new-story-bug-checkbox">
+                        <input
+                            type="checkbox"
+                            checked={isBug}
+                            onChange={(event) => setIsBug(event.target.checked)}
+                        />
+                        bug
+                    </label>
                     <button onClick={handleCreateStory}>create</button>
                 </div>
             )}
