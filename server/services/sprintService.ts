@@ -1,6 +1,7 @@
 import { db } from "../db/connection.js";
 import type { SprintSummary, SprintDetail } from "../../shared/types.js";
 import { getStorySummariesForSprint } from "./storyService.js";
+import { isSprintLocked, SprintLockedError } from "../../shared/sprintLock.js";
 
 interface SprintRow {
     id: number;
@@ -94,6 +95,9 @@ export function updateSprint(sprintId: number, input: Partial<CreateSprintInput>
         .get(sprintId) as SprintRow | undefined;
     if (!existing) {
         return;
+    }
+    if (isSprintLocked({ endDate: existing.end_date })) {
+        throw new SprintLockedError("cannot edit a sprint that has ended");
     }
     db.prepare(
         "UPDATE sprints SET name = ?, start_date = ?, end_date = ?, comment = ? WHERE id = ?"

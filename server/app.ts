@@ -11,6 +11,7 @@ import { jiraRouter } from "./routes/jira.js";
 import { statusFlowRouter } from "./routes/statusFlow.js";
 import { holidaysRouter } from "./routes/holidays.js";
 import { exportRouter } from "./routes/export.js";
+import { SprintLockedError } from "../shared/sprintLock.js";
 
 export function createApp() {
     const app = express();
@@ -43,7 +44,12 @@ export function createApp() {
     });
 
     // hacky way of handling errors, but oh well
-    app.use((error: Error, _req: Request, res: Response) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    app.use((error: Error, _req: Request, res: Response, _next: NextFunction) => {
+        if (error instanceof SprintLockedError) {
+            res.status(409).json({ error: error.message });
+            return;
+        }
         console.error(error);
         res.status(500).json({ error: "internal server error" });
     });

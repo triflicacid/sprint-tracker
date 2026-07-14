@@ -9,12 +9,33 @@ import {
     updateStoryJiraInfo,
     updateStoryAwaitingMoreSubtasks,
     updateStoryPoints,
+    addTagToStory,
+    removeTagFromStory,
 } from "./storyService.js";
+import { SprintLockedError } from "../../shared/sprintLock.js";
 
 function insertSprint(): number {
     const result = db
         .prepare("INSERT INTO sprints (name, start_date) VALUES ('Sprint 1', '2026-01-01')")
         .run();
+    return Number(result.lastInsertRowid);
+}
+
+function insertLockedSprint() {
+    const result = db
+        .prepare("INSERT INTO sprints (name, start_date, end_date) VALUES ('Past sprint', '2020-01-01', '2020-01-10')")
+        .run();
+    return Number(result.lastInsertRowid);
+}
+
+// a story cannot be created (via createStory) under an already-locked
+// sprint, so build one directly for tests that need an existing story
+// whose sprint has since ended.
+function insertStoryInLockedSprint(): number {
+    const sprintId = insertLockedSprint();
+    const result = db
+        .prepare("INSERT INTO stories (sprint_id, jira_url, description) VALUES (?, 'https://x', 'story')")
+        .run(sprintId);
     return Number(result.lastInsertRowid);
 }
 
@@ -80,8 +101,23 @@ describe("createStory / getStoryDetail", () => {
         expect(detail?.subtasks).toEqual([]);
     });
 
+    it("includes the parent sprint's end date", () => {
+        const story = createStory(sprintId, { jiraUrl: "https://x/browse/NEB-1", description: "d" });
+        expect(getStoryDetail(story.id)?.sprintEndDate).toBeNull();
+
+        const storyId = insertStoryInLockedSprint();
+        expect(getStoryDetail(storyId)?.sprintEndDate).toBe("2020-01-10");
+    });
+
     it("returns null for a missing story", () => {
         expect(getStoryDetail(999999)).toBeNull();
+    });
+
+    it("throws SprintLockedError when the sprint has ended", () => {
+        const lockedSprintId = insertLockedSprint();
+        expect(() => createStory(lockedSprintId, { jiraUrl: "https://x/browse/NEB-1", description: "d" })).toThrow(
+            SprintLockedError
+        );
     });
 });
 
@@ -118,6 +154,11 @@ describe("updateStoryAwaitingMoreSubtasks", () => {
     it("returns null for a missing story", () => {
         expect(updateStoryAwaitingMoreSubtasks(999999, true)).toBeNull();
     });
+
+    it("throws SprintLockedError when the story's sprint has ended", () => {
+        const storyId = insertStoryInLockedSprint();
+        expect(() => updateStoryAwaitingMoreSubtasks(storyId, true)).toThrow(SprintLockedError);
+    });
 });
 
 describe("updateStoryPoints", () => {
@@ -138,5 +179,40 @@ describe("updateStoryPoints", () => {
 
     it("returns null for a missing story", () => {
         expect(updateStoryPoints(999999, 3)).toBeNull();
+    });
+
+    it("throws SprintLockedError when the story's sprint has ended", () => {
+        const storyId = insertStoryInLockedSprint();
+        expect(() => updateStoryPoints(storyId, 3)).toThrow(SprintLockedError);
+    });
+});
+
+describe("addTagToStory / removeTagFromStory", () => {
+    it("attaches a tag to the story", () => {
+        const sprintId = insertSprint();
+        const story = createStory(sprintId, { jiraUrl: "https://x/browse/NEB-1", description: "d" });
+        const tag = addTagToStory(story.id, "urgent", "custom");
+        const reloaded = getStoryDetail(story.id);
+        expect(reloaded?.tags.map((t) => t.name)).toEqual(["urgent"]);
+        expect(tag.name).toBe("urgent");
+    });
+
+    it("removes a previously attached tag", () => {
+        const sprintId = insertSprint();
+        const story = createStory(sprintId, { jiraUrl: "https://x/browse/NEB-1", description: "d" });
+        const tag = addTagToStory(story.id, "urgent", "custom");
+        removeTagFromStory(story.id, tag.id);
+        const reloaded = getStoryDetail(story.id);
+        expect(reloaded?.tags).toEqual([]);
+    });
+
+    it("throws SprintLockedError when adding a tag to a story in an ended sprint", () => {
+        const storyId = insertStoryInLockedSprint();
+        expect(() => addTagToStory(storyId, "urgent", "custom")).toThrow(SprintLockedError);
+    });
+
+    it("throws SprintLockedError when removing a tag from a story in an ended sprint", () => {
+        const storyId = insertStoryInLockedSprint();
+        expect(() => removeTagFromStory(storyId, 1)).toThrow(SprintLockedError);
     });
 });

@@ -23,11 +23,18 @@ vi.mock("../../utils/download", () => ({
     downloadTextFile: vi.fn(),
 }));
 
+function offsetFromToday(days: number): string {
+    const date = new Date();
+    date.setDate(date.getDate() + days);
+    return date.toISOString().slice(0, 10);
+}
+
 const sprint = {
     id: 9,
     name: "Sprint 9",
     startDate: "2026-01-01",
-    endDate: "2026-01-15",
+    // must stay unlocked (endDate in the future) for the existing tests below.
+    endDate: offsetFromToday(180),
     comment: null,
     storyCount: 1,
     prCount: 0,
@@ -48,6 +55,8 @@ const sprint = {
         },
     ],
 };
+
+const lockedSprint = { ...sprint, endDate: "2020-01-10" };
 
 beforeEach(() => {
     Object.values(api).forEach((fn) => vi.mocked(fn).mockReset());
@@ -85,6 +94,45 @@ describe("SprintDetailPage", () => {
         await userEvent.click(screen.getByText("add holiday"));
 
         expect(api.addHoliday).toHaveBeenCalledWith("2026-01-05");
+    });
+
+    it("disables adding and removing holidays once the sprint has ended", async () => {
+        vi.mocked(api.getSprint).mockResolvedValue(lockedSprint);
+        vi.mocked(api.listHolidays).mockResolvedValue(["2020-01-05"]);
+        renderPage();
+        await screen.findByText("a story");
+        await screen.findByText("2020-01-05");
+
+        const dateInput = document.querySelector('input[type="date"]') as HTMLInputElement;
+        expect(dateInput).toBeDisabled();
+        expect(screen.getByText("add holiday")).toBeDisabled();
+        expect(screen.getByText("x")).toBeDisabled();
+
+        await userEvent.click(screen.getByText("add holiday"));
+        expect(api.addHoliday).not.toHaveBeenCalled();
+    });
+
+    it("shows a lock icon in the title once the sprint has ended", async () => {
+        vi.mocked(api.getSprint).mockResolvedValue(lockedSprint);
+        renderPage();
+        const heading = await screen.findByRole("heading", { name: /Sprint 9/ });
+        expect(heading.querySelector("svg.lock-icon")).not.toBeNull();
+    });
+
+    it("shows no lock icon while the sprint is still open", async () => {
+        renderPage();
+        const heading = await screen.findByRole("heading", { name: /Sprint 9/ });
+        expect(heading.querySelector("svg.lock-icon")).toBeNull();
+    });
+
+    it("disables the new-story button and comment editor once the sprint has ended", async () => {
+        vi.mocked(api.getSprint).mockResolvedValue(lockedSprint);
+        renderPage();
+        await screen.findByText("a story");
+
+        expect(screen.getByText("new story")).toBeDisabled();
+        await userEvent.click(screen.getByText("add comment"));
+        expect(document.querySelector(".comment-edit")).not.toBeInTheDocument();
     });
 
     it("creates a story through the form", async () => {

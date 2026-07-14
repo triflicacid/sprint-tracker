@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { listSprintSummaries, createSprint, getSprintDetail, updateSprint } from "./sprintService.js";
+import { SprintLockedError } from "../../shared/sprintLock.js";
 
 describe("createSprint", () => {
     it("creates a sprint with the given fields", () => {
@@ -62,5 +63,23 @@ describe("updateSprint", () => {
 
     it("is a no-op for a missing sprint", () => {
         expect(() => updateSprint(999999, { comment: "x" })).not.toThrow();
+    });
+
+    it("throws SprintLockedError once the sprint has ended", () => {
+        const sprint = createSprint({ name: "Sprint 1", startDate: "2020-01-01", endDate: "2020-01-10" });
+        expect(() => updateSprint(sprint.id, { comment: "too late" })).toThrow(SprintLockedError);
+    });
+
+    it("does not throw for a sprint ending today", () => {
+        const today = new Date().toISOString().slice(0, 10);
+        const sprint = createSprint({ name: "Sprint 1", startDate: "2020-01-01", endDate: today });
+        expect(() => updateSprint(sprint.id, { comment: "still today" })).not.toThrow();
+    });
+
+    it("does not persist the update when the sprint is locked", () => {
+        const sprint = createSprint({ name: "Sprint 1", startDate: "2020-01-01", endDate: "2020-01-10", comment: "original" });
+        expect(() => updateSprint(sprint.id, { comment: "too late" })).toThrow(SprintLockedError);
+        const reloaded = getSprintDetail(sprint.id);
+        expect(reloaded?.comment).toBe("original");
     });
 });

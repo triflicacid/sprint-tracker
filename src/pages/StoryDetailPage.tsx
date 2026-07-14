@@ -2,7 +2,9 @@ import React, { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import type { StoryDetail, StatusFlowConfig, StatusHistoryEntry } from "@shared/types";
+import { isSprintLocked } from "@shared/sprintLock";
 import { api } from "../api/client";
+import { LockIcon } from "../components/LockIcon";
 import { StatusBadge, STATUS_LABELS } from "../components/StatusBadge";
 import { SubtaskRow } from "../components/subtasks/SubtaskRow";
 import { exportSectionsAsPdf, type PdfSection } from "../utils/pdfExport";
@@ -156,6 +158,9 @@ export function StoryDetailPage(): React.ReactElement {
         return <div className="page">loading...</div>;
     }
 
+    const locked = isSprintLocked({ endDate: story.sprintEndDate });
+    const lockedTitle = "this sprint has ended";
+
     return (
         <div className="page">
             <div className="page-header">
@@ -163,17 +168,21 @@ export function StoryDetailPage(): React.ReactElement {
                     <Link to={`/sprints/${story.sprintId}`} className="back-link">
                         back to sprint
                     </Link>
-                    <h1>{story.jiraTitle ?? story.description}</h1>
+                    <h1>
+                        {locked && <LockIcon />}
+                        {story.jiraTitle ?? story.description}
+                    </h1>
                     <MetaRow>
                         <a href={story.jiraUrl} target="_blank" rel="noreferrer">
                             {story.jiraKey ?? story.jiraUrl}
                         </a>
                         <StatusBadge status={story.status} />
-                        <label className="awaiting-more-subtasks">
+                        <label className="awaiting-more-subtasks" title={locked ? lockedTitle : undefined}>
                             <input
                                 type="checkbox"
                                 checked={story.awaitingMoreSubtasks}
                                 onChange={(event) => handleAwaitingMoreSubtasksChange(event.target.checked)}
+                                disabled={locked}
                             />
                             awaiting more subtasks
                         </label>
@@ -193,6 +202,8 @@ export function StoryDetailPage(): React.ReactElement {
                         value={story.storyPoints}
                         options={STORY_POINTS_OPTIONS}
                         onChange={handleStoryPointsChange}
+                        disabled={locked}
+                        title={locked ? lockedTitle : undefined}
                     />
                 </div>
             </div>
@@ -202,7 +213,12 @@ export function StoryDetailPage(): React.ReactElement {
                     <span key={tag.id} className={`tag tag-${tag.tagType}`}>
                         {tag.name}
                         {tag.tagType === "custom" && (
-                            <button className="tag-remove" onClick={() => handleRemoveTag(tag.id)}>
+                            <button
+                                className="tag-remove"
+                                onClick={() => handleRemoveTag(tag.id)}
+                                disabled={locked}
+                                title={locked ? lockedTitle : undefined}
+                            >
                                 x
                             </button>
                         )}
@@ -214,6 +230,8 @@ export function StoryDetailPage(): React.ReactElement {
                     value={newTagName}
                     onChange={(event) => setNewTagName(event.target.value)}
                     onKeyDown={(event) => event.key === "Enter" && handleAddTag()}
+                    disabled={locked}
+                    title={locked ? lockedTitle : undefined}
                 />
             </div>
 
@@ -224,6 +242,7 @@ export function StoryDetailPage(): React.ReactElement {
                         subtask={subtask}
                         flow={flow}
                         onChanged={loadStory}
+                        sprintLocked={locked}
                     />
                 ))}
             </div>
@@ -234,8 +253,12 @@ export function StoryDetailPage(): React.ReactElement {
                     placeholder="subtask title"
                     value={newSubtaskTitle}
                     onChange={(event) => setNewSubtaskTitle(event.target.value)}
+                    disabled={locked}
+                    title={locked ? lockedTitle : undefined}
                 />
-                <button onClick={handleAddSubtask}>add subtask</button>
+                <button onClick={handleAddSubtask} disabled={locked} title={locked ? lockedTitle : undefined}>
+                    add subtask
+                </button>
             </div>
 
             {exportSnapshot && (

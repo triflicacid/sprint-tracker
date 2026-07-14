@@ -6,8 +6,16 @@ const app = createApp();
 let sprintId: number;
 let storyId: number;
 
+// fixture sprint must stay unlocked (endDate in the future) so its stories/
+// subtasks remain mutable, but well before the 2030 range used below.
+function fixtureEndDate() {
+    const date = new Date();
+    date.setDate(date.getDate() + 180);
+    return date.toISOString().slice(0, 10);
+}
+
 beforeEach(async () => {
-    const sprint = await request(app).post("/api/sprints").send({ name: "Sprint 1", startDate: "2026-01-01", endDate: "2026-01-10" });
+    const sprint = await request(app).post("/api/sprints").send({ name: "Sprint 1", startDate: "2026-01-01", endDate: fixtureEndDate() });
     sprintId = sprint.body.id;
     const story = await request(app)
         .post(`/api/sprints/${sprintId}/stories`)
@@ -83,9 +91,9 @@ describe("GET /api/stats/day-activity/:id", () => {
     });
 
     it("includes active days once a subtask starts moving", async () => {
-        // this sprint's fixed 2026-01-01..01-10 range won't contain the real
-        // "now" timestamp a live PATCH records to status_history, so this
-        // test uses its own open-ended (ongoing) sprint that does.
+        // this sprint's fixed date range won't contain the real "now"
+        // timestamp a live PATCH records to status_history, so this test
+        // uses its own open-ended (ongoing) sprint that does.
         const ongoing = await request(app).post("/api/sprints").send({ name: "Ongoing", startDate: "2020-01-01" });
         const story = await request(app)
             .post(`/api/sprints/${ongoing.body.id}/stories`)

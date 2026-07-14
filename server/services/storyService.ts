@@ -1,9 +1,10 @@
 import { db } from "../db/connection.js";
-import type { StorySummary, StoryDetail, StoryStatus, SubtaskStatus } from "../../shared/types.js";
+import type { StorySummary, StoryDetail, StoryStatus, SubtaskStatus, Tag, TagType } from "../../shared/types.js";
 import { extractJiraKey } from "../utils/githubUrl.js";
-import { getTagsForEntity } from "./tagService.js";
+import { attachTag, findOrCreateTag, getTagsForEntity, removeTag } from "./tagService.js";
 import { getSubtasksForStory } from "./subtaskService.js";
 import { rankOf } from "./statusFlowService.js";
+import { isSprintLocked, SprintLockedError } from "../../shared/sprintLock.js";
 
 interface StoryRow {
     id: number;
@@ -66,6 +67,34 @@ function rowToSummary(row: StoryRow) {
     } as StorySummary;
 }
 
+function getSprintEndDateForStory(storyId: number) {
+    const row = db
+        .prepare(
+            `SELECT sprints.end_date AS end_date
+             FROM stories
+             JOIN sprints ON sprints.id = stories.sprint_id
+             WHERE stories.id = ?`
+        )
+        .get(storyId) as { end_date: string | null } | undefined;
+    return row?.end_date;
+}
+
+function assertSprintUnlocked(sprintId: number): void {
+    const sprint = db.prepare("SELECT end_date FROM sprints WHERE id = ?").get(sprintId) as
+        | { end_date: string | null }
+        | undefined;
+    if (sprint && isSprintLocked({ endDate: sprint.end_date })) {
+        throw new SprintLockedError("cannot add a story to a sprint that has ended");
+    }
+}
+
+function assertStorySprintUnlocked(storyId: number): void {
+    const endDate = getSprintEndDateForStory(storyId);
+    if (endDate !== undefined && isSprintLocked({ endDate })) {
+        throw new SprintLockedError("cannot modify a story in a sprint that has ended");
+    }
+}
+
 export function getStorySummariesForSprint(sprintId: number) {
     const rows = db
         .prepare("SELECT * FROM stories WHERE sprint_id = ? ORDER BY id")
@@ -81,13 +110,18 @@ export function getStoryDetail(storyId: number) {
         return null;
     }
     const summary = rowToSummary(row);
+    const sprint = db.prepare("SELECT end_date FROM sprints WHERE id = ?").get(row.sprint_id) as
+        | { end_date: string | null }
+        | undefined;
     return {
         ...summary,
+        sprintEndDate: sprint?.end_date ?? null,
         subtasks: getSubtasksForStory(storyId),
     } as StoryDetail;
 }
 
 export function createStory(sprintId: number, input: CreateStoryInput) {
+    assertSprintUnlocked(sprintId);
     const jiraKey = extractJiraKey(input.jiraUrl);
     const result = db
         .prepare(
@@ -111,6 +145,7 @@ export function updateStoryJiraInfo(storyId: number, title: string, labels: stri
 }
 
 export function updateStoryAwaitingMoreSubtasks(storyId: number, awaitingMoreSubtasks: boolean) {
+    assertStorySprintUnlocked(storyId);
     db.prepare("UPDATE stories SET awaiting_more_subtasks = ? WHERE id = ?").run(awaitingMoreSubtasks ? 1 : 0, storyId);
     const row = db
         .prepare("SELECT * FROM stories WHERE id = ?")
@@ -119,9 +154,22 @@ export function updateStoryAwaitingMoreSubtasks(storyId: number, awaitingMoreSub
 }
 
 export function updateStoryPoints(storyId: number, storyPoints: number | null) {
+    assertStorySprintUnlocked(storyId);
     db.prepare("UPDATE stories SET story_points = ? WHERE id = ?").run(storyPoints, storyId);
     const row = db
         .prepare("SELECT * FROM stories WHERE id = ?")
         .get(storyId) as StoryRow | undefined;
     return row ? rowToSummary(row) : null;
+}
+
+export function addTagToStory(storyId: number, name: string, tagType: TagType): Tag {
+    assertStorySprintUnlocked(storyId);
+    const tag = findOrCreateTag(name, tagType);
+    attachTag("story", storyId, tag.id);
+    return tag;
+}
+
+export function removeTagFromStory(storyId: number, tagId: number): void {
+    assertStorySprintUnlocked(storyId);
+    removeTag("story", storyId, tagId);
 }

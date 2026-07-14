@@ -14,7 +14,10 @@ interface SubtaskRowProps {
     flow: StatusFlowConfig;
     onChanged: () => void;
     disableNavigation?: boolean;
+    sprintLocked?: boolean;
 }
+
+const LOCKED_TITLE = "this sprint has ended";
 
 // e.g. https://github.com/org/repo/pull/123 -> .../tree/<branch>
 function branchUrl(subtask: Subtask) {
@@ -30,7 +33,7 @@ function branchUrl(subtask: Subtask) {
 }
 
 // show info about a subtask
-export function SubtaskRow({ subtask, flow, onChanged, disableNavigation }: SubtaskRowProps): React.ReactElement {
+export function SubtaskRow({ subtask, flow, onChanged, disableNavigation, sprintLocked }: SubtaskRowProps): React.ReactElement {
     const [pendingStatus, setPendingStatus] = useState<SubtaskStatus | null>(null);
     const [pendingFieldValues, setPendingFieldValues] = useState<Record<string, string>>({});
     const { showError } = useToast();
@@ -119,7 +122,8 @@ export function SubtaskRow({ subtask, flow, onChanged, disableNavigation }: Subt
                             key={nextStatus}
                             status={nextStatus}
                             muted
-                            onClick={() => startTransition(nextStatus)}
+                            onClick={sprintLocked ? undefined : () => startTransition(nextStatus)}
+                            title={sprintLocked ? LOCKED_TITLE : undefined}
                         />
                     ))}
                 </div>
@@ -152,8 +156,14 @@ export function SubtaskRow({ subtask, flow, onChanged, disableNavigation }: Subt
                             value={subtask.complexityRating}
                             options={COMPLEXITY_OPTIONS}
                             onChange={handleComplexityChange}
-                            disabled={complexityLocked}
-                            title={complexityLocked ? "complexity is locked once a subtask has passed cut release" : undefined}
+                            disabled={complexityLocked || sprintLocked}
+                            title={
+                                sprintLocked
+                                    ? LOCKED_TITLE
+                                    : complexityLocked
+                                      ? "complexity is locked once a subtask has passed cut release"
+                                      : undefined
+                            }
                             selectClassName="complexity-select"
                         />
                         {subtask.releaseVersion && <span className="release-version">{subtask.releaseVersion}</span>}

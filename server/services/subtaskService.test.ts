@@ -3,6 +3,7 @@ import { db } from "../db/connection.js";
 import { createSubtask, updateSubtask, getSubtaskById, getSubtasksForStory, SubtaskUpdateError } from "./subtaskService.js";
 import { getHistoryForEntity } from "./statusHistoryService.js";
 import { getTagsForEntity } from "./tagService.js";
+import { SprintLockedError } from "../../shared/sprintLock.js";
 
 let storyId: number;
 
@@ -13,6 +14,24 @@ beforeEach(() => {
         .run(Number(sprint.lastInsertRowid));
     storyId = Number(story.lastInsertRowid);
 });
+
+function insertStoryInLockedSprint(): number {
+    const sprint = db
+        .prepare("INSERT INTO sprints (name, start_date, end_date) VALUES ('Past sprint', '2020-01-01', '2020-01-10')")
+        .run();
+    const story = db
+        .prepare("INSERT INTO stories (sprint_id, jira_url, description) VALUES (?, 'https://x', 'story')")
+        .run(Number(sprint.lastInsertRowid));
+    return Number(story.lastInsertRowid);
+}
+
+function insertSubtaskInLockedSprint(): number {
+    const lockedStoryId = insertStoryInLockedSprint();
+    const subtask = db
+        .prepare("INSERT INTO subtasks (story_id, title, status) VALUES (?, 'x', 'NEW')")
+        .run(lockedStoryId);
+    return Number(subtask.lastInsertRowid);
+}
 
 describe("createSubtask", () => {
     it("creates a subtask in NEW status and records it in history", () => {
@@ -29,6 +48,11 @@ describe("createSubtask", () => {
         const history = getHistoryForEntity("subtask", subtask.id);
         expect(history).toHaveLength(1);
         expect(history[0].status).toBe("NEW");
+    });
+
+    it("throws SprintLockedError when the story's sprint has ended", () => {
+        const lockedStoryId = insertStoryInLockedSprint();
+        expect(() => createSubtask(lockedStoryId, { title: "too late" })).toThrow(SprintLockedError);
     });
 });
 
@@ -91,6 +115,17 @@ describe("updateSubtask - plain field updates", () => {
 
     it("throws for a missing subtask", () => {
         expect(() => updateSubtask(999999, { title: "x" })).toThrow(SubtaskUpdateError);
+    });
+
+    it("throws SprintLockedError when the subtask's sprint has ended", () => {
+        const subtaskId = insertSubtaskInLockedSprint();
+        expect(() => updateSubtask(subtaskId, { title: "too late" })).toThrow(SprintLockedError);
+    });
+
+    it("does not persist the update when the sprint is locked", () => {
+        const subtaskId = insertSubtaskInLockedSprint();
+        expect(() => updateSubtask(subtaskId, { title: "too late" })).toThrow(SprintLockedError);
+        expect(getSubtaskById(subtaskId)?.title).toBe("x");
     });
 });
 

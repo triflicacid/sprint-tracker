@@ -107,6 +107,9 @@ export interface StorySummary {
 
 export interface StoryDetail extends StorySummary {
   subtasks: Subtask[];
+  // the parent sprint's end date, so the client can derive lock state
+  // without an extra fetch (see shared/sprintLock.ts).
+  sprintEndDate: string | null;
 }
 
 export interface SprintSummary {
