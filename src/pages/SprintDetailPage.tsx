@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import type { SprintDetail } from "@shared/types";
 import { api } from "../api/client";
 import { StoryCard } from "../components/stories/StoryCard";
+import { StoryTypeSelect } from "../components/stories/StoryTypeSelect";
 import { formatIsoDate } from "../utils/calendarGrid";
 import { isSprintLocked } from "@shared/sprintLock";
 import { LockIcon } from "../components/LockIcon";
@@ -198,14 +199,7 @@ export function SprintDetailPage(): React.ReactElement {
                         value={description}
                         onChange={(event) => setDescription(event.target.value)}
                     />
-                    <label className="new-story-bug-checkbox">
-                        <input
-                            type="checkbox"
-                            checked={isBug}
-                            onChange={(event) => setIsBug(event.target.checked)}
-                        />
-                        bug
-                    </label>
+                    <StoryTypeSelect isBug={isBug} onChange={setIsBug} />
                     <button onClick={handleCreateStory}>create</button>
                 </div>
             )}

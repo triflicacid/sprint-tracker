@@ -153,7 +153,7 @@ describe("SprintDetailPage", () => {
         });
     });
 
-    it("creates a bug story when the bug checkbox is checked", async () => {
+    it("creates a bug story when 'bug' is picked from the story type dropdown", async () => {
         vi.mocked(api.createStory).mockResolvedValue({ ...sprint.stories[0], id: 2, isBug: true });
         renderPage();
         await screen.findByText("a story");
@@ -161,7 +161,8 @@ describe("SprintDetailPage", () => {
         await userEvent.click(screen.getByText("new story"));
         await userEvent.type(screen.getByPlaceholderText("jira link"), "https://x/browse/NEB-3");
         await userEvent.type(screen.getByPlaceholderText("description"), "a bug report");
-        await userEvent.click(screen.getByRole("checkbox"));
+        await userEvent.click(screen.getByRole("button", { name: "story" }));
+        await userEvent.click(screen.getByRole("option", { name: "bug" }));
         await userEvent.click(screen.getByText("create"));
 
         expect(api.createStory).toHaveBeenCalledWith(9, {
