@@ -118,7 +118,6 @@ export function SprintDetailPage(): React.ReactElement {
     }
 
     const locked = isSprintLocked(sprint);
-    const lockedTitle = "this sprint has ended";
 
     return (
         <div className="page">
@@ -141,19 +140,12 @@ export function SprintDetailPage(): React.ReactElement {
                         displayClassName="sprint-card-comment"
                         onSave={saveComment}
                         disabled={locked}
-                        title={lockedTitle}
                     />
                 </div>
                 <div className="page-header-actions">
                     <Link to={`/stats/${sprint.id}`}>stats</Link>
                     <ExportButton onClick={handleQuickExport} loading={exporting} label="export" />
-                    <button
-                        onClick={() => setShowForm(!showForm)}
-                        disabled={locked}
-                        title={locked ? lockedTitle : undefined}
-                    >
-                        new story
-                    </button>
+                    {!locked && <button onClick={() => setShowForm(!showForm)}>new story</button>}
                 </div>
             </div>
 
@@ -161,28 +153,25 @@ export function SprintDetailPage(): React.ReactElement {
                 {holidays.map((date) => (
                     <span key={date} className="holiday-chip">
                         {date}
-                        <button
-                            className="holiday-remove"
-                            onClick={() => handleRemoveHoliday(date)}
-                            disabled={locked}
-                            title={locked ? lockedTitle : undefined}
-                        >
-                            x
-                        </button>
+                        {!locked && (
+                            <button className="holiday-remove" onClick={() => handleRemoveHoliday(date)}>
+                                x
+                            </button>
+                        )}
                     </span>
                 ))}
-                <input
-                    type="date"
-                    value={newHolidayDate}
-                    min={sprint.startDate}
-                    max={sprint.endDate ?? undefined}
-                    onChange={(event) => setNewHolidayDate(event.target.value)}
-                    disabled={locked}
-                    title={locked ? lockedTitle : undefined}
-                />
-                <button onClick={handleAddHoliday} disabled={locked} title={locked ? lockedTitle : undefined}>
-                    add holiday
-                </button>
+                {!locked && (
+                    <>
+                        <input
+                            type="date"
+                            value={newHolidayDate}
+                            min={sprint.startDate}
+                            max={sprint.endDate ?? undefined}
+                            onChange={(event) => setNewHolidayDate(event.target.value)}
+                        />
+                        <button onClick={handleAddHoliday}>add holiday</button>
+                    </>
+                )}
             </div>
 
             {showForm && (

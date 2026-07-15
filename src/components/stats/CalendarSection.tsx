@@ -18,12 +18,13 @@ interface CalendarSectionProps {
     totalWeekdays: number;
     holidayWeekdays: number;
     onExport: () => Promise<void>;
+    locked?: boolean;
 }
 
 // activity calendar for the sprint's date range
 // toggle holidays by clicking on a day
 export const CalendarSection = forwardRef<CalendarSectionHandle, CalendarSectionProps>(function CalendarSection(
-    { sprintId, startDate, endDate, holidays, onHolidaysChange, totalWeekdays, holidayWeekdays, onExport },
+    { sprintId, startDate, endDate, holidays, onHolidaysChange, totalWeekdays, holidayWeekdays, onExport, locked },
     ref
 ) {
     const [dayActivity, setDayActivity] = useState<DayActivityMap>({});
@@ -81,6 +82,7 @@ export const CalendarSection = forwardRef<CalendarSectionHandle, CalendarSection
                     holidays={holidays}
                     dayActivity={dayActivity}
                     onToggleHoliday={handleToggleHoliday}
+                    locked={locked}
                 />
             </div>
         </>

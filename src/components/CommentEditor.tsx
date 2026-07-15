@@ -6,11 +6,10 @@ interface CommentEditorProps {
     onSave: (draft: string) => void | Promise<void>;
     displayClassName: string;
     disabled?: boolean;
-    title?: string;
 }
 
 // click-to-edit comment: shows a paragraph until clicked, then a textarea that saves on blur.
-export function CommentEditor({ comment, onSave, displayClassName, disabled, title }: CommentEditorProps): React.ReactElement {
+export function CommentEditor({ comment, onSave, displayClassName, disabled }: CommentEditorProps): React.ReactElement | null {
     const [editing, setEditing] = useState<boolean>(false);
     const [draft, setDraft] = useState<string>("");
 
@@ -36,11 +35,14 @@ export function CommentEditor({ comment, onSave, displayClassName, disabled, tit
         );
     }
 
+    if (disabled && !comment) {
+        return null;
+    }
+
     return (
         <p
             className={disabled ? displayClassName : `${displayClassName} ${displayClassName}-editable`}
             onClick={disabled ? undefined : startEditing}
-            title={disabled ? title : undefined}
         >
             {comment || "add comment"}
         </p>

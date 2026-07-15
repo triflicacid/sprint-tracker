@@ -20,11 +20,10 @@ interface StatusBadgeProps {
     status: StoryStatus;
     muted?: boolean;
     onClick?: () => void;
-    title?: string;
 }
 
 // coloured pill for one subtask/story status.
-export function StatusBadge({ status, muted, onClick, title }: StatusBadgeProps) {
+export function StatusBadge({ status, muted, onClick }: StatusBadgeProps) {
     const color = STATUS_COLORS[status];
     const label = STATUS_LABELS[status];
     return (
@@ -32,7 +31,6 @@ export function StatusBadge({ status, muted, onClick, title }: StatusBadgeProps)
             className={muted ? "status-badge status-badge-muted" : "status-badge"}
             style={{ backgroundColor: color }}
             onClick={onClick}
-            title={title}
         >
             {label}
         </span>

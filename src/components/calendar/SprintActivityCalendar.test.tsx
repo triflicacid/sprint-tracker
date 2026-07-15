@@ -111,6 +111,25 @@ describe("SprintActivityCalendar", () => {
         expect(onToggleHoliday).toHaveBeenCalledWith("2026-03-05");
     });
 
+    it("does not toggle a holiday when locked, and drops the toggle tooltip", async () => {
+        const onToggleHoliday = vi.fn();
+        render(
+            <SprintActivityCalendar
+                startDate="2026-03-02"
+                endDate="2026-03-16"
+                holidays={new Set()}
+                dayActivity={{}}
+                onToggleHoliday={onToggleHoliday}
+                locked
+            />
+        );
+        const day = screen.getByText("5").closest(".calendar-day") as HTMLElement;
+        expect(day).not.toHaveAttribute("title");
+        expect(day).toHaveClass("calendar-day-locked");
+        await userEvent.click(day);
+        expect(onToggleHoliday).not.toHaveBeenCalled();
+    });
+
     it("does not toggle a holiday for an out-of-sprint day", async () => {
         const onToggleHoliday = vi.fn();
         render(

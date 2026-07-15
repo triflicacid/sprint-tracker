@@ -83,6 +83,18 @@ describe("CalendarSection", () => {
         expect(onHolidaysChange).toHaveBeenCalledWith(new Set());
     });
 
+    it("does not add or remove a holiday when locked", async () => {
+        const onHolidaysChange = vi.fn();
+        renderSection({ onHolidaysChange, locked: true });
+        await screen.findByText("March 2026");
+
+        await userEvent.click(screen.getByText("5", { selector: ".calendar-day-number" }));
+
+        expect(api.addHoliday).not.toHaveBeenCalled();
+        expect(api.removeHoliday).not.toHaveBeenCalled();
+        expect(onHolidaysChange).not.toHaveBeenCalled();
+    });
+
     it("exposes the Calendar pdf section (text and dom node) via the imperative handle", async () => {
         vi.mocked(api.getDayActivity).mockResolvedValue({ "2026-03-05": [] });
         const ref = createRef<CalendarSectionHandle>();

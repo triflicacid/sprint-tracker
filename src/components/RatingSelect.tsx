@@ -9,10 +9,29 @@ interface RatingSelectProps {
     disabled?: boolean;
     title?: string;
     selectClassName?: string;
+    readOnly?: boolean;
 }
 
 // labelled dropdown over a small fixed set of numeric ratings (subtask complexity, story points).
-export function RatingSelect({ label, value, options, onChange, disabled, title, selectClassName }: RatingSelectProps) {
+// when readOnly, renders the value as plain text instead of a select the user can't act on.
+export function RatingSelect({
+    label,
+    value,
+    options,
+    onChange,
+    disabled,
+    title,
+    selectClassName,
+    readOnly,
+}: RatingSelectProps) {
+    if (readOnly) {
+        return (
+            <span className="rating-select-label">
+                {label} {value ?? "-"}
+            </span>
+        );
+    }
+
     return (
         <label className="rating-select-label">
             {label}
