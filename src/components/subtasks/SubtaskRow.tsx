@@ -17,8 +17,6 @@ interface SubtaskRowProps {
     sprintLocked?: boolean;
 }
 
-const LOCKED_TITLE = "this sprint has ended";
-
 // e.g. https://github.com/org/repo/pull/123 -> .../tree/<branch>
 function branchUrl(subtask: Subtask) {
     if (!subtask.url) {
@@ -116,16 +114,18 @@ export function SubtaskRow({ subtask, flow, onChanged, disableNavigation, sprint
                 </div>
                 <div className="status-flow" onClick={(event) => event.stopPropagation()}>
                     <StatusBadge status={subtask.status} />
-                    {allowedNextStates.length > 0 && <span className="status-flow-arrow">&rarr;</span>}
-                    {allowedNextStates.map((nextStatus) => (
-                        <StatusBadge
-                            key={nextStatus}
-                            status={nextStatus}
-                            muted
-                            onClick={sprintLocked ? undefined : () => startTransition(nextStatus)}
-                            title={sprintLocked ? LOCKED_TITLE : undefined}
-                        />
-                    ))}
+                    {!sprintLocked && allowedNextStates.length > 0 && (
+                        <span className="status-flow-arrow">&rarr;</span>
+                    )}
+                    {!sprintLocked &&
+                        allowedNextStates.map((nextStatus) => (
+                            <StatusBadge
+                                key={nextStatus}
+                                status={nextStatus}
+                                muted
+                                onClick={() => startTransition(nextStatus)}
+                            />
+                        ))}
                 </div>
             </div>
             {pendingStatus && (
@@ -156,15 +156,10 @@ export function SubtaskRow({ subtask, flow, onChanged, disableNavigation, sprint
                             value={subtask.complexityRating}
                             options={COMPLEXITY_OPTIONS}
                             onChange={handleComplexityChange}
-                            disabled={complexityLocked || sprintLocked}
-                            title={
-                                sprintLocked
-                                    ? LOCKED_TITLE
-                                    : complexityLocked
-                                      ? "complexity is locked once a subtask has passed cut release"
-                                      : undefined
-                            }
+                            disabled={complexityLocked}
+                            title={complexityLocked ? "complexity is locked once a subtask has passed cut release" : undefined}
                             selectClassName="complexity-select"
+                            readOnly={sprintLocked}
                         />
                         {subtask.releaseVersion && <span className="release-version">{subtask.releaseVersion}</span>}
                     </div>

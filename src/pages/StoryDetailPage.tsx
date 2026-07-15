@@ -162,7 +162,6 @@ export function StoryDetailPage(): React.ReactElement {
     }
 
     const locked = isSprintLocked({ endDate: story.sprintEndDate });
-    const lockedTitle = "this sprint has ended";
 
     return (
         <div className="page">
@@ -173,8 +172,6 @@ export function StoryDetailPage(): React.ReactElement {
                     </Link>
                     <h1>
                         {locked && <LockIcon />}
-                        {/* html2canvas can't reliably capture a raw <svg> root, so wrap it
-                            in a plain element for the pdf export to grab a ref to */}
                         <span ref={titleIconRef} className="story-type-icon-wrap">
                             <StoryTypeIcon isBug={story.isBug} />
                         </span>
@@ -185,20 +182,25 @@ export function StoryDetailPage(): React.ReactElement {
                             {story.jiraKey ?? story.jiraUrl}
                         </a>
                         <StatusBadge status={story.status} />
-                        <label className="awaiting-more-subtasks" title={locked ? lockedTitle : undefined}>
-                            <input
-                                type="checkbox"
-                                checked={story.awaitingMoreSubtasks}
-                                onChange={(event) => handleAwaitingMoreSubtasksChange(event.target.checked)}
-                                disabled={locked}
-                            />
-                            awaiting more subtasks
-                        </label>
+                        {locked ? (
+                            story.awaitingMoreSubtasks && (
+                                <span className="awaiting-more-subtasks">awaiting more subtasks</span>
+                            )
+                        ) : (
+                            <label className="awaiting-more-subtasks">
+                                <input
+                                    type="checkbox"
+                                    checked={story.awaitingMoreSubtasks}
+                                    onChange={(event) => handleAwaitingMoreSubtasksChange(event.target.checked)}
+                                />
+                                awaiting more subtasks
+                            </label>
+                        )}
                     </MetaRow>
                 </div>
                 <div className="page-header-actions">
                     <div className="page-header-buttons">
-                        {story.jiraKey && (
+                        {story.jiraKey && !locked && (
                             <button onClick={handleFetchJiraInfo} disabled={jiraLoading}>
                                 {jiraLoading ? "fetching..." : "refresh from jira"}
                             </button>
@@ -210,8 +212,7 @@ export function StoryDetailPage(): React.ReactElement {
                         value={story.storyPoints}
                         options={STORY_POINTS_OPTIONS}
                         onChange={handleStoryPointsChange}
-                        disabled={locked}
-                        title={locked ? lockedTitle : undefined}
+                        readOnly={locked}
                     />
                 </div>
             </div>
@@ -220,27 +221,22 @@ export function StoryDetailPage(): React.ReactElement {
                 {story.tags.map((tag) => (
                     <span key={tag.id} className={`tag tag-${tag.tagType}`}>
                         {tag.name}
-                        {tag.tagType === "custom" && (
-                            <button
-                                className="tag-remove"
-                                onClick={() => handleRemoveTag(tag.id)}
-                                disabled={locked}
-                                title={locked ? lockedTitle : undefined}
-                            >
+                        {tag.tagType === "custom" && !locked && (
+                            <button className="tag-remove" onClick={() => handleRemoveTag(tag.id)}>
                                 x
                             </button>
                         )}
                     </span>
                 ))}
-                <input
-                    type="text"
-                    placeholder="add tag"
-                    value={newTagName}
-                    onChange={(event) => setNewTagName(event.target.value)}
-                    onKeyDown={(event) => event.key === "Enter" && handleAddTag()}
-                    disabled={locked}
-                    title={locked ? lockedTitle : undefined}
-                />
+                {!locked && (
+                    <input
+                        type="text"
+                        placeholder="add tag"
+                        value={newTagName}
+                        onChange={(event) => setNewTagName(event.target.value)}
+                        onKeyDown={(event) => event.key === "Enter" && handleAddTag()}
+                    />
+                )}
             </div>
 
             <div className="subtask-list">
@@ -255,19 +251,17 @@ export function StoryDetailPage(): React.ReactElement {
                 ))}
             </div>
 
-            <div className="add-subtask-form">
-                <input
-                    type="text"
-                    placeholder="subtask title"
-                    value={newSubtaskTitle}
-                    onChange={(event) => setNewSubtaskTitle(event.target.value)}
-                    disabled={locked}
-                    title={locked ? lockedTitle : undefined}
-                />
-                <button onClick={handleAddSubtask} disabled={locked} title={locked ? lockedTitle : undefined}>
-                    add subtask
-                </button>
-            </div>
+            {!locked && (
+                <div className="add-subtask-form">
+                    <input
+                        type="text"
+                        placeholder="subtask title"
+                        value={newSubtaskTitle}
+                        onChange={(event) => setNewSubtaskTitle(event.target.value)}
+                    />
+                    <button onClick={handleAddSubtask}>add subtask</button>
+                </div>
+            )}
 
             {exportSnapshot && (
                 <div style={{ position: "fixed", top: 0, left: -10000, width: 900, pointerEvents: "none" }}>

@@ -91,7 +91,6 @@ export function SubtaskDetailPage(): React.ReactElement {
     }
 
     const locked = story ? isSprintLocked({ endDate: story.sprintEndDate }) : false;
-    const lockedTitle = "this sprint has ended";
 
     return (
         <div className="page">
@@ -117,7 +116,6 @@ export function SubtaskDetailPage(): React.ReactElement {
                 displayClassName="subtask-comment"
                 onSave={saveComment}
                 disabled={locked}
-                title={lockedTitle}
             />
 
             <h2>Flow</h2>

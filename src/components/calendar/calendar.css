@@ -88,6 +88,14 @@
     border-color: var(--accent);
 }
 
+.calendar-day-locked {
+    cursor: default;
+}
+
+.calendar-day-locked:hover {
+    border-color: var(--border);
+}
+
 .calendar-day-activity {
     display: flex;
     flex-direction: column;

@@ -180,19 +180,20 @@ describe("SubtaskRow - status transitions", () => {
 });
 
 describe("SubtaskRow - sprint locked", () => {
-    it("does not start a transition when a status badge is clicked", async () => {
+    it("does not show the next-state transition badges", () => {
         renderRow(baseSubtask, false, true);
-        await userEvent.click(screen.getByText("wip"));
-        expect(screen.queryByText("confirm")).not.toBeInTheDocument();
+        expect(screen.queryByText("wip")).not.toBeInTheDocument();
+        expect(screen.queryByText("→")).not.toBeInTheDocument();
     });
 
-    it("disables the complexity select even in a state that would otherwise allow it", () => {
+    it("shows the complexity as plain text instead of a select, even in a state that would otherwise allow editing it", () => {
         renderRow(
             { ...baseSubtask, status: "IN_PR", url: "https://github.com/org/repo/pull/1", complexityRating: 3 },
             false,
             true
         );
-        expect(screen.getByRole("combobox")).toBeDisabled();
+        expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
+        expect(screen.getByText(/complexity: 3/)).toBeInTheDocument();
     });
 });
 

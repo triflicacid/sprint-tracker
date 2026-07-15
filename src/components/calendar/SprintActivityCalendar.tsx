@@ -10,6 +10,7 @@ interface SprintActivityCalendarProps {
     holidays: Set<string>;
     dayActivity: DayActivityMap;
     onToggleHoliday: (date: string) => void;
+    locked?: boolean;
 }
 
 const DAY_HEADERS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -27,6 +28,7 @@ export function SprintActivityCalendar({
     holidays,
     dayActivity,
     onToggleHoliday,
+    locked,
 }: SprintActivityCalendarProps) {
     const months = monthsBetween(startDate, endDate);
 
@@ -66,7 +68,7 @@ export function SprintActivityCalendar({
                                     const inSprint = dateString >= startDate && dateString <= endDate;
                                     const isHoliday = holidays.has(dateString);
                                     const activities = dayActivity[dateString] ?? [];
-                                    const canToggleHoliday = inSprint && !isWeekend;
+                                    const canToggleHoliday = inSprint && !isWeekend && !locked;
 
                                     let cellClass: string = "calendar-day";
                                     if (!inSprint || isWeekend) {
@@ -75,6 +77,9 @@ export function SprintActivityCalendar({
                                         cellClass += " calendar-day-holiday";
                                     } else {
                                         cellClass += " calendar-day-active";
+                                    }
+                                    if (!canToggleHoliday && inSprint && !isWeekend) {
+                                        cellClass += " calendar-day-locked";
                                     }
 
                                     return (

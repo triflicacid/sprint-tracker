@@ -119,23 +119,22 @@ describe("StoryDetailPage", () => {
         expect(heading.querySelector("svg.story-type-icon title")?.textContent).toBe("bug");
     });
 
-    it("disables story-level mutating controls once the parent sprint has ended", async () => {
+    it("removes story-level mutating controls once the parent sprint has ended", async () => {
         vi.mocked(api.getStory).mockResolvedValue({ ...story, sprintEndDate: "2020-01-10" });
         renderPage();
         await screen.findByText("support saved cards");
 
-        expect(screen.getByRole("checkbox")).toBeDisabled();
-        expect(screen.getByRole("combobox")).toBeDisabled();
-        expect(screen.getByPlaceholderText("add tag")).toBeDisabled();
-        expect(screen.getByText("x")).toBeDisabled();
-        expect(screen.getByPlaceholderText("subtask title")).toBeDisabled();
-        expect(screen.getByText("add subtask")).toBeDisabled();
-
-        await userEvent.click(screen.getByText("add subtask"));
-        expect(api.createSubtask).not.toHaveBeenCalled();
+        expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
+        expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
+        expect(screen.queryByPlaceholderText("add tag")).not.toBeInTheDocument();
+        expect(screen.queryByText("x")).not.toBeInTheDocument();
+        expect(screen.queryByPlaceholderText("subtask title")).not.toBeInTheDocument();
+        expect(screen.queryByText("add subtask")).not.toBeInTheDocument();
+        expect(screen.queryByText("refresh from jira")).not.toBeInTheDocument();
+        expect(screen.getByText(/story points: -/)).toBeInTheDocument();
     });
 
-    it("leaves story-level controls enabled while the parent sprint is still open", async () => {
+    it("leaves story-level controls in place while the parent sprint is still open", async () => {
         vi.mocked(api.getStory).mockResolvedValue(story);
         renderPage();
         await screen.findByText("support saved cards");
@@ -146,6 +145,7 @@ describe("StoryDetailPage", () => {
         expect(screen.getByText("x")).toBeEnabled();
         expect(screen.getByPlaceholderText("subtask title")).toBeEnabled();
         expect(screen.getByText("add subtask")).toBeEnabled();
+        expect(screen.getByText("refresh from jira")).toBeEnabled();
     });
 
     it("renders every subtask via SubtaskRow", async () => {

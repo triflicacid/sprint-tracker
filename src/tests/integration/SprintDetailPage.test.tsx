@@ -97,20 +97,16 @@ describe("SprintDetailPage", () => {
         expect(api.addHoliday).toHaveBeenCalledWith("2026-01-05");
     });
 
-    it("disables adding and removing holidays once the sprint has ended", async () => {
+    it("removes the holiday add/remove controls once the sprint has ended", async () => {
         vi.mocked(api.getSprint).mockResolvedValue(lockedSprint);
         vi.mocked(api.listHolidays).mockResolvedValue(["2020-01-05"]);
         renderPage();
         await screen.findByText("a story");
         await screen.findByText("2020-01-05");
 
-        const dateInput = document.querySelector('input[type="date"]') as HTMLInputElement;
-        expect(dateInput).toBeDisabled();
-        expect(screen.getByText("add holiday")).toBeDisabled();
-        expect(screen.getByText("x")).toBeDisabled();
-
-        await userEvent.click(screen.getByText("add holiday"));
-        expect(api.addHoliday).not.toHaveBeenCalled();
+        expect(document.querySelector('input[type="date"]')).not.toBeInTheDocument();
+        expect(screen.queryByText("add holiday")).not.toBeInTheDocument();
+        expect(screen.queryByText("x")).not.toBeInTheDocument();
     });
 
     it("shows a lock icon in the title once the sprint has ended", async () => {
@@ -126,13 +122,21 @@ describe("SprintDetailPage", () => {
         expect(heading.querySelector("svg.lock-icon")).toBeNull();
     });
 
-    it("disables the new-story button and comment editor once the sprint has ended", async () => {
+    it("removes the new-story button and the empty comment editor once the sprint has ended", async () => {
         vi.mocked(api.getSprint).mockResolvedValue(lockedSprint);
         renderPage();
         await screen.findByText("a story");
 
-        expect(screen.getByText("new story")).toBeDisabled();
-        await userEvent.click(screen.getByText("add comment"));
+        expect(screen.queryByText("new story")).not.toBeInTheDocument();
+        expect(screen.queryByText("add comment")).not.toBeInTheDocument();
+    });
+
+    it("shows an existing comment as read-only text once the sprint has ended", async () => {
+        vi.mocked(api.getSprint).mockResolvedValue({ ...lockedSprint, comment: "wrapped up early" });
+        renderPage();
+        await screen.findByText("a story");
+
+        await userEvent.click(await screen.findByText("wrapped up early"));
         expect(document.querySelector(".comment-edit")).not.toBeInTheDocument();
     });
 

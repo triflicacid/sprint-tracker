@@ -169,13 +169,20 @@ describe("StatsPage", () => {
     });
 
     it("toggles a holiday when a calendar day is clicked", async () => {
-        vi.mocked(api.addHoliday).mockResolvedValue(undefined);
-        renderPage();
-        await userEvent.selectOptions(await screen.findByRole("combobox"), "1");
-        await screen.findByText("March 2026");
+        // sprint's endDate ("2026-03-16") must still be in the future for its calendar to be unlocked/interactive.
+        vi.useFakeTimers({ shouldAdvanceTime: true });
+        vi.setSystemTime(new Date("2026-03-10T00:00:00Z"));
+        try {
+            vi.mocked(api.addHoliday).mockResolvedValue(undefined);
+            renderPage();
+            await userEvent.selectOptions(await screen.findByRole("combobox"), "1");
+            await screen.findByText("March 2026");
 
-        await userEvent.click(screen.getByText("5", { selector: ".calendar-day-number" }));
-        expect(api.addHoliday).toHaveBeenCalledWith("2026-03-05");
+            await userEvent.click(screen.getByText("5", { selector: ".calendar-day-number" }));
+            expect(api.addHoliday).toHaveBeenCalledWith("2026-03-05");
+        } finally {
+            vi.useRealTimers();
+        }
     });
 
     it("exports a single section as a pdf with real written stats when its own export button is clicked", async () => {

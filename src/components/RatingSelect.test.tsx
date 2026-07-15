@@ -55,6 +55,17 @@ describe("RatingSelect", () => {
         expect(screen.getByRole("combobox")).toBeEnabled();
     });
 
+    it("renders the value as plain text and no select when readOnly", () => {
+        render(<RatingSelect label="story points:" value={5} options={[1, 2, 3, 5, 8, 13]} onChange={vi.fn()} readOnly />);
+        expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
+        expect(screen.getByText(/story points: 5/)).toBeInTheDocument();
+    });
+
+    it("shows a dash for a null value when readOnly", () => {
+        render(<RatingSelect label="story points:" value={null} options={[1, 2, 3, 5, 8, 13]} onChange={vi.fn()} readOnly />);
+        expect(screen.getByText(/story points: -/)).toBeInTheDocument();
+    });
+
     it("applies an extra selectClassName for site-specific targeting", () => {
         render(
             <RatingSelect

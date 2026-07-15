@@ -113,14 +113,23 @@ describe("SubtaskDetailPage", () => {
         expect(heading.querySelector("svg.lock-icon")).toBeNull();
     });
 
-    it("disables the comment editor and complexity select once the parent sprint has ended", async () => {
+    it("removes the empty comment editor and the complexity select once the parent sprint has ended", async () => {
         vi.mocked(api.getSubtask).mockResolvedValue(subtask);
         vi.mocked(api.getStory).mockResolvedValue({ ...story, sprintEndDate: "2020-01-10" });
         renderPage();
         await screen.findByRole("heading", { name: "add saved card list endpoint" });
 
-        await vi.waitFor(() => expect(screen.getByRole("combobox")).toBeDisabled());
-        await userEvent.click(screen.getByText("add comment"));
+        await vi.waitFor(() => expect(screen.queryByRole("combobox")).not.toBeInTheDocument());
+        expect(screen.queryByText("add comment")).not.toBeInTheDocument();
+    });
+
+    it("shows an existing comment as read-only text once the parent sprint has ended", async () => {
+        vi.mocked(api.getSubtask).mockResolvedValue({ ...subtask, comment: "waiting on infra team" });
+        vi.mocked(api.getStory).mockResolvedValue({ ...story, sprintEndDate: "2020-01-10" });
+        renderPage();
+        await screen.findByRole("heading", { name: "add saved card list endpoint" });
+
+        await userEvent.click(await screen.findByText("waiting on infra team"));
         expect(document.querySelector(".comment-edit")).not.toBeInTheDocument();
     });
 
