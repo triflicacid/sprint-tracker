@@ -29,13 +29,4 @@
     font-size: var(--font-tiny);
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-}
-
-.holiday-remove {
-    background: none;
-    border: none;
-    padding: 0;
-    color: #a5b4fc;
-    font-size: var(--font-tiny);
 }

@@ -3,6 +3,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import type { SubtaskStatus } from "@shared/types";
 import type { AdvancedBurndownPoint } from "../../utils/burndown";
 import { STATUS_COLORS, STATUS_LABELS } from "../StatusBadge";
+import { formatDisplayDate } from "../../utils/calendarGrid";
 
 interface AdvancedBurndownChartProps {
     points: AdvancedBurndownPoint[];
@@ -12,7 +13,7 @@ interface AdvancedBurndownChartProps {
 
 // One line per milestone status: how many items have not yet reached it each day
 export function AdvancedBurndownChart({ points, milestones }: AdvancedBurndownChartProps) {
-    const data = points.map((point) => ({ date: point.date, ideal: point.ideal, ...point.counts }));
+    const data = points.map((point) => ({ date: formatDisplayDate(point.date), ideal: point.ideal, ...point.counts }));
 
     return (
         <ResponsiveContainer width="100%" height={320}>

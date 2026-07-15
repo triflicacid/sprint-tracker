@@ -12,6 +12,25 @@
     margin: 0 0 8px;
 }
 
+.calendar-month-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.calendar-month-header .calendar-month-title {
+    margin: 0;
+    flex: 1;
+    text-align: center;
+}
+
+.calendar-month-nav {
+    flex-shrink: 0;
+    padding: 4px 10px;
+}
+
 .calendar-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
@@ -75,25 +94,23 @@
 .calendar-day-holiday {
     background: #3730a3;
     border-color: #6366f1;
-    cursor: pointer;
+}
+
+.calendar-day-selected {
+    background: #3730a3;
+    border-color: #6366f1;
 }
 
 .calendar-day-active {
     background: var(--surface);
+}
+
+.calendar-day-clickable {
     cursor: pointer;
 }
 
-.calendar-day-active:hover,
-.calendar-day-holiday:hover {
+.calendar-day-clickable:hover {
     border-color: var(--accent);
-}
-
-.calendar-day-locked {
-    cursor: default;
-}
-
-.calendar-day-locked:hover {
-    border-color: var(--border);
 }
 
 .calendar-day-activity {

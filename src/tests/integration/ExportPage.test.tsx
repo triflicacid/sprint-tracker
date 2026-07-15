@@ -125,18 +125,25 @@ describe("ExportPage", () => {
     });
 
     it("selects only sprints overlapping the given date range", async () => {
-        renderPage();
-        await screen.findByText(/Sprint One/);
+        vi.useFakeTimers({ shouldAdvanceTime: true });
+        vi.setSystemTime(new Date("2026-01-05T00:00:00Z"));
+        try {
+            renderPage();
+            await screen.findByText(/Sprint One/);
 
-        const [fromInput, toInput] = document.querySelectorAll(".export-date-range input[type='date']");
-        await userEvent.type(fromInput as HTMLInputElement, "2026-01-01");
-        await userEvent.type(toInput as HTMLInputElement, "2026-01-14");
-        await userEvent.click(screen.getByText("select sprints in range"));
+            await userEvent.click(screen.getByRole("button", { name: "select from date" }));
+            await userEvent.click(screen.getByText("1"));
+            await userEvent.click(screen.getByRole("button", { name: "select to date" }));
+            await userEvent.click(screen.getByText("14"));
+            await userEvent.click(screen.getByText("select sprints in range"));
 
-        const oneCheckbox = screen.getByText(/Sprint One/).closest("label")!.querySelector("input") as HTMLInputElement;
-        const twoCheckbox = screen.getByText(/Sprint Two/).closest("label")!.querySelector("input") as HTMLInputElement;
-        expect(oneCheckbox.checked).toBe(true);
-        expect(twoCheckbox.checked).toBe(false);
+            const oneCheckbox = screen.getByText(/Sprint One/).closest("label")!.querySelector("input") as HTMLInputElement;
+            const twoCheckbox = screen.getByText(/Sprint Two/).closest("label")!.querySelector("input") as HTMLInputElement;
+            expect(oneCheckbox.checked).toBe(true);
+            expect(twoCheckbox.checked).toBe(false);
+        } finally {
+            vi.useRealTimers();
+        }
     });
 
     it("resets a changed field back to its default via 'reset to defaults'", async () => {

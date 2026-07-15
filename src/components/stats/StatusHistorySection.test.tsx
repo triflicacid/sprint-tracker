@@ -72,8 +72,12 @@ describe("StatusHistorySection", () => {
         const [burndownSection, statusBreakdownSection] = ref.current!.getReportSections();
         expect(burndownSection.title).toBe("Burndown");
         expect(burndownSection.element).toBeInstanceOf(HTMLElement);
+        expect(burndownSection.lines).toEqual([
+            "10/03/2026: 2 remaining (ideal 0)",
+            "Milestones remaining (10/03/2026): new: 0, testing: 2, uat: 2, done: 2",
+        ]);
         expect(statusBreakdownSection.title).toBe("Status breakdown (subtasks)");
-        expect(statusBreakdownSection.lines).toEqual(["2026-03-10: new: 1, wip: 1"]);
+        expect(statusBreakdownSection.lines).toEqual(["10/03/2026: new: 1, wip: 1"]);
     });
 
     it("wires up the burndown and status-breakdown export buttons independently, each owning its own loading state", async () => {

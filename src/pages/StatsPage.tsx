@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import type { SprintSummary, SprintStats } from "@shared/types";
-import { isSprintLocked } from "@shared/sprintLock";
 import { api } from "../api/client";
 import { VelocitySection } from "../components/stats/VelocitySection";
 import { SummarySection, type SummarySectionHandle } from "../components/stats/SummarySection";
@@ -171,7 +170,6 @@ export function StatsPage() {
     const totalWeekdays = selectedSprint && sprintEndDate ? countWeekdays(selectedSprint.startDate, sprintEndDate) : 0;
     const holidayWeekdays = Array.from(holidays).filter(isWeekday).length;
     const isCompleted = selectedSprint ? selectedSprint.endDate !== null : false;
-    const locked = selectedSprint ? isSprintLocked({ endDate: selectedSprint.endDate }) : false;
     const isWorkingDay = (date: string) => isWeekday(date) && !holidays.has(date);
 
     return (
@@ -260,11 +258,9 @@ export function StatsPage() {
                         startDate={selectedSprint.startDate}
                         endDate={sprintEndDate}
                         holidays={holidays}
-                        onHolidaysChange={setHolidays}
                         totalWeekdays={totalWeekdays}
                         holidayWeekdays={holidayWeekdays}
                         onExport={() => handleExportSection(7, "calendar")}
-                        locked={locked}
                     />
                 </>
             )}

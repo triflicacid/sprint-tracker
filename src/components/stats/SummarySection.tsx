@@ -2,6 +2,7 @@ import React, { forwardRef, useEffect, useImperativeHandle, useState } from "rea
 import type { SprintSummary, SprintStats, VelocityPoint } from "@shared/types";
 import { api } from "../../api/client";
 import { ExportButton } from "../ExportButton";
+import { formatDisplayDate } from "../../utils/calendarGrid";
 import type { PdfSection } from "../../utils/pdfExport";
 import "./statsShared.css";
 
@@ -46,7 +47,7 @@ export const SummarySection = forwardRef<SummarySectionHandle, SummarySectionPro
             return {
                 title: `Summary - ${selectedSprint.name}`,
                 lines: [
-                    `Sprint: ${selectedSprint.name} (${selectedSprint.startDate} to ${sprintEndDate})`,
+                    `Sprint: ${selectedSprint.name} (${formatDisplayDate(selectedSprint.startDate)} to ${formatDisplayDate(sprintEndDate)})`,
                     `Completed: ${isCompleted ? "yes" : "ongoing"}`,
                     `Pull requests: ${stats.prCount}`,
                     `Stories: ${stats.storyCount}`,
@@ -95,11 +96,13 @@ export const SummarySection = forwardRef<SummarySectionHandle, SummarySectionPro
                     <span className="stat-label">holidays</span>
                 </div>
                 <div className="stat-tile">
-                    <span className="stat-value">{selectedSprint.startDate}</span>
+                    <span className="stat-value">{formatDisplayDate(selectedSprint.startDate)}</span>
                     <span className="stat-label">start date</span>
                 </div>
                 <div className="stat-tile">
-                    <span className="stat-value">{selectedSprint.endDate ?? "ongoing"}</span>
+                    <span className="stat-value">
+                        {selectedSprint.endDate ? formatDisplayDate(selectedSprint.endDate) : "ongoing"}
+                    </span>
                     <span className="stat-label">end date</span>
                 </div>
                 <div className="stat-tile">

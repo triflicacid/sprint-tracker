@@ -3,6 +3,7 @@ import type { DayActivityMap } from "@shared/types";
 import { api } from "../../api/client";
 import { SprintActivityCalendar } from "../calendar/SprintActivityCalendar";
 import { ExportButton } from "../ExportButton";
+import { formatDisplayDate } from "../../utils/calendarGrid";
 import type { PdfSection } from "../../utils/pdfExport";
 
 export interface CalendarSectionHandle {
@@ -14,17 +15,15 @@ interface CalendarSectionProps {
     startDate: string;
     endDate: string;
     holidays: Set<string>;
-    onHolidaysChange: (holidays: Set<string>) => void;
     totalWeekdays: number;
     holidayWeekdays: number;
     onExport: () => Promise<void>;
-    locked?: boolean;
 }
 
-// activity calendar for the sprint's date range
-// toggle holidays by clicking on a day
+// activity calendar for the sprint's date range. read-only - holiday editing
+// lives on the sprint detail page.
 export const CalendarSection = forwardRef<CalendarSectionHandle, CalendarSectionProps>(function CalendarSection(
-    { sprintId, startDate, endDate, holidays, onHolidaysChange, totalWeekdays, holidayWeekdays, onExport, locked },
+    { sprintId, startDate, endDate, holidays, totalWeekdays, holidayWeekdays, onExport },
     ref
 ) {
     const [dayActivity, setDayActivity] = useState<DayActivityMap>({});
@@ -34,16 +33,6 @@ export const CalendarSection = forwardRef<CalendarSectionHandle, CalendarSection
     useEffect(() => {
         api.getDayActivity(sprintId).then(setDayActivity);
     }, [sprintId]);
-
-    async function handleToggleHoliday(date: string) {
-        if (holidays.has(date)) {
-            await api.removeHoliday(date);
-        } else {
-            await api.addHoliday(date);
-        }
-        const dates = await api.listHolidays(startDate, endDate);
-        onHolidaysChange(new Set(dates));
-    }
 
     async function handleExport() {
         setLoading(true);
@@ -61,7 +50,7 @@ export const CalendarSection = forwardRef<CalendarSectionHandle, CalendarSection
                 title: "Calendar",
                 element: chartRef.current ?? undefined,
                 lines: [
-                    `${totalWeekdays} working days between ${startDate} and ${endDate}`,
+                    `${totalWeekdays} working days between ${formatDisplayDate(startDate)} and ${formatDisplayDate(endDate)}`,
                     `${holidayWeekdays} of those were holidays`,
                     `${activeDayCount} day${activeDayCount === 1 ? "" : "s"} had subtask activity`,
                 ],
@@ -81,8 +70,6 @@ export const CalendarSection = forwardRef<CalendarSectionHandle, CalendarSection
                     endDate={endDate}
                     holidays={holidays}
                     dayActivity={dayActivity}
-                    onToggleHoliday={handleToggleHoliday}
-                    locked={locked}
                 />
             </div>
         </>

@@ -22,7 +22,7 @@ describe("SprintCard", () => {
         );
         expect(screen.getByRole("link")).toHaveAttribute("href", "/sprints/3");
         expect(screen.getByText("Sprint 3")).toBeInTheDocument();
-        expect(screen.getByText("2026-03-30 to present")).toBeInTheDocument();
+        expect(screen.getByText("30/03/2026 to present")).toBeInTheDocument();
         expect(screen.getByText("2 stories")).toBeInTheDocument();
         expect(screen.getByText("4 pull requests")).toBeInTheDocument();
     });
@@ -43,7 +43,7 @@ describe("SprintCard", () => {
                 />
             </MemoryRouter>
         );
-        expect(screen.getByText("2026-01-01 to 2026-01-15")).toBeInTheDocument();
+        expect(screen.getByText("01/01/2026 to 15/01/2026")).toBeInTheDocument();
     });
 
     it("shows the comment only when present", () => {

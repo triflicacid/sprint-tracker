@@ -25,9 +25,19 @@ test("export page selects sprints by date range, the field picker changes the do
     await expect(page.getByText(otherSprintName)).toBeVisible();
 
     // date range covering only the first sprint
-    const dateInputs = page.locator(".export-date-range input[type='date']");
-    await dateInputs.nth(0).fill("2031-05-01");
-    await dateInputs.nth(1).fill("2031-05-14");
+    async function pickDate(label: "from" | "to", isoDate: string) {
+        const [year, month, day] = isoDate.split("-").map(Number);
+        await page.locator(".export-date-field", { hasText: label }).getByRole("button").click();
+        await page.getByRole("combobox", { name: "month" }).selectOption({ index: month - 1 });
+        await page.getByRole("spinbutton", { name: "year" }).fill(String(year));
+        await page
+            .locator(".calendar-day")
+            .filter({ has: page.locator(".calendar-day-number", { hasText: new RegExp(`^${day}$`) }) })
+            .click();
+    }
+
+    await pickDate("from", "2031-05-01");
+    await pickDate("to", "2031-05-14");
     await page.getByRole("button", { name: "select sprints in range", exact: true }).click();
 
     const sprintCheckbox = page.locator(".export-sprint-item", { hasText: sprintName }).locator("input");

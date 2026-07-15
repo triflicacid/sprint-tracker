@@ -1,6 +1,7 @@
 import React from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import type { BurndownPoint } from "../../utils/burndown";
+import { formatDisplayDate } from "../../utils/calendarGrid";
 
 interface BurndownChartProps {
     points: BurndownPoint[];
@@ -8,9 +9,11 @@ interface BurndownChartProps {
 
 // Actual vs ideal remaining-work line chart for a sprint burndown.
 export function BurndownChart({ points }: BurndownChartProps) {
+    const data = points.map((point) => ({ ...point, date: formatDisplayDate(point.date) }));
+
     return (
         <ResponsiveContainer width="100%" height={320}>
-            <LineChart data={points}>
+            <LineChart data={data}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
                 <XAxis dataKey="date" stroke="#9ca3af" tick={{ fontSize: 11 }} />
                 <YAxis stroke="#9ca3af" allowDecimals={false} />

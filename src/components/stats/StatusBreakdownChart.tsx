@@ -2,6 +2,7 @@ import React from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import type { StatusBreakdownPoint, StoryStatus } from "@shared/types";
 import { STATUS_COLORS, STATUS_LABELS } from "../StatusBadge";
+import { formatDisplayDate } from "../../utils/calendarGrid";
 
 interface StatusBreakdownChartProps {
     points: StatusBreakdownPoint[];
@@ -11,7 +12,7 @@ interface StatusBreakdownChartProps {
 
 // Stacked bar chart of status counts per day
 export function StatusBreakdownChart({ points, statuses }: StatusBreakdownChartProps) {
-    const data = points.map((point) => ({ date: point.date, ...point.counts }));
+    const data = points.map((point) => ({ date: formatDisplayDate(point.date), ...point.counts }));
 
     return (
         <ResponsiveContainer width="100%" height={320}>

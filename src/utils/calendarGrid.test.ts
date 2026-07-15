@@ -2,10 +2,12 @@ import { describe, it, expect } from "vitest";
 import {
     parseIsoDate,
     formatIsoDate,
+    formatDisplayDate,
     buildMonthGrid,
     buildMonthGridDates,
     isSameUtcMonth,
     monthsBetween,
+    groupConsecutiveDates,
 } from "./calendarGrid";
 
 describe("parseIsoDate / formatIsoDate", () => {
@@ -15,6 +17,16 @@ describe("parseIsoDate / formatIsoDate", () => {
         expect(date.getUTCMonth()).toBe(2);
         expect(date.getUTCDate()).toBe(16);
         expect(formatIsoDate(date)).toBe("2026-03-16");
+    });
+});
+
+describe("formatDisplayDate", () => {
+    it("reformats an iso date string as dd/mm/yyyy", () => {
+        expect(formatDisplayDate("2026-03-16")).toBe("16/03/2026");
+    });
+
+    it("keeps leading zeros on single-digit day/month", () => {
+        expect(formatDisplayDate("2026-01-05")).toBe("05/01/2026");
     });
 });
 
@@ -68,6 +80,37 @@ describe("isSameUtcMonth", () => {
     it("is false for a date outside the given year/month", () => {
         expect(isSameUtcMonth(parseIsoDate("2026-02-28"), 2026, 2)).toBe(false);
         expect(isSameUtcMonth(parseIsoDate("2025-03-15"), 2026, 2)).toBe(false);
+    });
+});
+
+describe("groupConsecutiveDates", () => {
+    it("collapses consecutive days into a single range", () => {
+        expect(groupConsecutiveDates(["2026-07-12", "2026-07-13", "2026-07-14"])).toEqual([
+            { start: "2026-07-12", end: "2026-07-14" },
+        ]);
+    });
+
+    it("keeps non-consecutive days as separate single-day ranges", () => {
+        expect(groupConsecutiveDates(["2026-07-12", "2026-07-14"])).toEqual([
+            { start: "2026-07-12", end: "2026-07-12" },
+            { start: "2026-07-14", end: "2026-07-14" },
+        ]);
+    });
+
+    it("sorts unsorted input before grouping", () => {
+        expect(groupConsecutiveDates(["2026-07-14", "2026-07-12", "2026-07-13"])).toEqual([
+            { start: "2026-07-12", end: "2026-07-14" },
+        ]);
+    });
+
+    it("spans a month boundary", () => {
+        expect(groupConsecutiveDates(["2026-06-29", "2026-06-30", "2026-07-01"])).toEqual([
+            { start: "2026-06-29", end: "2026-07-01" },
+        ]);
+    });
+
+    it("returns an empty list for no dates", () => {
+        expect(groupConsecutiveDates([])).toEqual([]);
     });
 });
 

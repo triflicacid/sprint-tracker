@@ -1,19 +1,12 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import type { DayActivityMap } from "@shared/types";
 import { SprintActivityCalendar } from "./SprintActivityCalendar";
 
 describe("SprintActivityCalendar", () => {
     it("renders a month header for the sprint's range", () => {
         render(
-            <SprintActivityCalendar
-                startDate="2026-03-02"
-                endDate="2026-03-16"
-                holidays={new Set()}
-                dayActivity={{}}
-                onToggleHoliday={vi.fn()}
-            />
+            <SprintActivityCalendar startDate="2026-03-02" endDate="2026-03-16" holidays={new Set()} dayActivity={{}} />
         );
         expect(screen.getByText("March 2026")).toBeInTheDocument();
     });
@@ -28,14 +21,12 @@ describe("SprintActivityCalendar", () => {
                 endDate="2026-03-16"
                 holidays={new Set()}
                 dayActivity={dayActivity}
-                onToggleHoliday={vi.fn()}
             />
         );
         expect(screen.getByText("NEB-1 feature/x")).toBeInTheDocument();
     });
 
-    it("renders a pr-linked chip as a link, and clicking it does not toggle the holiday", async () => {
-        const onToggleHoliday = vi.fn();
+    it("renders a pr-linked chip as a link", () => {
         const dayActivity: DayActivityMap = {
             "2026-03-05": [
                 { storyLabel: "NEB-1", branchName: "feature/x", status: "WIP", prUrl: "https://github.com/org/repo/pull/1" },
@@ -47,14 +38,11 @@ describe("SprintActivityCalendar", () => {
                 endDate="2026-03-16"
                 holidays={new Set()}
                 dayActivity={dayActivity}
-                onToggleHoliday={onToggleHoliday}
             />
         );
         const chip = screen.getByText("NEB-1 feature/x");
         expect(chip.tagName).toBe("A");
         expect(chip).toHaveAttribute("href", "https://github.com/org/repo/pull/1");
-        await userEvent.click(chip);
-        expect(onToggleHoliday).not.toHaveBeenCalled();
     });
 
     it("caps visible chips and folds the rest into a '+N more' chip", () => {
@@ -73,7 +61,6 @@ describe("SprintActivityCalendar", () => {
                 endDate="2026-03-16"
                 holidays={new Set()}
                 dayActivity={dayActivity}
-                onToggleHoliday={vi.fn()}
             />
         );
         expect(screen.getByText("+1 more")).toBeInTheDocument();
@@ -90,59 +77,23 @@ describe("SprintActivityCalendar", () => {
                 endDate="2026-03-16"
                 holidays={new Set(["2026-03-05"])}
                 dayActivity={dayActivity}
-                onToggleHoliday={vi.fn()}
             />
         );
         expect(screen.queryByText("NEB-1 feature/x")).not.toBeInTheDocument();
-    });
-
-    it("toggles a holiday when an in-sprint weekday is clicked", async () => {
-        const onToggleHoliday = vi.fn();
-        render(
-            <SprintActivityCalendar
-                startDate="2026-03-02"
-                endDate="2026-03-16"
-                holidays={new Set()}
-                dayActivity={{}}
-                onToggleHoliday={onToggleHoliday}
-            />
-        );
-        await userEvent.click(screen.getByText("5"));
-        expect(onToggleHoliday).toHaveBeenCalledWith("2026-03-05");
-    });
-
-    it("does not toggle a holiday when locked, and drops the toggle tooltip", async () => {
-        const onToggleHoliday = vi.fn();
-        render(
-            <SprintActivityCalendar
-                startDate="2026-03-02"
-                endDate="2026-03-16"
-                holidays={new Set()}
-                dayActivity={{}}
-                onToggleHoliday={onToggleHoliday}
-                locked
-            />
-        );
         const day = screen.getByText("5").closest(".calendar-day") as HTMLElement;
-        expect(day).not.toHaveAttribute("title");
-        expect(day).toHaveClass("calendar-day-locked");
-        await userEvent.click(day);
-        expect(onToggleHoliday).not.toHaveBeenCalled();
+        expect(day).toHaveClass("calendar-day-holiday");
     });
 
-    it("does not toggle a holiday for an out-of-sprint day", async () => {
-        const onToggleHoliday = vi.fn();
+    it("mutes out-of-sprint and weekend days", () => {
         render(
-            <SprintActivityCalendar
-                startDate="2026-03-02"
-                endDate="2026-03-16"
-                holidays={new Set()}
-                dayActivity={{}}
-                onToggleHoliday={onToggleHoliday}
-            />
+            <SprintActivityCalendar startDate="2026-03-02" endDate="2026-03-16" holidays={new Set()} dayActivity={{}} />
         );
-        // March 30 falls outside the 2-16 sprint range but still renders (padding)
-        await userEvent.click(screen.getByText("30"));
-        expect(onToggleHoliday).not.toHaveBeenCalled();
+        // March 30 2026 falls outside the 2-16 sprint range but still renders (padding).
+        const outOfSprintDay = screen.getByText("30").closest(".calendar-day") as HTMLElement;
+        expect(outOfSprintDay).toHaveClass("calendar-day-muted");
+
+        // March 7 2026 is a Saturday within the sprint range.
+        const weekendDay = screen.getByText("7").closest(".calendar-day") as HTMLElement;
+        expect(weekendDay).toHaveClass("calendar-day-muted");
     });
 });

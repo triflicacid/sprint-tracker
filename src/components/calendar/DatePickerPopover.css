@@ -1,0 +1,18 @@
+.date-picker-popover {
+    min-width: 260px;
+}
+
+.date-picker-nav {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+.date-picker-nav select {
+    flex: 1;
+}
+
+.date-picker-year {
+    width: 70px;
+}

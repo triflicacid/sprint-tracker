@@ -9,16 +9,12 @@ import { deferred } from "../../testUtils/deferred";
 vi.mock("../../api/client", () => ({
     api: {
         getDayActivity: vi.fn(),
-        listHolidays: vi.fn(),
-        addHoliday: vi.fn(),
-        removeHoliday: vi.fn(),
     },
 }));
 
 beforeEach(() => {
     Object.values(api).forEach((fn) => vi.mocked(fn).mockReset());
     vi.mocked(api.getDayActivity).mockResolvedValue({});
-    vi.mocked(api.listHolidays).mockResolvedValue([]);
 });
 
 function renderSection(overrides: Partial<Parameters<typeof CalendarSection>[0]> = {}) {
@@ -28,7 +24,6 @@ function renderSection(overrides: Partial<Parameters<typeof CalendarSection>[0]>
             startDate="2026-03-02"
             endDate="2026-03-16"
             holidays={new Set()}
-            onHolidaysChange={vi.fn()}
             totalWeekdays={11}
             holidayWeekdays={0}
             onExport={vi.fn()}
@@ -39,60 +34,19 @@ function renderSection(overrides: Partial<Parameters<typeof CalendarSection>[0]>
 
 describe("CalendarSection", () => {
     it("fetches day activity for the given sprint and renders the calendar for its date range", async () => {
-        render(
-            <CalendarSection
-                sprintId={1}
-                startDate="2026-03-02"
-                endDate="2026-03-16"
-                holidays={new Set()}
-                onHolidaysChange={vi.fn()}
-                totalWeekdays={11}
-                holidayWeekdays={0}
-                onExport={vi.fn()}
-            />
-        );
+        renderSection();
         expect(screen.getByText("Calendar")).toBeInTheDocument();
         expect(await screen.findByText("March 2026")).toBeInTheDocument();
         expect(api.getDayActivity).toHaveBeenCalledWith(1);
     });
 
-    it("adds a holiday, refetches, and reports the refreshed set back via onHolidaysChange", async () => {
-        vi.mocked(api.addHoliday).mockResolvedValue(undefined);
-        vi.mocked(api.listHolidays).mockResolvedValue(["2026-03-05"]);
-        const onHolidaysChange = vi.fn();
-        renderSection({ onHolidaysChange });
+    it("renders holidays as read-only", async () => {
+        renderSection({ holidays: new Set(["2026-03-05"]) });
         await screen.findByText("March 2026");
 
-        await userEvent.click(screen.getByText("5", { selector: ".calendar-day-number" }));
-
-        expect(api.addHoliday).toHaveBeenCalledWith("2026-03-05");
-        expect(api.listHolidays).toHaveBeenCalledWith("2026-03-02", "2026-03-16");
-        expect(onHolidaysChange).toHaveBeenCalledWith(new Set(["2026-03-05"]));
-    });
-
-    it("removes a holiday when an already-marked day is clicked", async () => {
-        vi.mocked(api.removeHoliday).mockResolvedValue(undefined);
-        vi.mocked(api.listHolidays).mockResolvedValue([]);
-        const onHolidaysChange = vi.fn();
-        renderSection({ holidays: new Set(["2026-03-05"]), onHolidaysChange });
-        await screen.findByText("March 2026");
-
-        await userEvent.click(screen.getByText("5", { selector: ".calendar-day-number" }));
-
-        expect(api.removeHoliday).toHaveBeenCalledWith("2026-03-05");
-        expect(onHolidaysChange).toHaveBeenCalledWith(new Set());
-    });
-
-    it("does not add or remove a holiday when locked", async () => {
-        const onHolidaysChange = vi.fn();
-        renderSection({ onHolidaysChange, locked: true });
-        await screen.findByText("March 2026");
-
-        await userEvent.click(screen.getByText("5", { selector: ".calendar-day-number" }));
-
-        expect(api.addHoliday).not.toHaveBeenCalled();
-        expect(api.removeHoliday).not.toHaveBeenCalled();
-        expect(onHolidaysChange).not.toHaveBeenCalled();
+        const day = screen.getByText("5", { selector: ".calendar-day-number" }).closest(".calendar-day") as HTMLElement;
+        expect(day).toHaveClass("calendar-day-holiday");
+        expect(day).not.toHaveClass("calendar-day-clickable");
     });
 
     it("exposes the Calendar pdf section (text and dom node) via the imperative handle", async () => {
@@ -105,7 +59,6 @@ describe("CalendarSection", () => {
                 startDate="2026-03-02"
                 endDate="2026-03-16"
                 holidays={new Set(["2026-03-01"])}
-                onHolidaysChange={vi.fn()}
                 totalWeekdays={11}
                 holidayWeekdays={1}
                 onExport={vi.fn()}
@@ -117,7 +70,7 @@ describe("CalendarSection", () => {
         expect(section.title).toBe("Calendar");
         expect(section.element).toBeInstanceOf(HTMLElement);
         expect(section.lines).toEqual([
-            "11 working days between 2026-03-02 and 2026-03-16",
+            "11 working days between 02/03/2026 and 16/03/2026",
             "1 of those were holidays",
             "1 day had subtask activity",
         ]);
