@@ -15,8 +15,6 @@ const pdfInstance = {
     addPage: vi.fn(),
     setFontSize: vi.fn(),
     setTextColor: vi.fn(),
-    setFillColor: vi.fn(),
-    circle: vi.fn(),
     text: vi.fn(),
     textWithLink: vi.fn(),
     splitTextToSize: vi.fn((text: string) => [text]),
@@ -163,27 +161,37 @@ describe("exportSectionsAsPdf", () => {
         expect(colorCalls).toContainEqual([0, 0, 0]);
     });
 
-    it("draws a filled circle marker before the title when titleMarkerColor is set", async () => {
+    it("rasterizes and draws the actual icon element before the title when titleIcon is set", async () => {
+        const icon = document.createElement("span");
+        vi.mocked(html2canvas).mockResolvedValue(fakeCanvas(80, 80));
         const sections: PdfSection[] = [
-            { title: "fix calendar off-by-one", titleMarkerColor: [229, 72, 77], lines: ["Status: new"] },
+            { title: "fix calendar off-by-one", titleIcon: icon, lines: ["Status: new"] },
         ];
 
-        await exportSectionsAsPdf(sections, "marker.pdf");
+        await exportSectionsAsPdf(sections, "icon.pdf");
 
-        expect(pdfInstance.setFillColor).toHaveBeenCalledWith(229, 72, 77);
-        expect(pdfInstance.circle).toHaveBeenCalledWith(expect.any(Number), expect.any(Number), expect.any(Number), "F");
+        expect(html2canvas).toHaveBeenCalledWith(icon, expect.objectContaining({ backgroundColor: null, scale: 4 }));
+        expect(pdfInstance.addImage).toHaveBeenCalledWith(
+            "data:image/png;base64,80x80",
+            "PNG",
+            expect.any(Number),
+            expect.any(Number),
+            expect.any(Number),
+            expect.any(Number)
+        );
         const titleCall = pdfInstance.text.mock.calls.find((call) => call[0] === "fix calendar off-by-one");
         expect(titleCall).toBeDefined();
-        // title is shifted right of the default left margin to make room for the marker
+        // title is shifted right of the default left margin to make room for the icon
         expect(titleCall?.[1]).toBeGreaterThan(14);
     });
 
-    it("draws no marker and uses the default left margin when titleMarkerColor is omitted", async () => {
+    it("draws no icon and uses the default left margin when titleIcon is omitted", async () => {
         const sections: PdfSection[] = [{ title: "add export button", lines: ["Status: new"] }];
 
-        await exportSectionsAsPdf(sections, "no-marker.pdf");
+        await exportSectionsAsPdf(sections, "no-icon.pdf");
 
-        expect(pdfInstance.circle).not.toHaveBeenCalled();
+        expect(html2canvas).not.toHaveBeenCalled();
+        expect(pdfInstance.addImage).not.toHaveBeenCalled();
         const titleCall = pdfInstance.text.mock.calls.find((call) => call[0] === "add export button");
         expect(titleCall?.[1]).toBe(14);
     });

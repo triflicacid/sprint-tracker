@@ -38,6 +38,7 @@ export function StoryDetailPage(): React.ReactElement {
     const [exporting, setExporting] = useState<boolean>(false);
 
     const barChartRef = useRef<HTMLDivElement>(null);
+    const titleIconRef = useRef<HTMLSpanElement>(null);
 
     async function loadStory() {
         try {
@@ -122,7 +123,7 @@ export function StoryDetailPage(): React.ReactElement {
             const sections: PdfSection[] = [
                 {
                     title: story.jiraTitle ?? story.description,
-                    titleMarkerColor: story.isBug ? [229, 72, 77] : [90, 155, 90],
+                    titleIcon: titleIconRef.current ?? undefined,
                     element: barChartRef.current ?? undefined,
                     lines: [
                         { text: `Jira: ${story.jiraKey ?? story.jiraUrl}`, url: story.jiraUrl },
@@ -172,7 +173,11 @@ export function StoryDetailPage(): React.ReactElement {
                     </Link>
                     <h1>
                         {locked && <LockIcon />}
-                        <StoryTypeIcon isBug={story.isBug} />
+                        {/* html2canvas can't reliably capture a raw <svg> root, so wrap it
+                            in a plain element for the pdf export to grab a ref to */}
+                        <span ref={titleIconRef} className="story-type-icon-wrap">
+                            <StoryTypeIcon isBug={story.isBug} />
+                        </span>
                         {story.jiraTitle ?? story.description}
                     </h1>
                     <MetaRow>
