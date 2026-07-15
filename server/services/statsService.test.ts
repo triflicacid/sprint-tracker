@@ -16,10 +16,12 @@ function insertSprint(startDate: string, endDate: string | null = null) {
     return Number(result.lastInsertRowid);
 }
 
-function insertStory(sprintId: number, jiraKey: string | null = null) {
+function insertStory(sprintId: number, jiraKey: string | null = null, isBug = false) {
     const result = db
-        .prepare("INSERT INTO stories (sprint_id, jira_url, jira_key, description) VALUES (?, 'https://x', ?, 'story')")
-        .run(sprintId, jiraKey);
+        .prepare(
+            "INSERT INTO stories (sprint_id, jira_url, jira_key, description, is_bug) VALUES (?, 'https://x', ?, 'story', ?)"
+        )
+        .run(sprintId, jiraKey, isBug ? 1 : 0);
     return Number(result.lastInsertRowid);
 }
 
@@ -77,6 +79,17 @@ describe("getSprintStats", () => {
                 { repoName: "b", count: 1, proportion: 1 / 3 },
             ])
         );
+    });
+
+    it("counts stories flagged as bugs separately from the total story count", () => {
+        const sprintId = insertSprint("2026-01-01", "2026-01-31");
+        insertStory(sprintId, null, true);
+        insertStory(sprintId, null, true);
+        insertStory(sprintId);
+
+        const stats = getSprintStats(sprintId);
+        expect(stats.storyCount).toBe(3);
+        expect(stats.bugCount).toBe(2);
     });
 
     it("computes story time in days from its first recorded activity to its last", () => {

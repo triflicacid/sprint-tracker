@@ -27,6 +27,7 @@ const stats: SprintStats = {
     sprintId: 1,
     prCount: 3,
     storyCount: 2,
+    bugCount: 1,
     repoCounts: [{ repoName: "checkout-web", count: 3, proportion: 1 }],
     storyTimeDays: [{ storyId: 1, storyLabel: "NEB-1", description: "a story", days: 4 }],
 };

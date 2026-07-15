@@ -131,6 +131,7 @@ export interface SprintStats {
   sprintId: number;
   prCount: number;
   storyCount: number;
+  bugCount: number;
   repoCounts: { repoName: string; count: number; proportion: number }[];
   storyTimeDays: { storyId: number; storyLabel: string; description: string; days: number }[];
 }

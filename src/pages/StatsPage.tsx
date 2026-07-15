@@ -5,6 +5,7 @@ import { api } from "../api/client";
 import { VelocitySection } from "../components/stats/VelocitySection";
 import { SummarySection, type SummarySectionHandle } from "../components/stats/SummarySection";
 import { RepoDistributionSection } from "../components/stats/RepoDistributionSection";
+import { BugStorySection } from "../components/stats/BugStorySection";
 import { TimePerStorySection } from "../components/stats/TimePerStorySection";
 import { ComplexitySection, type ComplexitySectionHandle } from "../components/stats/ComplexitySection";
 import { StatusHistorySection, type StatusHistorySectionHandle } from "../components/stats/StatusHistorySection";
@@ -45,6 +46,7 @@ export function StatsPage() {
     const [holidays, setHolidays] = useState<Set<string>>(new Set());
     const [exportingAll, setExportingAll] = useState(false);
 
+    const bugStoryChartRef = useRef<HTMLDivElement>(null);
     const repoChartRef = useRef<HTMLDivElement>(null);
     const timeChartRef = useRef<HTMLDivElement>(null);
     const summaryRef = useRef<SummarySectionHandle>(null);
@@ -99,8 +101,22 @@ export function StatsPage() {
         const averageStoryDays =
             storyDayCounts.length > 0 ? storyDayCounts.reduce((a, b) => a + b, 0) / storyDayCounts.length : 0;
 
+        const nonBugCount = stats.storyCount - stats.bugCount;
+        const bugStorySection = {
+            title: "Bugs vs stories",
+            element: bugStoryChartRef.current ?? undefined,
+            lines:
+                stats.storyCount > 0
+                    ? [
+                          `Stories: ${nonBugCount} (${Math.round((nonBugCount / stats.storyCount) * 100)}%)`,
+                          `Bugs: ${stats.bugCount} (${Math.round((stats.bugCount / stats.storyCount) * 100)}%)`,
+                      ]
+                    : ["No stories recorded yet."],
+        };
+
         return [
             summarySection,
+            bugStorySection,
             {
                 title: "Repo distribution",
                 element: repoChartRef.current ?? undefined,
@@ -203,30 +219,37 @@ export function StatsPage() {
                         onExport={() => handleExportSection(0, "summary")}
                     />
 
+                    <BugStorySection
+                        ref={bugStoryChartRef}
+                        storyCount={stats.storyCount}
+                        bugCount={stats.bugCount}
+                        onExport={() => handleExportSection(1, "bug-story-breakdown")}
+                    />
+
                     <RepoDistributionSection
                         ref={repoChartRef}
                         repoCounts={stats.repoCounts}
-                        onExport={() => handleExportSection(1, "repo-distribution")}
+                        onExport={() => handleExportSection(2, "repo-distribution")}
                     />
 
                     <TimePerStorySection
                         ref={timeChartRef}
                         storyTimeDays={stats.storyTimeDays}
-                        onExport={() => handleExportSection(2, "time-per-story")}
+                        onExport={() => handleExportSection(3, "time-per-story")}
                     />
 
                     <ComplexitySection
                         ref={complexityRef}
                         sprintId={Number(selectedSprintId)}
-                        onExport={() => handleExportSection(3, "complexity")}
+                        onExport={() => handleExportSection(4, "complexity")}
                     />
 
                     <StatusHistorySection
                         ref={statusHistoryRef}
                         sprintId={Number(selectedSprintId)}
                         isWorkingDay={isWorkingDay}
-                        onExportBurndown={() => handleExportSection(4, "burndown")}
-                        onExportStatusBreakdown={() => handleExportSection(5, "status-breakdown")}
+                        onExportBurndown={() => handleExportSection(5, "burndown")}
+                        onExportStatusBreakdown={() => handleExportSection(6, "status-breakdown")}
                     />
 
                     <CalendarSection
@@ -238,7 +261,7 @@ export function StatsPage() {
                         onHolidaysChange={setHolidays}
                         totalWeekdays={totalWeekdays}
                         holidayWeekdays={holidayWeekdays}
-                        onExport={() => handleExportSection(6, "calendar")}
+                        onExport={() => handleExportSection(7, "calendar")}
                     />
                 </>
             )}
