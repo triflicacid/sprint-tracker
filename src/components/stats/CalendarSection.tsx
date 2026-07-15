@@ -3,6 +3,7 @@ import type { DayActivityMap } from "@shared/types";
 import { api } from "../../api/client";
 import { SprintActivityCalendar } from "../calendar/SprintActivityCalendar";
 import { ExportButton } from "../ExportButton";
+import { formatDisplayDate } from "../../utils/calendarGrid";
 import type { PdfSection } from "../../utils/pdfExport";
 
 export interface CalendarSectionHandle {
@@ -49,7 +50,7 @@ export const CalendarSection = forwardRef<CalendarSectionHandle, CalendarSection
                 title: "Calendar",
                 element: chartRef.current ?? undefined,
                 lines: [
-                    `${totalWeekdays} working days between ${startDate} and ${endDate}`,
+                    `${totalWeekdays} working days between ${formatDisplayDate(startDate)} and ${formatDisplayDate(endDate)}`,
                     `${holidayWeekdays} of those were holidays`,
                     `${activeDayCount} day${activeDayCount === 1 ? "" : "s"} had subtask activity`,
                 ],

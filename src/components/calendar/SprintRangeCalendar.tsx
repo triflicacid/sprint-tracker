@@ -1,7 +1,13 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import type { CalendarEntry } from "@shared/types";
-import { buildMonthGridDates, formatIsoDate, isSameUtcMonth, monthsBetween } from "../../utils/calendarGrid";
+import {
+    buildMonthGridDates,
+    formatDisplayDate,
+    formatIsoDate,
+    isSameUtcMonth,
+    monthsBetween,
+} from "../../utils/calendarGrid";
 import "./calendar.css";
 import "./SprintRangeCalendar.css";
 
@@ -72,7 +78,7 @@ function weekSpan(bar: SprintBar, weekDates: Date[]) {
 }
 
 function barTitle(entry: CalendarEntry) {
-    const range = `${entry.startDate} to ${entry.endDate ?? "present"}`;
+    const range = `${formatDisplayDate(entry.startDate)} to ${entry.endDate ? formatDisplayDate(entry.endDate) : "present"}`;
     return entry.repos.length > 0 ? `${entry.sprintName}: ${range} — ${entry.repos.join(", ")}` : `${entry.sprintName}: ${range}`;
 }
 

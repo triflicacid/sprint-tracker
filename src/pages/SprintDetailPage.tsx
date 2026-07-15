@@ -5,7 +5,7 @@ import { api } from "../api/client";
 import { StoryCard } from "../components/stories/StoryCard";
 import { StoryTypeSelect } from "../components/stories/StoryTypeSelect";
 import { HolidayPickerPopover } from "../components/calendar/HolidayPickerPopover";
-import { formatIsoDate } from "../utils/calendarGrid";
+import { formatDisplayDate, formatIsoDate, groupConsecutiveDates } from "../utils/calendarGrid";
 import { isSprintLocked } from "@shared/sprintLock";
 import { LockIcon } from "../components/LockIcon";
 import { loadExportFields } from "../utils/exportFields";
@@ -130,7 +130,8 @@ export function SprintDetailPage(): React.ReactElement {
                     </h1>
                     <MetaRow>
                         <span className="sprint-card-dates">
-                            {sprint.startDate} to {sprint.endDate ?? "present"}
+                            {formatDisplayDate(sprint.startDate)} to{" "}
+                            {sprint.endDate ? formatDisplayDate(sprint.endDate) : "present"}
                         </span>
                     </MetaRow>
                     <CommentEditor
@@ -148,9 +149,11 @@ export function SprintDetailPage(): React.ReactElement {
             </div>
 
             <div className="holiday-list">
-                {holidays.map((date) => (
-                    <span key={date} className="holiday-chip">
-                        {date}
+                {groupConsecutiveDates(holidays).map(({ start, end }) => (
+                    <span key={start} className="holiday-chip">
+                        {start === end
+                            ? formatDisplayDate(start)
+                            : `${formatDisplayDate(start)}—${formatDisplayDate(end)}`}
                     </span>
                 ))}
                 <HolidayPickerPopover

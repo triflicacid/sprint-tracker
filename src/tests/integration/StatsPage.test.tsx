@@ -256,12 +256,12 @@ describe("StatsPage", () => {
         const burndownSection = sections[5];
         expect(burndownSection.title).toBe("Burndown");
         expect(burndownSection.lines).toEqual([
-            "2026-03-10: 2 remaining (ideal 0)",
-            "Milestones remaining (2026-03-10): new: 0, testing: 2, uat: 2, done: 2",
+            "10/03/2026: 2 remaining (ideal 0)",
+            "Milestones remaining (10/03/2026): new: 0, testing: 2, uat: 2, done: 2",
         ]);
 
         const statusSection = sections[6];
-        expect(statusSection.lines).toEqual(["2026-03-10: new: 1, wip: 1"]);
+        expect(statusSection.lines).toEqual(["10/03/2026: new: 1, wip: 1"]);
 
         expect(filename).toMatch(/^sprint-stats-\d{4}-\d{2}-\d{2}\.pdf$/);
     });
@@ -280,8 +280,8 @@ describe("StatsPage", () => {
 
         const [sections] = vi.mocked(exportSectionsAsPdf).mock.calls[0];
         expect(sections[6].lines).toEqual([
-            "Start (2026-03-02): new: 2",
-            "End (2026-03-16): wip: 1, done: 1",
+            "Start (02/03/2026): new: 2",
+            "End (16/03/2026): wip: 1, done: 1",
         ]);
     });
 

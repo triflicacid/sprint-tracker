@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import type { SprintSummary } from "@shared/types";
+import { formatDisplayDate } from "../../utils/calendarGrid";
 import "./SprintCard.css";
 
 interface SprintCardProps {
@@ -10,8 +11,8 @@ interface SprintCardProps {
 // one sprint's summary tile, linking to its detail page.
 export function SprintCard({ sprint }: SprintCardProps): React.ReactElement {
     const dateRange: string = sprint.endDate
-        ? `${sprint.startDate} to ${sprint.endDate}`
-        : `${sprint.startDate} to present`;
+        ? `${formatDisplayDate(sprint.startDate)} to ${formatDisplayDate(sprint.endDate)}`
+        : `${formatDisplayDate(sprint.startDate)} to present`;
 
     return (
         <Link to={`/sprints/${sprint.id}`} className="sprint-card">

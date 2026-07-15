@@ -70,7 +70,7 @@ describe("CalendarSection", () => {
         expect(section.title).toBe("Calendar");
         expect(section.element).toBeInstanceOf(HTMLElement);
         expect(section.lines).toEqual([
-            "11 working days between 2026-03-02 and 2026-03-16",
+            "11 working days between 02/03/2026 and 16/03/2026",
             "1 of those were holidays",
             "1 day had subtask activity",
         ]);

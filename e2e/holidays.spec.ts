@@ -29,6 +29,12 @@ async function openHolidayPopover(page: Page) {
     await page.getByRole("button", { name: "edit holidays" }).click();
 }
 
+// the holiday-chip pill displays iso dates as dd/mm/yyyy.
+function toDisplayDate(isoDate: string): string {
+    const [year, month, day] = isoDate.split("-");
+    return `${day}/${month}/${year}`;
+}
+
 test.describe("holiday days", () => {
     test("adding a holiday through the sprint-page popover shows up as a holiday cell and count on the stats page, and removing it reverts both", async ({
         page,
@@ -45,7 +51,7 @@ test.describe("holiday days", () => {
         await openHolidayPopover(page);
         await calendarCellFor(page, holidayDate).click();
 
-        const chip = page.locator(".holiday-chip", { hasText: holidayDate });
+        const chip = page.locator(".holiday-chip", { hasText: toDisplayDate(holidayDate) });
         await expect(chip).toBeVisible();
 
         await page.goto(`/stats/${sprint.id}`);
@@ -54,10 +60,10 @@ test.describe("holiday days", () => {
         await expect(await holidaysStatValue(page)).toBe("1");
 
         await page.goto(`/sprints/${sprint.id}`);
-        await expect(page.locator(".holiday-chip", { hasText: holidayDate })).toBeVisible();
+        await expect(page.locator(".holiday-chip", { hasText: toDisplayDate(holidayDate) })).toBeVisible();
         await openHolidayPopover(page);
         await calendarCellFor(page, holidayDate).click();
-        await expect(page.locator(".holiday-chip", { hasText: holidayDate })).toHaveCount(0);
+        await expect(page.locator(".holiday-chip", { hasText: toDisplayDate(holidayDate) })).toHaveCount(0);
 
         await page.goto(`/stats/${sprint.id}`);
         const cellAfterRemoval = calendarCellFor(page, holidayDate);

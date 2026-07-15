@@ -97,6 +97,16 @@ describe("SprintDetailPage", () => {
         expect(api.addHoliday).toHaveBeenCalledWith("2026-01-05");
     });
 
+    it("collapses consecutive holiday dates into a single range pill, formatted dd/mm/yyyy with an em dash", async () => {
+        vi.mocked(api.listHolidays).mockResolvedValue(["2026-01-12", "2026-01-13", "2026-01-14", "2026-01-20"]);
+        renderPage();
+        await screen.findByText("a story");
+
+        expect(await screen.findByText("12/01/2026—14/01/2026")).toBeInTheDocument();
+        expect(screen.getByText("20/01/2026")).toBeInTheDocument();
+        expect(screen.queryByText("2026-01-12")).not.toBeInTheDocument();
+    });
+
     it("allows toggling a holiday well beyond today for an ongoing sprint (no endDate yet)", async () => {
         // startDate is far in the future so this test stays correct
         // regardless of when it actually runs - no need to mock "today".
@@ -127,7 +137,7 @@ describe("SprintDetailPage", () => {
         vi.mocked(api.listHolidays).mockResolvedValue(["2020-01-05"]);
         renderPage();
         await screen.findByText("a story");
-        await screen.findByText("2020-01-05");
+        await screen.findByText("05/01/2020");
 
         expect(screen.queryByRole("button", { name: "edit holidays" })).not.toBeInTheDocument();
     });

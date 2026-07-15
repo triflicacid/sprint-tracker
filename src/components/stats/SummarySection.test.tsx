@@ -95,10 +95,10 @@ describe("SummarySection", () => {
         expect(api.getVelocityHistory).toHaveBeenLastCalledWith(2, { mode: "lastN", n: 1 });
     });
 
-    it("shows start date, end date, and completed status", () => {
+    it("shows start date, end date (formatted dd/mm/yyyy), and completed status", () => {
         renderSection();
-        expect(screen.getByText("start date").previousElementSibling).toHaveTextContent("2026-03-02");
-        expect(screen.getByText("end date").previousElementSibling).toHaveTextContent("2026-03-16");
+        expect(screen.getByText("start date").previousElementSibling).toHaveTextContent("02/03/2026");
+        expect(screen.getByText("end date").previousElementSibling).toHaveTextContent("16/03/2026");
         expect(screen.getByText("completed").previousElementSibling).toHaveTextContent("yes");
     });
 
@@ -123,7 +123,12 @@ describe("SummarySection", () => {
         expect(section.title).toBe("Summary - Sprint 1");
         expect(section.element).toBeUndefined();
         expect(section.lines).toEqual(
-            expect.arrayContaining(["Pull requests: 3", "Stories: 2", "Velocity: 8 pts (1 stories unpointed)"])
+            expect.arrayContaining([
+                "Sprint: Sprint 1 (02/03/2026 to 16/03/2026)",
+                "Pull requests: 3",
+                "Stories: 2",
+                "Velocity: 8 pts (1 stories unpointed)",
+            ])
         );
     });
 

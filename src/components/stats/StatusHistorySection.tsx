@@ -5,6 +5,7 @@ import { BurndownSection } from "./BurndownSection";
 import { StatusBreakdownSection } from "./StatusBreakdownSection";
 import { SUBTASK_STATUSES, STORY_STATUSES, STATUS_LABELS, BURNDOWN_MILESTONES } from "../StatusBadge";
 import { computeBurndownPoints, computeAdvancedBurndownPoints } from "../../utils/burndown";
+import { formatDisplayDate } from "../../utils/calendarGrid";
 import type { PdfSection } from "../../utils/pdfExport";
 
 // renders one day's status tally as "label: count, label: count", skipping zeros
@@ -69,14 +70,14 @@ export const StatusHistorySection = forwardRef<StatusHistorySectionHandle, Statu
                         ? ["No status history recorded yet."]
                         : firstBurndown.date === lastBurndown.date
                           ? [
-                                `${firstBurndown.date}: ${firstBurndown.actual} remaining (ideal ${firstBurndown.ideal})`,
-                                `Milestones remaining (${firstAdvancedBurndown.date}): ${describeMilestones(firstAdvancedBurndown.counts, BURNDOWN_MILESTONES)}`,
+                                `${formatDisplayDate(firstBurndown.date)}: ${firstBurndown.actual} remaining (ideal ${firstBurndown.ideal})`,
+                                `Milestones remaining (${formatDisplayDate(firstAdvancedBurndown.date)}): ${describeMilestones(firstAdvancedBurndown.counts, BURNDOWN_MILESTONES)}`,
                             ]
                           : [
-                                `Start (${firstBurndown.date}): ${firstBurndown.actual} remaining (ideal ${firstBurndown.ideal})`,
-                                `End (${lastBurndown.date}): ${lastBurndown.actual} remaining (ideal ${lastBurndown.ideal})`,
-                                `Milestones remaining at start (${firstAdvancedBurndown.date}): ${describeMilestones(firstAdvancedBurndown.counts, BURNDOWN_MILESTONES)}`,
-                                `Milestones remaining at end (${lastAdvancedBurndown.date}): ${describeMilestones(lastAdvancedBurndown.counts, BURNDOWN_MILESTONES)}`,
+                                `Start (${formatDisplayDate(firstBurndown.date)}): ${firstBurndown.actual} remaining (ideal ${firstBurndown.ideal})`,
+                                `End (${formatDisplayDate(lastBurndown.date)}): ${lastBurndown.actual} remaining (ideal ${lastBurndown.ideal})`,
+                                `Milestones remaining at start (${formatDisplayDate(firstAdvancedBurndown.date)}): ${describeMilestones(firstAdvancedBurndown.counts, BURNDOWN_MILESTONES)}`,
+                                `Milestones remaining at end (${formatDisplayDate(lastAdvancedBurndown.date)}): ${describeMilestones(lastAdvancedBurndown.counts, BURNDOWN_MILESTONES)}`,
                             ],
                 };
 
@@ -86,10 +87,12 @@ export const StatusHistorySection = forwardRef<StatusHistorySectionHandle, Statu
                     lines: !firstBreakdown
                         ? ["No status history recorded yet."]
                         : firstBreakdown.date === lastBreakdown.date
-                          ? [`${firstBreakdown.date}: ${describeStatusCounts(firstBreakdown.counts, statusLabels)}`]
+                          ? [
+                                `${formatDisplayDate(firstBreakdown.date)}: ${describeStatusCounts(firstBreakdown.counts, statusLabels)}`,
+                            ]
                           : [
-                                `Start (${firstBreakdown.date}): ${describeStatusCounts(firstBreakdown.counts, statusLabels)}`,
-                                `End (${lastBreakdown.date}): ${describeStatusCounts(lastBreakdown.counts, statusLabels)}`,
+                                `Start (${formatDisplayDate(firstBreakdown.date)}): ${describeStatusCounts(firstBreakdown.counts, statusLabels)}`,
+                                `End (${formatDisplayDate(lastBreakdown.date)}): ${describeStatusCounts(lastBreakdown.counts, statusLabels)}`,
                             ],
                 };
 

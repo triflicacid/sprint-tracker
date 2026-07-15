@@ -7,7 +7,7 @@ import { useToast } from "../components/Toast";
 import { ExportButton } from "../components/ExportButton";
 import { defaultExportFields, loadExportFields, saveExportFields } from "../utils/exportFields";
 import { downloadTextFile } from "../utils/download";
-import { formatIsoDate } from "../utils/calendarGrid";
+import { formatDisplayDate, formatIsoDate } from "../utils/calendarGrid";
 import "./ExportPage.css";
 
 const STORY_FIELD_LABELS: Record<keyof MarkdownExportFields["story"], string> = {
@@ -147,7 +147,8 @@ export function ExportPage(): React.ReactElement {
                             checked={selectedSprintIds.has(sprint.id)}
                             onChange={() => toggleSprint(sprint.id)}
                         />
-                        {sprint.name} ({sprint.startDate} &ndash; {sprint.endDate ?? "present"})
+                        {sprint.name} ({formatDisplayDate(sprint.startDate)} &ndash;{" "}
+                        {sprint.endDate ? formatDisplayDate(sprint.endDate) : "present"})
                     </label>
                 ))}
             </div>
