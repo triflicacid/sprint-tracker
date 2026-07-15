@@ -87,6 +87,16 @@ describe("createStory / getStoryDetail", () => {
         expect(story.tags).toEqual([]);
         expect(story.prCount).toBe(0);
         expect(story.storyPoints).toBeNull();
+        expect(story.isBug).toBe(false);
+    });
+
+    it("marks a story as a bug when isBug is passed", () => {
+        const story = createStory(sprintId, {
+            jiraUrl: "https://nebula.atlassian.net/browse/NEB-1002",
+            description: "crash on save",
+            isBug: true,
+        });
+        expect(story.isBug).toBe(true);
     });
 
     it("leaves jiraKey null when the url has no browse segment", () => {

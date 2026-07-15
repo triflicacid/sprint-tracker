@@ -46,11 +46,18 @@ export function getSprintStats(sprintId: number) {
             .get(sprintId) as { count: number }
     ).count;
 
-    const storyCount = (
-        db.prepare("SELECT COUNT(*) AS count FROM stories WHERE sprint_id = ?").get(sprintId) as {
-            count: number;
-        }
-    ).count;
+    const { storyCount, bugCount } = db
+            .prepare(`
+        SELECT
+            COUNT(*) AS storyCount,
+            COUNT(*) FILTER (WHERE is_bug = 1) AS bugCount
+        FROM stories
+        WHERE sprint_id = ?
+    `)
+            .get(sprintId) as {
+        storyCount: number;
+        bugCount: number;
+    };
 
     const repoRows = db
         .prepare(
@@ -96,7 +103,7 @@ export function getSprintStats(sprintId: number) {
         };
     });
 
-    return { sprintId, prCount, storyCount, repoCounts, storyTimeDays } as SprintStats;
+    return { sprintId, prCount, storyCount, bugCount, repoCounts, storyTimeDays } as SprintStats;
 }
 
 interface ComplexitySubtaskRow {

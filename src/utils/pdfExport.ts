@@ -32,6 +32,12 @@ export interface PdfTable {
 // selectable/searchable text, not just pixels in an image.
 export interface PdfSection {
     title: string;
+    // a small icon rasterized and drawn immediately before the title, e.g.
+    // the story/bug type icon - pass the element wrapping the actual
+    // rendered icon so the pdf shows the same glyph as the page, not a
+    // redrawn approximation of it. Must be an HTMLElement wrapper, not a raw
+    // <svg> root - html2canvas can't reliably capture an svg root directly.
+    titleIcon?: HTMLElement;
     element?: HTMLElement;
     table?: PdfTable;
     lines?: PdfLine[];
@@ -40,6 +46,13 @@ export interface PdfSection {
 async function captureElement(element: HTMLElement): Promise<HTMLCanvasElement> {
     const backgroundColor = getComputedStyle(document.body).getPropertyValue("--surface").trim() || "#1a1a1a";
     return html2canvas(element, { backgroundColor, scale: 2 });
+}
+
+// like captureElement, but with a transparent background - for small
+// decorative marks (e.g. the title icon) that should blend into the page
+// rather than sit inside a themed rectangle.
+async function captureIconElement(element: HTMLElement): Promise<HTMLCanvasElement> {
+    return html2canvas(element, { backgroundColor: null, scale: 4 });
 }
 
 // draws the chart/calendar screenshot scaled to fill the content width (and
@@ -117,7 +130,15 @@ async function renderSection(pdf: jsPDF, section: PdfSection, isFirstPage: boole
     let y = MARGIN_MM + 4;
     pdf.setFontSize(16);
     pdf.setTextColor(0, 0, 0);
-    pdf.text(section.title, MARGIN_MM, y);
+    let titleX = MARGIN_MM;
+    if (section.titleIcon) {
+        const iconCanvas = await captureIconElement(section.titleIcon);
+        const iconHeightMm = 5;
+        const iconWidthMm = (iconCanvas.width / iconCanvas.height) * iconHeightMm;
+        pdf.addImage(iconCanvas.toDataURL("image/png"), "PNG", MARGIN_MM, y - iconHeightMm, iconWidthMm, iconHeightMm);
+        titleX = MARGIN_MM + iconWidthMm + 3;
+    }
+    pdf.text(section.title, titleX, y);
     y += 10;
 
     if (section.element) {

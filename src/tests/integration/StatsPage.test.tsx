@@ -46,6 +46,7 @@ const stats = {
     sprintId: 1,
     prCount: 3,
     storyCount: 2,
+    bugCount: 1,
     repoCounts: [{ repoName: "checkout-web", count: 3, proportion: 1 }],
     storyTimeDays: [{ storyId: 1, storyLabel: "NEB-1", description: "a story", days: 4 }],
 };
@@ -120,6 +121,7 @@ describe("StatsPage", () => {
         await userEvent.selectOptions(await screen.findByRole("combobox"), "1");
         await screen.findByText("pull requests");
 
+        expect(screen.getByText("Bugs vs stories")).toBeInTheDocument();
         expect(screen.getByText("Repo distribution")).toBeInTheDocument();
         expect(screen.getByText("checkout-web", { exact: false })).toBeInTheDocument();
         expect(screen.getByText("Time per story (days)")).toBeInTheDocument();
@@ -201,9 +203,9 @@ describe("StatsPage", () => {
         await screen.findByText("pull requests");
         await screen.findByText("Burndown");
 
-        // Summary, Repo distribution, Time per story, Complexity, Burndown, ...
+        // Summary, Bugs vs stories, Repo distribution, Time per story, Complexity, Burndown, ...
         const exportButtons = screen.getAllByRole("button", { name: "export pdf" });
-        await userEvent.click(exportButtons[4]);
+        await userEvent.click(exportButtons[5]);
 
         expect(exportSectionsAsPdf).toHaveBeenCalledTimes(1);
         const [sections, filename] = vi.mocked(exportSectionsAsPdf).mock.calls[0];
@@ -229,7 +231,7 @@ describe("StatsPage", () => {
 
         expect(exportSectionsAsPdf).toHaveBeenCalledTimes(1);
         const [sections, filename] = vi.mocked(exportSectionsAsPdf).mock.calls[0];
-        expect(sections).toHaveLength(7);
+        expect(sections).toHaveLength(8);
 
         // summary is text-only; the rest pair a chart/calendar screenshot with
         // written stats underneath.
@@ -239,16 +241,20 @@ describe("StatsPage", () => {
         const summarySection = sections[0];
         expect(summarySection.lines).toContain("Velocity: 8 pts (1 stories unpointed)");
 
-        const repoSection = sections[1];
+        const bugStorySection = sections[1];
+        expect(bugStorySection.title).toBe("Bugs vs stories");
+        expect(bugStorySection.lines).toEqual(["Stories: 1 (50%)", "Bugs: 1 (50%)"]);
+
+        const repoSection = sections[2];
         expect(repoSection.title).toBe("Repo distribution");
         expect(repoSection.lines).toEqual(["checkout-web: 3 PRs (100%)"]);
 
-        const timeSection = sections[2];
+        const timeSection = sections[3];
         expect(timeSection.lines).toEqual(
             expect.arrayContaining(["a story: 4 days", "Average: 4.0 days across 1 story"])
         );
 
-        const complexitySection = sections[3];
+        const complexitySection = sections[4];
         expect(complexitySection.title).toBe("Complexity");
         expect(complexitySection.lines).toEqual([
             "Complexity 1: 0 subtasks",
@@ -259,14 +265,14 @@ describe("StatsPage", () => {
             "Unrated/not done: 1",
         ]);
 
-        const burndownSection = sections[4];
+        const burndownSection = sections[5];
         expect(burndownSection.title).toBe("Burndown");
         expect(burndownSection.lines).toEqual([
             "2026-03-10: 2 remaining (ideal 0)",
             "Milestones remaining (2026-03-10): new: 0, testing: 2, uat: 2, done: 2",
         ]);
 
-        const statusSection = sections[5];
+        const statusSection = sections[6];
         expect(statusSection.lines).toEqual(["2026-03-10: new: 1, wip: 1"]);
 
         expect(filename).toMatch(/^sprint-stats-\d{4}-\d{2}-\d{2}\.pdf$/);
@@ -285,7 +291,7 @@ describe("StatsPage", () => {
         await userEvent.click(screen.getByRole("button", { name: "export all as pdf" }));
 
         const [sections] = vi.mocked(exportSectionsAsPdf).mock.calls[0];
-        expect(sections[5].lines).toEqual([
+        expect(sections[6].lines).toEqual([
             "Start (2026-03-02): new: 2",
             "End (2026-03-16): wip: 1, done: 1",
         ]);

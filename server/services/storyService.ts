@@ -16,12 +16,14 @@ interface StoryRow {
     jira_labels: string | null;
     awaiting_more_subtasks: number;
     story_points: number | null;
+    is_bug: number;
     created_at: string;
 }
 
 interface CreateStoryInput {
     jiraUrl: string;
     description: string;
+    isBug?: boolean;
 }
 
 // - No subtasks -> JIRA_ONLY.
@@ -62,6 +64,7 @@ function rowToSummary(row: StoryRow) {
         status: computeStoryStatus(subtaskStatuses, !!row.awaiting_more_subtasks),
         awaitingMoreSubtasks: !!row.awaiting_more_subtasks,
         storyPoints: row.story_points,
+        isBug: !!row.is_bug,
         tags: getTagsForEntity("story", row.id),
         prCount,
     } as StorySummary;
@@ -125,9 +128,9 @@ export function createStory(sprintId: number, input: CreateStoryInput) {
     const jiraKey = extractJiraKey(input.jiraUrl);
     const result = db
         .prepare(
-            "INSERT INTO stories (sprint_id, jira_url, jira_key, description) VALUES (?, ?, ?, ?)"
+            "INSERT INTO stories (sprint_id, jira_url, jira_key, description, is_bug) VALUES (?, ?, ?, ?, ?)"
         )
-        .run(sprintId, input.jiraUrl, jiraKey, input.description);
+        .run(sprintId, input.jiraUrl, jiraKey, input.description, input.isBug ? 1 : 0);
 
     const created = db
         .prepare("SELECT * FROM stories WHERE id = ?")

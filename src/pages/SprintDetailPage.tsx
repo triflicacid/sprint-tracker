@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import type { SprintDetail } from "@shared/types";
 import { api } from "../api/client";
 import { StoryCard } from "../components/stories/StoryCard";
+import { StoryTypeSelect } from "../components/stories/StoryTypeSelect";
 import { formatIsoDate } from "../utils/calendarGrid";
 import { isSprintLocked } from "@shared/sprintLock";
 import { LockIcon } from "../components/LockIcon";
@@ -24,6 +25,7 @@ export function SprintDetailPage(): React.ReactElement {
     const [showForm, setShowForm] = useState<boolean>(false);
     const [jiraUrl, setJiraUrl] = useState<string>("");
     const [description, setDescription] = useState<string>("");
+    const [isBug, setIsBug] = useState<boolean>(false);
     const [holidays, setHolidays] = useState<string[]>([]);
     const [newHolidayDate, setNewHolidayDate] = useState<string>("");
     const [exporting, setExporting] = useState<boolean>(false);
@@ -92,9 +94,10 @@ export function SprintDetailPage(): React.ReactElement {
         if (!jiraUrl.trim() || !description.trim()) {
             return;
         }
-        await api.createStory(sprintId, { jiraUrl: jiraUrl.trim(), description: description.trim() });
+        await api.createStory(sprintId, { jiraUrl: jiraUrl.trim(), description: description.trim(), isBug });
         setJiraUrl("");
         setDescription("");
+        setIsBug(false);
         setShowForm(false);
         loadSprint();
     }
@@ -196,6 +199,7 @@ export function SprintDetailPage(): React.ReactElement {
                         value={description}
                         onChange={(event) => setDescription(event.target.value)}
                     />
+                    <StoryTypeSelect isBug={isBug} onChange={setIsBug} />
                     <button onClick={handleCreateStory}>create</button>
                 </div>
             )}

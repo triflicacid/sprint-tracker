@@ -56,6 +56,7 @@ const story: StoryDetail = {
     status: "WORK_REMAINING",
     awaitingMoreSubtasks: false,
     storyPoints: null,
+    isBug: false,
     tags: [],
     prCount: 1,
     subtasks: [

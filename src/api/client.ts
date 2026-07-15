@@ -69,7 +69,7 @@ export const api = {
 
     createStory: (
         sprintId: number,
-        input: { jiraUrl: string; description: string }
+        input: { jiraUrl: string; description: string; isBug?: boolean }
     ): Promise<StorySummary> =>
         request(`/sprints/${sprintId}/stories`, { method: "POST", body: JSON.stringify(input) }),
 

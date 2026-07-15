@@ -43,11 +43,12 @@ INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, rele
 
 -- story: NEB-1004, jira only, no subtasks yet - kept as a "just a jira
 -- ticket, no code work started" example. Left unpointed (story_points NULL)
--- to exercise the "unpointed" case downstream.
-INSERT INTO stories (sprint_id, jira_url, jira_key, description) VALUES
+-- to exercise the "unpointed" case downstream. Already tagged 'bug' below,
+-- so also flagged is_bug - a bug report can sit jira-only same as any story.
+INSERT INTO stories (sprint_id, jira_url, jira_key, description, is_bug) VALUES
     ((SELECT id FROM sprints WHERE name = 'Nebula Checkout Sprint 1'),
      'https://nebula.atlassian.net/browse/NEB-1004', 'NEB-1004',
-     'Investigate intermittent double-charge reports');
+     'Investigate intermittent double-charge reports', 1);
 
 -- story: NEB-1010, 2 subtasks, both DONE (one with a single-round
 -- in_pr <-> in_review oscillation).
@@ -65,6 +66,29 @@ INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, rele
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1010'),
      'block checkout above fraud threshold', 'feature/neb-1010-fraud-block', 'DONE',
      'https://github.com/nebula-labs/checkout-web/pull/589', 'checkout-web', 'v4.12.0', 4);
+
+-- story: NEB-1012, bug, 1 subtask, DONE. Sprint 1 is mostly bugs (NEB-1004,
+-- NEB-1012, NEB-1020 vs. just NEB-1001/NEB-1010 as regular stories).
+INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points, is_bug) VALUES
+    ((SELECT id FROM sprints WHERE name = 'Nebula Checkout Sprint 1'),
+     'https://nebula.atlassian.net/browse/NEB-1012', 'NEB-1012',
+     'Fix duplicate order confirmation emails on webhook retry', 2, 1);
+
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+    ((SELECT id FROM stories WHERE jira_key = 'NEB-1012'),
+     'dedupe email dispatch on webhook retry', 'bugfix/neb-1012-dedupe-email', 'DONE',
+     'https://github.com/nebula-labs/notifications-service/pull/304', 'notifications-service', 'v4.12.0', 1);
+
+-- story: NEB-1020, bug, 1 subtask, DONE (skips pr_comments).
+INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points, is_bug) VALUES
+    ((SELECT id FROM sprints WHERE name = 'Nebula Checkout Sprint 1'),
+     'https://nebula.atlassian.net/browse/NEB-1020', 'NEB-1020',
+     'Fix checkout crash when a saved card has expired', 3, 1);
+
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+    ((SELECT id FROM stories WHERE jira_key = 'NEB-1020'),
+     'guard against expired saved card in checkout flow', 'bugfix/neb-1020-expired-card-guard', 'DONE',
+     'https://github.com/nebula-labs/checkout-web/pull/592', 'checkout-web', 'v4.12.0', 2);
 
 -- ============================================================
 -- SPRINT 2 (past, closed 2026-03-30) - every subtask reaches DONE.
@@ -119,6 +143,18 @@ INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, rele
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1045'),
      'render delivery status widget', 'feature/neb-1045-status-widget', 'DONE',
      'https://github.com/nebula-labs/checkout-web/pull/591', 'checkout-web', 'v4.13.0', 4);
+
+-- story: NEB-1042, bug, 1 subtask, DONE - sprint 2's one bug alongside its
+-- three regular stories (not a majority here, unlike sprint 1).
+INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points, is_bug) VALUES
+    ((SELECT id FROM sprints WHERE name = 'Nebula Checkout Sprint 2'),
+     'https://nebula.atlassian.net/browse/NEB-1042', 'NEB-1042',
+     'Fix webhook retries double-charging customers', 5, 1);
+
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+    ((SELECT id FROM stories WHERE jira_key = 'NEB-1042'),
+     'add idempotency key to webhook retry dispatch', 'bugfix/neb-1042-webhook-idempotency', 'DONE',
+     'https://github.com/nebula-labs/notifications-service/pull/305', 'notifications-service', 'v4.13.1', 3);
 
 -- ============================================================
 -- SPRINT 3 (current, open - no end_date) - a mix: some subtasks reach
@@ -192,6 +228,29 @@ INSERT INTO stories (sprint_id, jira_url, jira_key, description) VALUES
     ((SELECT id FROM sprints WHERE name = 'Nebula Checkout Sprint 3'),
      'https://nebula.atlassian.net/browse/NEB-1080', 'NEB-1080',
      'Investigate refund latency spike');
+
+-- story: NEB-1078, bug, 1 subtask - in review, following on from NEB-1070's
+-- multi-currency work this same sprint.
+INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points, is_bug) VALUES
+    ((SELECT id FROM sprints WHERE name = 'Nebula Checkout Sprint 3'),
+     'https://nebula.atlassian.net/browse/NEB-1078', 'NEB-1078',
+     'Fix incorrect currency rounding on multi-currency refunds', 3, 1);
+
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, complexity_rating) VALUES
+    ((SELECT id FROM stories WHERE jira_key = 'NEB-1078'),
+     'round converted refund amount to target currency precision', 'bugfix/neb-1078-fx-rounding', 'IN_REVIEW',
+     'https://github.com/nebula-labs/payments-service/pull/233', 'payments-service', 2);
+
+-- story: NEB-1082, bug, 1 subtask - just started, no pr yet. Sprint 3 now
+-- has two bugs (NEB-1078, NEB-1082) alongside its five regular stories.
+INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points, is_bug) VALUES
+    ((SELECT id FROM sprints WHERE name = 'Nebula Checkout Sprint 3'),
+     'https://nebula.atlassian.net/browse/NEB-1082', 'NEB-1082',
+     'Fix refund audit log missing entries for partial refunds', 2, 1);
+
+INSERT INTO subtasks (story_id, title, branch_name, status) VALUES
+    ((SELECT id FROM stories WHERE jira_key = 'NEB-1082'),
+     'log partial refund amount in audit trail', 'bugfix/neb-1082-audit-log-partial', 'WIP');
 
 -- ============================================================
 -- status_history: every subtask's full transition path from NEW up to its
@@ -377,7 +436,46 @@ INSERT INTO status_history (entity_type, entity_id, status, release_version, cha
     ('subtask', (SELECT id FROM subtasks WHERE title = 'create audit log table and write path'), 'IN_PR', NULL, '2026-04-06 11:00:00'),
 
     -- NEB-1075 / expose audit log to support ui - not started
-    ('subtask', (SELECT id FROM subtasks WHERE title = 'expose audit log to support ui'), 'NEW', NULL, '2026-04-05 09:00:00');
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'expose audit log to support ui'), 'NEW', NULL, '2026-04-05 09:00:00'),
+
+    -- NEB-1012 / dedupe email dispatch on webhook retry - bug fix, skips pr_comments
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'dedupe email dispatch on webhook retry'), 'NEW', NULL, '2026-03-06 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'dedupe email dispatch on webhook retry'), 'WIP', NULL, '2026-03-06 09:15:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'dedupe email dispatch on webhook retry'), 'IN_REVIEW', NULL, '2026-03-07 11:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'dedupe email dispatch on webhook retry'), 'CUT_RELEASE', NULL, '2026-03-07 15:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'dedupe email dispatch on webhook retry'), 'TESTING', 'v4.12.0', '2026-03-09 10:15:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'dedupe email dispatch on webhook retry'), 'UAT', NULL, '2026-03-11 10:30:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'dedupe email dispatch on webhook retry'), 'DONE', NULL, '2026-03-12 17:30:00'),
+
+    -- NEB-1020 / guard against expired saved card in checkout flow - bug fix, one round of in_pr <-> in_review
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'guard against expired saved card in checkout flow'), 'NEW', NULL, '2026-03-09 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'guard against expired saved card in checkout flow'), 'WIP', NULL, '2026-03-09 09:10:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'guard against expired saved card in checkout flow'), 'IN_PR', NULL, '2026-03-10 11:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'guard against expired saved card in checkout flow'), 'IN_REVIEW', NULL, '2026-03-10 15:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'guard against expired saved card in checkout flow'), 'CUT_RELEASE', NULL, '2026-03-11 10:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'guard against expired saved card in checkout flow'), 'TESTING', 'v4.12.0', '2026-03-11 10:45:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'guard against expired saved card in checkout flow'), 'UAT', NULL, '2026-03-12 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'guard against expired saved card in checkout flow'), 'DONE', NULL, '2026-03-13 17:00:00'),
+
+    -- NEB-1042 / add idempotency key to webhook retry dispatch - bug fix, skips pr_comments
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add idempotency key to webhook retry dispatch'), 'NEW', NULL, '2026-03-19 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add idempotency key to webhook retry dispatch'), 'WIP', NULL, '2026-03-19 09:10:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add idempotency key to webhook retry dispatch'), 'IN_PR', NULL, '2026-03-20 11:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add idempotency key to webhook retry dispatch'), 'IN_REVIEW', NULL, '2026-03-20 16:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add idempotency key to webhook retry dispatch'), 'CUT_RELEASE', NULL, '2026-03-22 10:30:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add idempotency key to webhook retry dispatch'), 'TESTING', 'v4.13.1', '2026-03-25 09:45:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add idempotency key to webhook retry dispatch'), 'UAT', NULL, '2026-03-27 09:45:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add idempotency key to webhook retry dispatch'), 'DONE', NULL, '2026-03-28 18:30:00'),
+
+    -- NEB-1078 / round converted refund amount to target currency precision - bug fix, still in review
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'round converted refund amount to target currency precision'), 'NEW', NULL, '2026-04-06 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'round converted refund amount to target currency precision'), 'WIP', NULL, '2026-04-06 09:15:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'round converted refund amount to target currency precision'), 'IN_PR', NULL, '2026-04-08 11:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'round converted refund amount to target currency precision'), 'IN_REVIEW', NULL, '2026-04-08 15:00:00'),
+
+    -- NEB-1082 / log partial refund amount in audit trail - bug fix, just started
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'log partial refund amount in audit trail'), 'NEW', NULL, '2026-04-07 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'log partial refund amount in audit trail'), 'WIP', NULL, '2026-04-07 09:15:00');
 
 -- tags: a mix of custom and repo tags, attached across several stories and subtasks.
 INSERT INTO tags (name, tag_type) VALUES
@@ -464,7 +562,37 @@ INSERT INTO entity_tags (entity_type, entity_id, tag_id) VALUES
 
     -- NEB-1080: latency investigation, no subtasks yet
     ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-1080'), (SELECT id FROM tags WHERE name = 'latency')),
-    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-1080'), (SELECT id FROM tags WHERE name = 'reliability'));
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-1080'), (SELECT id FROM tags WHERE name = 'reliability')),
+
+    -- NEB-1012: bug, duplicate confirmation emails
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-1012'), (SELECT id FROM tags WHERE name = 'bug')),
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-1012'), (SELECT id FROM tags WHERE name = 'reliability')),
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-1012'), (SELECT id FROM tags WHERE name = 'notifications-service')),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'dedupe email dispatch on webhook retry'), (SELECT id FROM tags WHERE name = 'backend')),
+
+    -- NEB-1020: bug, expired saved card crash
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-1020'), (SELECT id FROM tags WHERE name = 'bug')),
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-1020'), (SELECT id FROM tags WHERE name = 'payments')),
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-1020'), (SELECT id FROM tags WHERE name = 'checkout-web')),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'guard against expired saved card in checkout flow'), (SELECT id FROM tags WHERE name = 'frontend')),
+
+    -- NEB-1042: bug, webhook retries double-charging
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-1042'), (SELECT id FROM tags WHERE name = 'bug')),
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-1042'), (SELECT id FROM tags WHERE name = 'reliability')),
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-1042'), (SELECT id FROM tags WHERE name = 'notifications-service')),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add idempotency key to webhook retry dispatch'), (SELECT id FROM tags WHERE name = 'backend')),
+
+    -- NEB-1078: bug, multi-currency refund rounding
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-1078'), (SELECT id FROM tags WHERE name = 'bug')),
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-1078'), (SELECT id FROM tags WHERE name = 'multi-currency')),
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-1078'), (SELECT id FROM tags WHERE name = 'payments-service')),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'round converted refund amount to target currency precision'), (SELECT id FROM tags WHERE name = 'backend')),
+
+    -- NEB-1082: bug, refund audit log missing entries
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-1082'), (SELECT id FROM tags WHERE name = 'bug')),
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-1082'), (SELECT id FROM tags WHERE name = 'audit-log')),
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-1082'), (SELECT id FROM tags WHERE name = 'payments-service')),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'log partial refund amount in audit trail'), (SELECT id FROM tags WHERE name = 'backend'));
 
 -- ============================================================
 -- ADDITIONAL HISTORICAL SPRINTS (added later, for a larger velocity-testing

@@ -5,6 +5,7 @@ import type { StoryDetail, StatusFlowConfig, StatusHistoryEntry } from "@shared/
 import { isSprintLocked } from "@shared/sprintLock";
 import { api } from "../api/client";
 import { LockIcon } from "../components/LockIcon";
+import { StoryTypeIcon } from "../components/stories/StoryTypeIcon";
 import { StatusBadge, STATUS_LABELS } from "../components/StatusBadge";
 import { SubtaskRow } from "../components/subtasks/SubtaskRow";
 import { exportSectionsAsPdf, type PdfSection } from "../utils/pdfExport";
@@ -37,6 +38,7 @@ export function StoryDetailPage(): React.ReactElement {
     const [exporting, setExporting] = useState<boolean>(false);
 
     const barChartRef = useRef<HTMLDivElement>(null);
+    const titleIconRef = useRef<HTMLSpanElement>(null);
 
     async function loadStory() {
         try {
@@ -121,6 +123,7 @@ export function StoryDetailPage(): React.ReactElement {
             const sections: PdfSection[] = [
                 {
                     title: story.jiraTitle ?? story.description,
+                    titleIcon: titleIconRef.current ?? undefined,
                     element: barChartRef.current ?? undefined,
                     lines: [
                         { text: `Jira: ${story.jiraKey ?? story.jiraUrl}`, url: story.jiraUrl },
@@ -170,6 +173,11 @@ export function StoryDetailPage(): React.ReactElement {
                     </Link>
                     <h1>
                         {locked && <LockIcon />}
+                        {/* html2canvas can't reliably capture a raw <svg> root, so wrap it
+                            in a plain element for the pdf export to grab a ref to */}
+                        <span ref={titleIconRef} className="story-type-icon-wrap">
+                            <StoryTypeIcon isBug={story.isBug} />
+                        </span>
                         {story.jiraTitle ?? story.description}
                     </h1>
                     <MetaRow>
