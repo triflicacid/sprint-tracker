@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { SprintDetailPage } from "../../pages/SprintDetailPage";
@@ -85,28 +85,51 @@ describe("SprintDetailPage", () => {
         expect(await screen.findByText("a story")).toBeInTheDocument();
     });
 
-    it("adds a holiday through the form", async () => {
+    it("adds a holiday through the popover", async () => {
         vi.mocked(api.addHoliday).mockResolvedValue(undefined);
         renderPage();
         await screen.findByText("a story");
 
-        const dateInput = document.querySelector('input[type="date"]') as HTMLInputElement;
-        await userEvent.type(dateInput, "2026-01-05");
-        await userEvent.click(screen.getByText("add holiday"));
+        await userEvent.click(screen.getByRole("button", { name: "edit holidays" }));
+        const januaryGrid = screen.getByText("January 2026").closest(".calendar-month") as HTMLElement;
+        await userEvent.click(within(januaryGrid).getByText("5"));
 
         expect(api.addHoliday).toHaveBeenCalledWith("2026-01-05");
     });
 
-    it("removes the holiday add/remove controls once the sprint has ended", async () => {
+    it("allows toggling a holiday well beyond today for an ongoing sprint (no endDate yet)", async () => {
+        // startDate is far in the future so this test stays correct
+        // regardless of when it actually runs - no need to mock "today".
+        const ongoingSprint = { ...sprint, startDate: "2030-01-01", endDate: null };
+        vi.mocked(api.getSprint).mockResolvedValue(ongoingSprint);
+        vi.mocked(api.addHoliday).mockResolvedValue(undefined);
+        renderPage();
+        await screen.findByText("a story");
+
+        // an ongoing sprint has no endDate to bound the fetch by - must stay
+        // unbounded (not capped at "today"), or a holiday added beyond today
+        // would silently vanish from the list on refetch.
+        expect(api.listHolidays).toHaveBeenCalledWith("2030-01-01", "9999-12-31");
+
+        await userEvent.click(screen.getByRole("button", { name: "edit holidays" }));
+        const januaryGrid = screen.getByText("January 2030").closest(".calendar-month") as HTMLElement;
+        // 2030-01-10 is a thursday.
+        const day = within(januaryGrid).getByText("10").closest(".calendar-day") as HTMLElement;
+        expect(day).toHaveClass("calendar-day-clickable");
+        expect(day).not.toHaveClass("calendar-day-muted");
+
+        await userEvent.click(day);
+        expect(api.addHoliday).toHaveBeenCalledWith("2030-01-10");
+    });
+
+    it("hides the holiday popover trigger when locked", async () => {
         vi.mocked(api.getSprint).mockResolvedValue(lockedSprint);
         vi.mocked(api.listHolidays).mockResolvedValue(["2020-01-05"]);
         renderPage();
         await screen.findByText("a story");
         await screen.findByText("2020-01-05");
 
-        expect(document.querySelector('input[type="date"]')).not.toBeInTheDocument();
-        expect(screen.queryByText("add holiday")).not.toBeInTheDocument();
-        expect(screen.queryByText("x")).not.toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "edit holidays" })).not.toBeInTheDocument();
     });
 
     it("shows a lock icon in the title once the sprint has ended", async () => {

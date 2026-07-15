@@ -4,6 +4,7 @@ import type { SprintDetail } from "@shared/types";
 import { api } from "../api/client";
 import { StoryCard } from "../components/stories/StoryCard";
 import { StoryTypeSelect } from "../components/stories/StoryTypeSelect";
+import { HolidayPickerPopover } from "../components/calendar/HolidayPickerPopover";
 import { formatIsoDate } from "../utils/calendarGrid";
 import { isSprintLocked } from "@shared/sprintLock";
 import { LockIcon } from "../components/LockIcon";
@@ -27,7 +28,6 @@ export function SprintDetailPage(): React.ReactElement {
     const [description, setDescription] = useState<string>("");
     const [isBug, setIsBug] = useState<boolean>(false);
     const [holidays, setHolidays] = useState<string[]>([]);
-    const [newHolidayDate, setNewHolidayDate] = useState<string>("");
     const [exporting, setExporting] = useState<boolean>(false);
     const { showError } = useToast();
 
@@ -41,7 +41,10 @@ export function SprintDetailPage(): React.ReactElement {
     }
 
     async function loadHolidays(startDate: string, endDate: string | null) {
-        const dates: string[] = await api.listHolidays(startDate, endDate ?? formatIsoDate(new Date()));
+        // an ongoing sprint (no endDate yet) can still have holidays marked
+        // beyond today - "9999-12-31" is this codebase's existing convention
+        // for "unbounded" (see ExportPage's overlapsRange), not "today".
+        const dates: string[] = await api.listHolidays(startDate, endDate ?? "9999-12-31");
         setHolidays(dates);
     }
 
@@ -61,20 +64,15 @@ export function SprintDetailPage(): React.ReactElement {
         loadSprint();
     }
 
-    async function handleAddHoliday() {
-        if (!newHolidayDate || !sprint) {
-            return;
-        }
-        await api.addHoliday(newHolidayDate);
-        setNewHolidayDate("");
-        loadHolidays(sprint.startDate, sprint.endDate);
-    }
-
-    async function handleRemoveHoliday(date: string) {
+    async function handleToggleHoliday(date: string) {
         if (!sprint) {
             return;
         }
-        await api.removeHoliday(date);
+        if (holidays.includes(date)) {
+            await api.removeHoliday(date);
+        } else {
+            await api.addHoliday(date);
+        }
         loadHolidays(sprint.startDate, sprint.endDate);
     }
 
@@ -153,25 +151,15 @@ export function SprintDetailPage(): React.ReactElement {
                 {holidays.map((date) => (
                     <span key={date} className="holiday-chip">
                         {date}
-                        {!locked && (
-                            <button className="holiday-remove" onClick={() => handleRemoveHoliday(date)}>
-                                x
-                            </button>
-                        )}
                     </span>
                 ))}
-                {!locked && (
-                    <>
-                        <input
-                            type="date"
-                            value={newHolidayDate}
-                            min={sprint.startDate}
-                            max={sprint.endDate ?? undefined}
-                            onChange={(event) => setNewHolidayDate(event.target.value)}
-                        />
-                        <button onClick={handleAddHoliday}>add holiday</button>
-                    </>
-                )}
+                <HolidayPickerPopover
+                    startDate={sprint.startDate}
+                    endDate={sprint.endDate ?? "9999-12-31"}
+                    holidays={new Set(holidays)}
+                    onToggleHoliday={handleToggleHoliday}
+                    locked={locked}
+                />
             </div>
 
             {showForm && (

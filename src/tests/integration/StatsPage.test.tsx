@@ -9,10 +9,10 @@ import { exportSectionsAsPdf } from "../../utils/pdfExport";
 // StatsPage itself only owns cross-cutting state (which sprint is selected,
 // granularity/burndown-mode, the pdf-export wiring) and fetches data to hand
 // down to the section components under src/components/stats/. Rendering
-// details for each section (complexity chart markers, calendar day clicks,
-// velocity mode switching, ...) are covered by that section's own colocated
-// *.test.tsx - this file is for behaviour that only exists once the sections
-// are assembled together on the page.
+// details for each section (complexity chart markers, velocity mode
+// switching, ...) are covered by that section's own colocated *.test.tsx -
+// this file is for behaviour that only exists once the sections are
+// assembled together on the page.
 
 vi.mock("../../api/client", () => ({
     api: {
@@ -23,8 +23,6 @@ vi.mock("../../api/client", () => ({
         getStatusBreakdown: vi.fn(),
         getVelocityHistory: vi.fn(),
         listHolidays: vi.fn(),
-        addHoliday: vi.fn(),
-        removeHoliday: vi.fn(),
     },
 }));
 
@@ -166,23 +164,6 @@ describe("StatsPage", () => {
         renderPage();
         await userEvent.selectOptions(await screen.findByRole("combobox"), "1");
         expect(await screen.findByText("March 2026")).toBeInTheDocument();
-    });
-
-    it("toggles a holiday when a calendar day is clicked", async () => {
-        // sprint's endDate ("2026-03-16") must still be in the future for its calendar to be unlocked/interactive.
-        vi.useFakeTimers({ shouldAdvanceTime: true });
-        vi.setSystemTime(new Date("2026-03-10T00:00:00Z"));
-        try {
-            vi.mocked(api.addHoliday).mockResolvedValue(undefined);
-            renderPage();
-            await userEvent.selectOptions(await screen.findByRole("combobox"), "1");
-            await screen.findByText("March 2026");
-
-            await userEvent.click(screen.getByText("5", { selector: ".calendar-day-number" }));
-            expect(api.addHoliday).toHaveBeenCalledWith("2026-03-05");
-        } finally {
-            vi.useRealTimers();
-        }
     });
 
     it("exports a single section as a pdf with real written stats when its own export button is clicked", async () => {

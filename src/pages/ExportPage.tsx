@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import type { MarkdownExportFields, SprintSummary } from "@shared/types";
 import { api } from "../api/client";
+import { DatePickerPopover } from "../components/calendar/DatePickerPopover";
 import { useToast } from "../components/Toast";
 import { ExportButton } from "../components/ExportButton";
 import { defaultExportFields, loadExportFields, saveExportFields } from "../utils/exportFields";
@@ -127,14 +128,14 @@ export function ExportPage(): React.ReactElement {
 
             <h2>Sprints</h2>
             <div className="export-date-range">
-                <label>
+                <div className="export-date-field">
                     from
-                    <input type="date" value={fromDate} onChange={(event) => setFromDate(event.target.value)} />
-                </label>
-                <label>
+                    <DatePickerPopover label="from" value={fromDate} onSelect={setFromDate} />
+                </div>
+                <div className="export-date-field">
                     to
-                    <input type="date" value={toDate} onChange={(event) => setToDate(event.target.value)} />
-                </label>
+                    <DatePickerPopover label="to" value={toDate} onSelect={setToDate} />
+                </div>
                 <button onClick={applyDateRange}>select sprints in range</button>
             </div>
 

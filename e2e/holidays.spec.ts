@@ -1,12 +1,11 @@
 import { test, expect, Page } from "@playwright/test";
 import { seedSprint } from "./seed.js";
 
-// Holidays toggle from two surfaces - chips on the sprint detail page, and
-// clicks on the stats page's calendar - both against the same underlying
-// set, so a change on one must show up on the other. Each test uses its
-// own fixed, non-overlapping mon-fri range: the range-calendar page renders
-// every sprint in the shared, serial-run db at once, so overlapping ranges
-// across these tests would inflate lane counts and break
+// Holidays are added/removed exclusively via the sprint detail page's
+// HolidayPickerPopover; the stats page's calendar is read-only. Each test
+// uses its own fixed, non-overlapping mon-fri range: the range-calendar page
+// renders every sprint in the shared, serial-run db at once, so overlapping
+// ranges across these tests would inflate lane counts and break
 // range-calendar.spec's assertions.
 function calendarCellFor(page: Page, isoDate: string) {
     const [year, month, day] = isoDate.split("-").map(Number);
@@ -26,8 +25,12 @@ async function holidaysStatValue(page: Page): Promise<string> {
     return (await label.locator("xpath=preceding-sibling::span[1]").textContent()) ?? "";
 }
 
+async function openHolidayPopover(page: Page) {
+    await page.getByRole("button", { name: "edit holidays" }).click();
+}
+
 test.describe("holiday days", () => {
-    test("adding a holiday on the sprint page shows up as a holiday cell and count on the stats page, and removing it reverts both", async ({
+    test("adding a holiday through the sprint-page popover shows up as a holiday cell and count on the stats page, and removing it reverts both", async ({
         page,
         request,
     }) => {
@@ -39,8 +42,8 @@ test.describe("holiday days", () => {
         });
 
         await page.goto(`/sprints/${sprint.id}`);
-        await page.fill('input[type="date"]', holidayDate);
-        await page.click("text=add holiday");
+        await openHolidayPopover(page);
+        await calendarCellFor(page, holidayDate).click();
 
         const chip = page.locator(".holiday-chip", { hasText: holidayDate });
         await expect(chip).toBeVisible();
@@ -52,7 +55,8 @@ test.describe("holiday days", () => {
 
         await page.goto(`/sprints/${sprint.id}`);
         await expect(page.locator(".holiday-chip", { hasText: holidayDate })).toBeVisible();
-        await page.locator(".holiday-chip", { hasText: holidayDate }).locator(".holiday-remove").click();
+        await openHolidayPopover(page);
+        await calendarCellFor(page, holidayDate).click();
         await expect(page.locator(".holiday-chip", { hasText: holidayDate })).toHaveCount(0);
 
         await page.goto(`/stats/${sprint.id}`);
@@ -61,10 +65,7 @@ test.describe("holiday days", () => {
         await expect(await holidaysStatValue(page)).toBe("0");
     });
 
-    test("toggling a holiday on the stats calendar shows up as a removable chip on the sprint page", async ({
-        page,
-        request,
-    }) => {
+    test("clicking a calendar day on the stats page does not toggle a holiday", async ({ page, request }) => {
         const holidayDate = "2026-09-09"; // wednesday, inside mon 09-07 - fri 09-18
         const sprint = await seedSprint(request, {
             name: `E2E Holiday B ${Date.now()}`,
@@ -76,27 +77,19 @@ test.describe("holiday days", () => {
         const cell = calendarCellFor(page, holidayDate);
         await expect(cell).toHaveClass(/calendar-day-active/);
         await cell.click();
-        await expect(cell).toHaveClass(/calendar-day-holiday/);
-
-        await page.goto(`/sprints/${sprint.id}`);
-        const chip = page.locator(".holiday-chip", { hasText: holidayDate });
-        await expect(chip).toBeVisible();
-
-        await chip.locator(".holiday-remove").click();
-        await expect(page.locator(".holiday-chip", { hasText: holidayDate })).toHaveCount(0);
-
-        await page.goto(`/stats/${sprint.id}`);
-        await expect(calendarCellFor(page, holidayDate)).toHaveClass(/calendar-day-active/);
+        await expect(cell).toHaveClass(/calendar-day-active/);
+        await expect(cell).not.toHaveClass(/calendar-day-holiday/);
     });
 
-    test("a weekend day cannot be toggled into a holiday from the stats calendar", async ({ page, request }) => {
+    test("a weekend day cannot be toggled into a holiday from the sprint-page popover", async ({ page, request }) => {
         const sprint = await seedSprint(request, {
             name: `E2E Holiday C ${Date.now()}`,
             startDate: "2026-10-05",
             endDate: "2026-10-16",
         });
 
-        await page.goto(`/stats/${sprint.id}`);
+        await page.goto(`/sprints/${sprint.id}`);
+        await openHolidayPopover(page);
 
         // 2026-10-10 is a saturday inside the sprint's own month block - muted
         // for being a weekend, not for falling outside the sprint range.
