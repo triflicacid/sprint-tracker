@@ -83,6 +83,23 @@ describe("GET /api/stats/velocity/:id", () => {
     });
 });
 
+describe("GET /api/stats/day-activity", () => {
+    it("returns an empty map when nothing has started", async () => {
+        const response = await request(app).get("/api/stats/day-activity");
+        expect(response.status).toBe(200);
+        expect(response.body).toEqual({});
+    });
+
+    it("includes active days across every sprint, not just one", async () => {
+        const subtask = await request(app).post(`/api/stories/${storyId}/subtasks`).send({ title: "sub" });
+        await request(app).patch(`/api/subtasks/${subtask.body.id}`).send({ status: "WIP", branchName: "feature/x" });
+
+        const response = await request(app).get("/api/stats/day-activity");
+        const dates = Object.keys(response.body);
+        expect(dates.length).toBeGreaterThan(0);
+    });
+});
+
 describe("GET /api/stats/day-activity/:id", () => {
     it("returns an empty map when nothing has started", async () => {
         const response = await request(app).get(`/api/stats/day-activity/${sprintId}`);

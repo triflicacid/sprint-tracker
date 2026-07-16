@@ -13,6 +13,27 @@ import "./SprintRangeCalendar.css";
 
 interface SprintRangeCalendarProps {
     entries: CalendarEntry[];
+    // when both are given, a day number becomes clickable (today/future,
+    // non-weekend, and belonging to the month it's rendered under - not a
+    // muted leading/trailing day shared with a neighbouring month block) and
+    // toggles that date as a holiday, same as the timesheet's stories view.
+    holidays?: Set<string>;
+    onToggleHoliday?: (date: string) => void;
+}
+
+// the full date span the calendar needs to render to cover every entry -
+// from the earliest sprint's start to the latest sprint's end (or today, for
+// one still ongoing). exported so a holiday-toggling caller can fetch
+// exactly the holidays this range will display, without duplicating the
+// "ongoing sprint runs through today" rule.
+export function calendarEntriesRange(entries: CalendarEntry[]): { rangeStart: string; rangeEnd: string } {
+    const today = formatIsoDate(new Date());
+    const rangeStart = entries.reduce((min, entry) => (entry.startDate < min ? entry.startDate : min), entries[0].startDate);
+    const rangeEnd = entries.reduce((max, entry) => {
+        const end = entry.endDate ?? today;
+        return end > max ? end : max;
+    }, entries[0].endDate ?? today);
+    return { rangeStart, rangeEnd };
 }
 
 const DAY_HEADERS: string[] = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -83,17 +104,13 @@ function barTitle(entry: CalendarEntry) {
 }
 
 // display a calendar with each sprint shows as a range bar
-export function SprintRangeCalendar({ entries }: SprintRangeCalendarProps) {
+export function SprintRangeCalendar({ entries, holidays, onToggleHoliday }: SprintRangeCalendarProps) {
     if (entries.length === 0) {
         return <p className="activity-calendar-empty">no sprints match this filter.</p>;
     }
 
     const today = formatIsoDate(new Date());
-    const rangeStart = entries.reduce((min, entry) => (entry.startDate < min ? entry.startDate : min), entries[0].startDate);
-    const rangeEnd = entries.reduce((max, entry) => {
-        const end = entry.endDate ?? today;
-        return end > max ? end : max;
-    }, entries[0].endDate ?? today);
+    const { rangeStart, rangeEnd } = calendarEntriesRange(entries);
 
     const bars = assignLanes(entries, today);
     const laneCount = bars.reduce((max, bar) => Math.max(max, bar.lane + 1), 1);
@@ -130,18 +147,36 @@ export function SprintRangeCalendar({ entries }: SprintRangeCalendarProps) {
                         {weeks.map((weekDates, weekIndex) => (
                             <div key={weekIndex} className="range-week">
                                 <div className="range-daynumbers">
-                                    {weekDates.map((date) => (
-                                        <span
-                                            key={formatIsoDate(date)}
-                                            className={
-                                                isSameUtcMonth(date, year, month)
-                                                    ? "range-day-number"
-                                                    : "range-day-number range-day-number-muted"
-                                            }
-                                        >
-                                            {date.getUTCDate()}
-                                        </span>
-                                    ))}
+                                    {weekDates.map((date) => {
+                                        const dateString = formatIsoDate(date);
+                                        const inMonth = isSameUtcMonth(date, year, month);
+                                        const dayOfWeek = date.getUTCDay();
+                                        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+                                        const isHoliday = holidays?.has(dateString) ?? false;
+                                        const canToggle = Boolean(onToggleHoliday) && inMonth && !isWeekend && dateString >= today;
+
+                                        let dayClass = "range-day-number";
+                                        if (!inMonth) {
+                                            dayClass += " range-day-number-muted";
+                                        }
+                                        if (isHoliday) {
+                                            dayClass += " range-day-number-holiday";
+                                        }
+                                        if (canToggle) {
+                                            dayClass += " range-day-number-clickable";
+                                        }
+
+                                        return (
+                                            <span
+                                                key={dateString}
+                                                className={dayClass}
+                                                onClick={canToggle ? () => onToggleHoliday!(dateString) : undefined}
+                                                title={canToggle ? "click to toggle holiday" : undefined}
+                                            >
+                                                {date.getUTCDate()}
+                                            </span>
+                                        );
+                                    })}
                                 </div>
                                 {Array.from({ length: laneCount }).map((_, lane) => {
                                     const laneBars: SprintBar[] = bars.filter((bar) => bar.lane === lane);

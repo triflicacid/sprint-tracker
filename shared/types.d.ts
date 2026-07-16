@@ -189,6 +189,7 @@ export type StatusBreakdownGranularity = "subtask" | "story";
 
 // one subtask's activity on one day.
 export interface DayActivityEntry {
+  storyId: number;
   storyLabel: string;
   branchName: string;
   status: SubtaskStatus;

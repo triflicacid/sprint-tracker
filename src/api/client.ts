@@ -116,6 +116,8 @@ export const api = {
 
     getDayActivity: (sprintId: number): Promise<DayActivityMap> => request(`/stats/day-activity/${sprintId}`),
 
+    getAllDayActivity: (): Promise<DayActivityMap> => request("/stats/day-activity"),
+
     getVelocityHistory: (sprintId: number, selection: VelocitySelection): Promise<VelocityPoint[]> => {
         const params = new URLSearchParams({ mode: selection.mode });
         if (selection.mode === "range") {

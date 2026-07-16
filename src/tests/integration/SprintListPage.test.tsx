@@ -34,11 +34,11 @@ describe("SprintListPage", () => {
         expect(await screen.findByText("Sprint 1")).toBeInTheDocument();
     });
 
-    it("has links to stats, calendar and transitions", async () => {
+    it("has links to stats, timesheet and transitions", async () => {
         vi.mocked(api.listSprints).mockResolvedValue([]);
         renderPage();
         expect(await screen.findByText("stats")).toHaveAttribute("href", "/stats");
-        expect(screen.getByText("calendar")).toHaveAttribute("href", "/calendar");
+        expect(screen.getByText("timesheet")).toHaveAttribute("href", "/timesheet");
         expect(screen.getByText("transitions")).toHaveAttribute("href", "/transitions");
     });
 

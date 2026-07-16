@@ -333,6 +333,80 @@ export function getDayActivity(sprintId: number): DayActivityMap {
             const dateString = cursor.toISOString().slice(0, 10);
             const status = statusAsOf(historyForStatusAsOf, dateString, subtask.status);
             (result[dateString] ??= []).push({
+                storyId: subtask.story_id,
+                storyLabel,
+                branchName: subtask.branch_name,
+                status,
+                prUrl: subtask.url,
+            });
+        }
+    }
+
+    return result;
+}
+
+// per-day activity across every sprint, for the timesheet page - same
+// backfill logic as getDayActivity, just with no single sprint's bounds to
+// clamp to. an in-progress subtask (no DONE entry yet) still can't show
+// activity beyond today; a subtask with an implied-active status but no
+// history at all falls back to its own sprint's start date, exactly as
+// getDayActivity would if called for that subtask's sprint.
+export function getAllDayActivity(): DayActivityMap {
+    const subtaskRows = db
+        .prepare(
+            `SELECT subtasks.id AS id, subtasks.branch_name AS branch_name,
+                    stories.jira_key AS jira_key, stories.id AS story_id, subtasks.url AS url,
+                    subtasks.status AS status, sprints.start_date AS sprint_start_date
+             FROM subtasks
+             JOIN stories ON stories.id = subtasks.story_id
+             JOIN sprints ON sprints.id = stories.sprint_id`
+        )
+        .all() as {
+            id: number;
+            branch_name: string;
+            jira_key: string | null;
+            story_id: number;
+            url: string | null;
+            status: SubtaskStatus;
+            sprint_start_date: string;
+        }[];
+
+    const today = new Date().toISOString().slice(0, 10);
+    const result: DayActivityMap = {};
+
+    for (const subtask of subtaskRows) {
+        const entries = db
+            .prepare(
+                "SELECT status, changed_at FROM status_history WHERE entity_type = 'subtask' AND entity_id = ? ORDER BY changed_at ASC"
+            )
+            .all(subtask.id) as { status: SubtaskStatus; changed_at: string }[];
+
+        const firstActiveEntry = entries.find((entry) => entry.status !== "NEW");
+        const impliedActive = entries.length === 0 && subtask.status !== "NEW";
+        if (!firstActiveEntry && !impliedActive) {
+            continue;
+        }
+        const doneEntry = entries.find((entry) => entry.status === "DONE");
+        const rangeStart = firstActiveEntry
+            ? firstActiveEntry.changed_at.slice(0, 10)
+            : subtask.sprint_start_date.slice(0, 10);
+        const rangeEnd = doneEntry ? doneEntry.changed_at.slice(0, 10) : today;
+        if (rangeStart > rangeEnd) {
+            continue;
+        }
+
+        const historyForStatusAsOf = entries.map((entry) => ({ status: entry.status, changedAt: entry.changed_at }));
+
+        const storyLabel: string = subtask.jira_key ?? `#${subtask.story_id}`;
+        for (
+            let cursor = new Date(rangeStart);
+            cursor.toISOString().slice(0, 10) <= rangeEnd;
+            cursor.setDate(cursor.getDate() + 1)
+        ) {
+            const dateString = cursor.toISOString().slice(0, 10);
+            const status = statusAsOf(historyForStatusAsOf, dateString, subtask.status);
+            (result[dateString] ??= []).push({
+                storyId: subtask.story_id,
                 storyLabel,
                 branchName: subtask.branch_name,
                 status,

@@ -24,6 +24,26 @@
     opacity: 0.3;
 }
 
+.range-day-number-holiday {
+    background: #3730a3;
+    color: white;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+.range-day-number-clickable {
+    cursor: pointer;
+}
+
+.range-day-number-clickable:hover {
+    color: var(--accent);
+}
+
+.range-day-number-holiday.range-day-number-clickable:hover {
+    filter: brightness(1.2);
+    color: white;
+}
+
 .range-lane {
     display: grid;
     grid-template-columns: repeat(14, 1fr);

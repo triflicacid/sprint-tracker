@@ -119,6 +119,13 @@
     gap: 2px;
 }
 
+/* story chips are short codes - lay several out per row instead of one per
+   line, so a day fits more before folding into "+N more". */
+.calendar-day-activity-wrap {
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
 .calendar-day-activity-chip {
     display: block;
     font-size: var(--font-tiny);

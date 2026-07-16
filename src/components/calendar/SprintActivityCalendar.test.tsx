@@ -13,7 +13,7 @@ describe("SprintActivityCalendar", () => {
 
     it("shows activity chips for an active in-sprint day", () => {
         const dayActivity: DayActivityMap = {
-            "2026-03-05": [{ storyLabel: "NEB-1", branchName: "feature/x", status: "WIP", prUrl: null }],
+            "2026-03-05": [{ storyId: 1, storyLabel: "NEB-1", branchName: "feature/x", status: "WIP", prUrl: null }],
         };
         render(
             <SprintActivityCalendar
@@ -29,7 +29,13 @@ describe("SprintActivityCalendar", () => {
     it("renders a pr-linked chip as a link", () => {
         const dayActivity: DayActivityMap = {
             "2026-03-05": [
-                { storyLabel: "NEB-1", branchName: "feature/x", status: "WIP", prUrl: "https://github.com/org/repo/pull/1" },
+                {
+                    storyId: 1,
+                    storyLabel: "NEB-1",
+                    branchName: "feature/x",
+                    status: "WIP",
+                    prUrl: "https://github.com/org/repo/pull/1",
+                },
             ],
         };
         render(
@@ -48,11 +54,11 @@ describe("SprintActivityCalendar", () => {
     it("caps visible chips and folds the rest into a '+N more' chip", () => {
         const dayActivity: DayActivityMap = {
             "2026-03-05": [
-                { storyLabel: "A", branchName: "a", status: "WIP", prUrl: null },
-                { storyLabel: "B", branchName: "b", status: "WIP", prUrl: null },
-                { storyLabel: "C", branchName: "c", status: "WIP", prUrl: null },
-                { storyLabel: "D", branchName: "d", status: "WIP", prUrl: null },
-                { storyLabel: "E", branchName: "e", status: "WIP", prUrl: null },
+                { storyId: 1, storyLabel: "A", branchName: "a", status: "WIP", prUrl: null },
+                { storyId: 2, storyLabel: "B", branchName: "b", status: "WIP", prUrl: null },
+                { storyId: 3, storyLabel: "C", branchName: "c", status: "WIP", prUrl: null },
+                { storyId: 4, storyLabel: "D", branchName: "d", status: "WIP", prUrl: null },
+                { storyId: 5, storyLabel: "E", branchName: "e", status: "WIP", prUrl: null },
             ],
         };
         render(
@@ -69,7 +75,7 @@ describe("SprintActivityCalendar", () => {
 
     it("hides activity chips on a holiday and shows holiday styling instead", () => {
         const dayActivity: DayActivityMap = {
-            "2026-03-05": [{ storyLabel: "NEB-1", branchName: "feature/x", status: "WIP", prUrl: null }],
+            "2026-03-05": [{ storyId: 1, storyLabel: "NEB-1", branchName: "feature/x", status: "WIP", prUrl: null }],
         };
         render(
             <SprintActivityCalendar
