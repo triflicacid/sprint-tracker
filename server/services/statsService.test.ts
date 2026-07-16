@@ -4,6 +4,7 @@ import {
     getSprintStats,
     getStatusBreakdown,
     getDayActivity,
+    getAllDayActivity,
     getCalendarEntries,
     getComplexityTiming,
     getVelocityHistory,
@@ -337,6 +338,61 @@ describe("getDayActivity", () => {
 
         const activity = getDayActivity(sprintId);
         expect(Object.keys(activity)).toHaveLength(0);
+    });
+});
+
+describe("getAllDayActivity", () => {
+    it("combines activity across multiple sprints, not just one", () => {
+        const sprintA = insertSprint("2026-01-01", "2026-01-10");
+        const sprintB = insertSprint("2026-03-01", "2026-03-10");
+        // subtaskA reaches DONE so its active range doesn't run through
+        // "today" and bleed into subtaskB's window below.
+        const subtaskA = insertSubtask(insertStory(sprintA, "NEB-1"), { branchName: "feature/a" });
+        insertHistory(subtaskA, "NEW", "2026-01-01 09:00:00");
+        insertHistory(subtaskA, "WIP", "2026-01-02 09:00:00");
+        insertHistory(subtaskA, "DONE", "2026-01-03 09:00:00");
+        const subtaskB = insertSubtask(insertStory(sprintB, "NEB-2"), { branchName: "feature/b" });
+        insertHistory(subtaskB, "NEW", "2026-03-01 09:00:00");
+        insertHistory(subtaskB, "WIP", "2026-03-02 09:00:00");
+        insertHistory(subtaskB, "DONE", "2026-03-03 09:00:00");
+
+        const activity = getAllDayActivity();
+        expect(activity["2026-01-02"][0]).toMatchObject({ storyLabel: "NEB-1", branchName: "feature/a" });
+        expect(activity["2026-03-02"][0]).toMatchObject({ storyLabel: "NEB-2", branchName: "feature/b" });
+    });
+
+    it("excludes days still in NEW and days after DONE", () => {
+        const sprintId = insertSprint("2026-01-01", "2026-01-10");
+        const subtaskId = insertSubtask(insertStory(sprintId));
+        insertHistory(subtaskId, "NEW", "2026-01-01 09:00:00");
+        insertHistory(subtaskId, "WIP", "2026-01-02 09:00:00");
+        insertHistory(subtaskId, "DONE", "2026-01-03 09:00:00");
+
+        const activity = getAllDayActivity();
+        expect(activity["2026-01-01"]).toBeUndefined();
+        expect(activity["2026-01-06"]).toBeUndefined();
+    });
+
+    it("contributes nothing for a subtask that never left NEW", () => {
+        const sprintId = insertSprint("2026-01-01", "2026-01-10");
+        const subtaskId = insertSubtask(insertStory(sprintId));
+        insertHistory(subtaskId, "NEW", "2026-01-01 09:00:00");
+
+        const activity = getAllDayActivity();
+        expect(Object.keys(activity)).toHaveLength(0);
+    });
+
+    it("falls back to the subtask's own sprint start date for an implied-active subtask with no history at all", () => {
+        // a fixed, well-in-the-past start date so this stays correct
+        // regardless of when the test actually runs (no DONE entry means
+        // the active range is capped at "today", not the sprint's end).
+        const sprintId = insertSprint("2020-01-01", "2020-01-10");
+        const storyId = insertStory(sprintId, "NEB-1");
+        insertSubtask(storyId, { branchName: "feature/x", status: "WIP" }); // no status_history rows
+
+        const activity = getAllDayActivity();
+        expect(activity["2020-01-01"]).toBeDefined();
+        expect(activity["2020-01-01"][0]).toMatchObject({ storyLabel: "NEB-1", branchName: "feature/x", status: "WIP" });
     });
 });
 

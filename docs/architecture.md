@@ -94,12 +94,12 @@
   `subtasks/`, `calendar/`, `flow/`, `stats/`) → `utils/calendarGrid.ts`
   (shared date-grid math).
 - Three calendar components, not one - different granularities, not
-  duplication: `SprintRangeCalendar` (all sprints as range-lines,
-  `/calendar`), `SprintActivityCalendar` (one sprint's day-by-day activity +
-  holiday toggle, stats page), `SubtaskActivityCalendar` (one subtask's own
-  days, detail page). Share `calendarGrid.ts`, not markup. Deliberately
-  renamed apart from more similar original names once that similarity
-  caused navigation confusion.
+  duplication: `SprintRangeCalendar` (all sprints as range-lines, one
+  navigable month at a time, `/timesheet` "sprints" mode), `SprintActivityCalendar`
+  (one sprint's day-by-day activity + holiday toggle, stats page),
+  `SubtaskActivityCalendar` (one subtask's own days, detail page). Share
+  `calendarGrid.ts`, not markup. Deliberately renamed apart from more
+  similar original names once that similarity caused navigation confusion.
 - One generic `FlowDiagram` (nodes + `{from,to,title}` edges → arrows), two
   callers with different edge sources: `SubtaskFlowDiagram` (one subtask's
   real history, unreached states dimmed) and `TransitionsInfoPage` (every

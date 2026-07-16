@@ -1,0 +1,23 @@
+.timesheet-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 12px;
+}
+
+.timesheet-calendar {
+    margin-top: 12px;
+}
+
+.timesheet-calendar .calendar-month-title {
+    font-size: var(--font-xlarge);
+}
+
+.timesheet-calendar .calendar-day {
+    min-height: 110px;
+}
+
+.timesheet-day-today {
+    border-color: var(--accent);
+    border-width: 2px;
+}

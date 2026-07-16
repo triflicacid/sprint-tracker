@@ -1,8 +1,8 @@
 import React from "react";
-import type { DayActivityMap, DayActivityEntry } from "@shared/types";
-import { STATUS_COLORS, STATUS_LABELS } from "../StatusBadge";
+import type { DayActivityMap } from "@shared/types";
 import { monthsBetween } from "../../utils/calendarGrid";
 import { CalendarGridMonth } from "./CalendarGridMonth";
+import { DayActivityChips } from "./DayActivityChips";
 import "./calendar.css";
 
 interface SprintActivityCalendarProps {
@@ -10,13 +10,6 @@ interface SprintActivityCalendarProps {
     endDate: string;
     holidays: Set<string>;
     dayActivity: DayActivityMap;
-}
-
-const MAX_VISIBLE_CHIPS = 4;
-
-function activityTitle(entry: DayActivityEntry) {
-    const base = `${entry.storyLabel} ${entry.branchName} - ${STATUS_LABELS[entry.status] ?? entry.status}`;
-    return entry.prUrl ? `${base} (click to open PR)` : base;
 }
 
 // one sprint's day-by-day activity, read-only. holiday editing lives on the
@@ -48,44 +41,8 @@ export function SprintActivityCalendar({ startDate, endDate, holidays, dayActivi
                         return (
                             <div className={cellClass}>
                                 <span className="calendar-day-number">{date.getUTCDate()}</span>
-                                {inSprint && !isWeekend && !isHoliday && activities.length > 0 && (
-                                    <div className="calendar-day-activity">
-                                        {activities.slice(0, MAX_VISIBLE_CHIPS).map((entry, index) =>
-                                            entry.prUrl ? (
-                                                <a
-                                                    key={index}
-                                                    href={entry.prUrl}
-                                                    target="_blank"
-                                                    rel="noreferrer"
-                                                    className="calendar-day-activity-chip calendar-day-activity-chip-link"
-                                                    style={{ backgroundColor: STATUS_COLORS[entry.status] }}
-                                                    title={activityTitle(entry)}
-                                                >
-                                                    {entry.storyLabel} {entry.branchName}
-                                                </a>
-                                            ) : (
-                                                <span
-                                                    key={index}
-                                                    className="calendar-day-activity-chip"
-                                                    style={{ backgroundColor: STATUS_COLORS[entry.status] }}
-                                                    title={activityTitle(entry)}
-                                                >
-                                                    {entry.storyLabel} {entry.branchName}
-                                                </span>
-                                            )
-                                        )}
-                                        {activities.length > MAX_VISIBLE_CHIPS && (
-                                            <span
-                                                className="calendar-day-activity-chip calendar-day-activity-more"
-                                                title={activities
-                                                    .slice(MAX_VISIBLE_CHIPS)
-                                                    .map(activityTitle)
-                                                    .join("\n")}
-                                            >
-                                                +{activities.length - MAX_VISIBLE_CHIPS} more
-                                            </span>
-                                        )}
-                                    </div>
+                                {inSprint && !isWeekend && !isHoliday && (
+                                    <DayActivityChips activities={activities} />
                                 )}
                             </div>
                         );

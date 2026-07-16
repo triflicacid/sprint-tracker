@@ -5,7 +5,19 @@ test("subtask flow to done, including the pr comments detour, drives its story t
     page,
     request,
 }) => {
-    const sprint = await seedSprint(request, { name: `E2E Full Flow ${Date.now()}` });
+    // bounded around "today" rather than the seed default's open-ended
+    // 2026-01-01 start - an ongoing sprint stretches through "today" in the
+    // range calendar, which (as real time passes) can start overlapping
+    // fixed 2026 date ranges other e2e specs assert on in that same shared
+    // db (see timesheet.spec.ts's "sprints mode" tests).
+    const startDate = new Date().toISOString().slice(0, 10);
+    const endDate = new Date();
+    endDate.setDate(endDate.getDate() + 14);
+    const sprint = await seedSprint(request, {
+        name: `E2E Full Flow ${Date.now()}`,
+        startDate,
+        endDate: endDate.toISOString().slice(0, 10),
+    });
     const story = await seedStory(request, sprint.id, { description: "e2e full-flow story" });
     const subtask = await seedSubtask(request, story.id, "e2e full-flow subtask");
 

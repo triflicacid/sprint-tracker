@@ -3,6 +3,7 @@ import {
     getSprintStats,
     getStatusBreakdown,
     getDayActivity,
+    getAllDayActivity,
     getComplexityTiming,
     getVelocityHistory,
 } from "../services/statsService.js";
@@ -26,6 +27,10 @@ statsRouter.get("/status-breakdown/:id", (req: Request, res: Response) => {
     const sprintId = Number(req.params.id);
     const granularity = req.query.granularity === "story" ? "story" : "subtask";
     res.json(getStatusBreakdown(sprintId, granularity));
+});
+
+statsRouter.get("/day-activity", (_req: Request, res: Response) => {
+    res.json(getAllDayActivity());
 });
 
 statsRouter.get("/day-activity/:id", (req: Request, res: Response) => {
