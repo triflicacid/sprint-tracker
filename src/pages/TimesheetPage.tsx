@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { api } from "../api/client";
 import { CalendarGridMonth } from "../components/calendar/CalendarGridMonth";
 import { DayActivityChips } from "../components/calendar/DayActivityChips";
-import { SprintRangeCalendar, calendarEntriesRange } from "../components/calendar/SprintRangeCalendar";
+import { SprintRangeCalendar } from "../components/calendar/SprintRangeCalendar";
 import { TagFilter } from "../components/TagFilter";
 import { groupActivitiesByStory } from "../utils/dayActivity";
 import { formatIsoDate } from "../utils/calendarGrid";
@@ -163,11 +163,14 @@ function StoryTimesheet(): React.ReactElement {
     );
 }
 
-// every sprint as a range-line, filterable by repo/tag. day numbers double
-// as the same global holiday editor as the stories view (see
-// StoryTimesheet), toggling any today-or-future weekday the calendar
-// currently spans.
+// every sprint as a range-line, filterable by repo/tag, one navigable month
+// at a time - the "sprints" counterpart to StoryTimesheet above. day numbers
+// double as the same global holiday editor as the stories view, toggling any
+// today-or-future weekday in the visible month.
 function SprintTimesheet(): React.ReactElement {
+    const today = new Date();
+    const [year, setYear] = useState<number>(today.getUTCFullYear());
+    const [month, setMonth] = useState<number>(today.getUTCMonth());
     const [entries, setEntries] = useState<CalendarEntry[]>([]);
     const [tags, setTags] = useState<Tag[]>([]);
     const [repoFilter, setRepoFilter] = useState<string>("");
@@ -182,19 +185,22 @@ function SprintTimesheet(): React.ReactElement {
         api.getCalendar({ repo: repoFilter || undefined, tag: tagFilter || undefined }).then(setEntries);
     }, [repoFilter, tagFilter]);
 
-    async function loadHolidays(currentEntries: CalendarEntry[]) {
-        if (currentEntries.length === 0) {
-            setHolidays(new Set());
-            return;
-        }
-        const { rangeStart, rangeEnd } = calendarEntriesRange(currentEntries);
-        const dates = await api.listHolidays(rangeStart, rangeEnd);
+    function monthBounds(): [string, string] {
+        return [
+            formatIsoDate(new Date(Date.UTC(year, month, 1))),
+            formatIsoDate(new Date(Date.UTC(year, month + 1, 0))),
+        ];
+    }
+
+    async function loadHolidays() {
+        const [start, end] = monthBounds();
+        const dates = await api.listHolidays(start, end);
         setHolidays(new Set(dates));
     }
 
     useEffect(() => {
-        loadHolidays(entries);
-    }, [entries]);
+        loadHolidays();
+    }, [year, month]);
 
     async function handleToggleHoliday(date: string) {
         if (holidays.has(date)) {
@@ -202,7 +208,30 @@ function SprintTimesheet(): React.ReactElement {
         } else {
             await api.addHoliday(date);
         }
-        loadHolidays(entries);
+        loadHolidays();
+    }
+
+    function goToPreviousMonth() {
+        if (month === 0) {
+            setYear((current) => current - 1);
+            setMonth(11);
+        } else {
+            setMonth((current) => current - 1);
+        }
+    }
+
+    function goToNextMonth() {
+        if (month === 11) {
+            setYear((current) => current + 1);
+            setMonth(0);
+        } else {
+            setMonth((current) => current + 1);
+        }
+    }
+
+    function goToToday() {
+        setYear(today.getUTCFullYear());
+        setMonth(today.getUTCMonth());
     }
 
     const repoTags = tags.filter((tag) => tag.tagType === "repo");
@@ -213,8 +242,19 @@ function SprintTimesheet(): React.ReactElement {
             <div className="timesheet-toolbar">
                 <TagFilter tags={repoTags} selected={repoFilter} onChange={setRepoFilter} label="repo" />
                 <TagFilter tags={customTags} selected={tagFilter} onChange={setTagFilter} label="tag" />
+                <button onClick={goToToday}>today</button>
             </div>
-            <SprintRangeCalendar entries={entries} holidays={holidays} onToggleHoliday={handleToggleHoliday} />
+            <div className="timesheet-calendar">
+                <SprintRangeCalendar
+                    entries={entries}
+                    year={year}
+                    month={month}
+                    onPreviousMonth={goToPreviousMonth}
+                    onNextMonth={goToNextMonth}
+                    holidays={holidays}
+                    onToggleHoliday={handleToggleHoliday}
+                />
+            </div>
         </>
     );
 }

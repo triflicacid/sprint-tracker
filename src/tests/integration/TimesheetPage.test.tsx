@@ -256,11 +256,35 @@ describe("TimesheetPage", () => {
             expect(await screen.findByText("March 2026")).toBeInTheDocument();
         });
 
-        it("fetches holidays for the calendar's full displayed range", async () => {
+        it("fetches holidays for the visible month, same as stories mode", async () => {
             renderInSprintsMode();
             await switchToSprintsMode();
             await screen.findAllByText("Sprint 1");
-            expect(api.listHolidays).toHaveBeenCalledWith("2026-03-02", "2026-03-16");
+            expect(api.listHolidays).toHaveBeenCalledWith("2026-03-01", "2026-03-31");
+        });
+
+        it("navigates months and refetches holidays for the newly visible month", async () => {
+            renderInSprintsMode();
+            await switchToSprintsMode();
+            await screen.findAllByText("Sprint 1");
+
+            await userEvent.click(screen.getByRole("button", { name: "next month" }));
+            expect(await screen.findByText("April 2026")).toBeInTheDocument();
+            expect(api.listHolidays).toHaveBeenCalledWith("2026-04-01", "2026-04-30");
+            // the sprint's range no longer touches april, so no bars render.
+            expect(screen.queryByText("Sprint 1")).not.toBeInTheDocument();
+        });
+
+        it("jumps back to the current month via the 'today' button", async () => {
+            renderInSprintsMode();
+            await switchToSprintsMode();
+            await screen.findAllByText("Sprint 1");
+
+            await userEvent.click(screen.getByRole("button", { name: "next month" }));
+            await screen.findByText("April 2026");
+
+            await userEvent.click(screen.getByRole("button", { name: "today" }));
+            expect(await screen.findByText("March 2026")).toBeInTheDocument();
         });
 
         it("toggles a today-or-future weekday's holiday state via the day number", async () => {

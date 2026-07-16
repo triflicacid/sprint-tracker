@@ -6,11 +6,28 @@ import { SprintRangeCalendar } from "./SprintRangeCalendar";
 
 function renderCalendar(
     entries: CalendarEntry[],
-    options?: { holidays?: Set<string>; onToggleHoliday?: (date: string) => void }
+    options?: {
+        year?: number;
+        month?: number;
+        holidays?: Set<string>;
+        onToggleHoliday?: (date: string) => void;
+        onPreviousMonth?: () => void;
+        onNextMonth?: () => void;
+    }
 ) {
+    // defaults to march 2026, since that's the month every fixed-date test
+    // fixture below falls in.
     return render(
         <MemoryRouter>
-            <SprintRangeCalendar entries={entries} holidays={options?.holidays} onToggleHoliday={options?.onToggleHoliday} />
+            <SprintRangeCalendar
+                entries={entries}
+                year={options?.year ?? 2026}
+                month={options?.month ?? 2}
+                onPreviousMonth={options?.onPreviousMonth}
+                onNextMonth={options?.onNextMonth}
+                holidays={options?.holidays}
+                onToggleHoliday={options?.onToggleHoliday}
+            />
         </MemoryRouter>
     );
 }
@@ -72,8 +89,49 @@ describe("SprintRangeCalendar", () => {
     it("extends an ongoing sprint (no end date) through today", () => {
         vi.useFakeTimers();
         vi.setSystemTime(new Date("2026-04-15T00:00:00Z"));
-        renderCalendar([{ sprintId: 3, sprintName: "Sprint 3", startDate: "2026-03-30", endDate: null, repos: [], tags: [] }]);
+        const { container } = renderCalendar(
+            [{ sprintId: 3, sprintName: "Sprint 3", startDate: "2026-03-30", endDate: null, repos: [], tags: [] }],
+            { year: 2026, month: 3 }
+        );
         expect(screen.getByText("April 2026")).toBeInTheDocument();
+
+        const weeks = Array.from(container.querySelectorAll(".range-week"));
+        const weekWithToday = weeks.find((week) => week.textContent?.includes("15"));
+        const weekAfterToday = weeks.find((week) => week.textContent?.includes("20"));
+
+        // the bar reaches today (04-15) but no further.
+        expect(weekWithToday?.querySelector(".range-bar")).not.toBeNull();
+        expect(weekAfterToday?.querySelector(".range-bar")).toBeNull();
+    });
+
+    describe("month navigation", () => {
+        const entries: CalendarEntry[] = [
+            { sprintId: 1, sprintName: "Sprint 1", startDate: "2026-03-02", endDate: "2026-03-16", repos: [], tags: [] },
+        ];
+
+        it("renders only the given month, not the sprint's full range", () => {
+            renderCalendar(entries, { onPreviousMonth: vi.fn(), onNextMonth: vi.fn() });
+            expect(screen.getByText("March 2026")).toBeInTheDocument();
+            expect(screen.queryByText("April 2026")).not.toBeInTheDocument();
+        });
+
+        it("calls onPreviousMonth/onNextMonth when the nav chevrons are clicked", () => {
+            const onPreviousMonth = vi.fn();
+            const onNextMonth = vi.fn();
+            renderCalendar(entries, { onPreviousMonth, onNextMonth });
+
+            fireEvent.click(screen.getByRole("button", { name: "previous month" }));
+            expect(onPreviousMonth).toHaveBeenCalledOnce();
+
+            fireEvent.click(screen.getByRole("button", { name: "next month" }));
+            expect(onNextMonth).toHaveBeenCalledOnce();
+        });
+
+        it("omits the nav chevrons when neither handler is given", () => {
+            renderCalendar(entries);
+            expect(screen.queryByRole("button", { name: "previous month" })).not.toBeInTheDocument();
+            expect(screen.queryByRole("button", { name: "next month" })).not.toBeInTheDocument();
+        });
     });
 
     describe("holiday toggling", () => {

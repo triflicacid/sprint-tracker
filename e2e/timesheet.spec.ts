@@ -1,16 +1,27 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 import { seedSprint, seedStory, seedSubtask, transitionSubtask } from "./seed.js";
 
-// Timesheet has two views. "stories" mode (default, tested at the top level
-// below) is a single, freely-navigable month calendar across every sprint -
-// not scoped to one sprint's date range like the stats page's calendar -
-// showing every story worked on each day, and doubling as the (global)
-// holiday editor except for days in the past. The past/weekend non-toggle
-// rules are covered precisely (with a pinned "today") by TimesheetPage's
-// integration tests; this spec just proves the happy path (activity
-// display, holiday toggle, month nav) works end to end in a real browser.
+// Timesheet has two views, both a single freely-navigable month at a time.
+// "stories" mode (default, tested at the top level below) shows every story
+// worked on each day across all sprints - not scoped to one sprint's date
+// range like the stats page's calendar - and doubles as the (global) holiday
+// editor except for days in the past. The past/weekend non-toggle rules are
+// covered precisely (with a pinned "today") by TimesheetPage's integration
+// tests; this spec just proves the happy path (activity display, holiday
+// toggle, month nav) works end to end in a real browser.
 // "sprints" mode (bottom describe block) is every sprint as a range-line,
 // filterable by repo/tag - the former standalone "/calendar" page.
+
+// the sprints-mode calendar defaults to today's month - navigate to a fixed
+// test-fixture month via the same prev/next chevrons a user would click.
+async function navigateSprintsCalendarToMonth(page: Page, target: Date) {
+    const now = new Date();
+    const monthDiff = (target.getUTCFullYear() - now.getUTCFullYear()) * 12 + (target.getUTCMonth() - now.getUTCMonth());
+    const button = monthDiff < 0 ? "previous month" : "next month";
+    for (let i = 0; i < Math.abs(monthDiff); i++) {
+        await page.getByRole("button", { name: button }).click();
+    }
+}
 
 test("nav link on the sprint list page opens the timesheet", async ({ page }) => {
     await page.goto("/");
@@ -127,6 +138,8 @@ test.describe("sprints mode", () => {
 
         await page.goto("/timesheet");
         await page.getByRole("button", { name: "sprints" }).click();
+        await navigateSprintsCalendarToMonth(page, new Date(Date.UTC(2026, 4, 1)));
+        await expect(page.getByText("May 2026")).toBeVisible();
 
         const barA = page.locator(".range-bar", { hasText: `E2E Range A ${suffix}` }).first();
         const barB = page.locator(".range-bar", { hasText: `E2E Range B ${suffix}` }).first();
@@ -139,12 +152,8 @@ test.describe("sprints mode", () => {
         // counting total lanes in the week - other e2e specs seed
         // open-ended sprints elsewhere that may also land a lane in this
         // same week, which isn't what this assertion cares about.
-        // scoped to the May 2026 month block: some other spec's open-ended
-        // sprint extends the calendar back to January, and January also has
-        // a week containing day "15" - an unscoped search would grab that
-        // one instead (it's earlier in the DOM) and find nothing there.
-        const mayBlock = page.locator(".calendar-month", { hasText: "May 2026" });
-        const week = mayBlock
+        // only one month is rendered at a time, so day "15" is unambiguous here.
+        const week = page
             .locator(".range-week", { has: page.locator(".range-day-number", { hasText: /^15$/ }) })
             .first();
         const sharedLane = week
@@ -181,11 +190,12 @@ test.describe("sprints mode", () => {
         target.setUTCDate(target.getUTCDate() + daysUntilMonday);
         const monthLabel = target.toLocaleString("en-US", { month: "long", year: "numeric", timeZone: "UTC" });
 
-        // scoped to the target's own month block, excluding muted day numbers
-        // (a trailing/leading pad day shared with a neighbouring month block
-        // can coincidentally show the same digit).
-        const monthBlock = page.locator(".calendar-month", { hasText: monthLabel });
-        const day = monthBlock
+        await navigateSprintsCalendarToMonth(page, target);
+        await expect(page.getByText(monthLabel)).toBeVisible();
+
+        // excludes muted day numbers - a trailing/leading pad day shared with
+        // a neighbouring month can coincidentally show the same digit.
+        const day = page
             .locator(".range-day-number:not(.range-day-number-muted)", {
                 hasText: new RegExp(`^${target.getUTCDate()}$`),
             })
@@ -238,6 +248,9 @@ test.describe("sprints mode", () => {
 
         await page.goto("/timesheet");
         await page.getByRole("button", { name: "sprints" }).click();
+        await navigateSprintsCalendarToMonth(page, new Date(Date.UTC(2026, 10, 1)));
+        await expect(page.getByText("November 2026")).toBeVisible();
+
         const bar = page.locator(".range-bar", { hasText: `E2E Filter ${suffix}` }).first();
         await expect(bar).toBeVisible();
 

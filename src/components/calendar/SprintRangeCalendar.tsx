@@ -1,39 +1,24 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import type { CalendarEntry } from "@shared/types";
-import {
-    buildMonthGridDates,
-    formatDisplayDate,
-    formatIsoDate,
-    isSameUtcMonth,
-    monthsBetween,
-} from "../../utils/calendarGrid";
+import { buildMonthGridDates, formatDisplayDate, formatIsoDate, isSameUtcMonth } from "../../utils/calendarGrid";
 import "./calendar.css";
 import "./SprintRangeCalendar.css";
 
 interface SprintRangeCalendarProps {
     entries: CalendarEntry[];
+    year: number;
+    month: number;
+    // omit both for a non-navigable calendar (e.g. a future read-only embed) -
+    // mirrors CalendarGridMonth's own header convention.
+    onPreviousMonth?: () => void;
+    onNextMonth?: () => void;
     // when both are given, a day number becomes clickable (today/future,
     // non-weekend, and belonging to the month it's rendered under - not a
     // muted leading/trailing day shared with a neighbouring month block) and
     // toggles that date as a holiday, same as the timesheet's stories view.
     holidays?: Set<string>;
     onToggleHoliday?: (date: string) => void;
-}
-
-// the full date span the calendar needs to render to cover every entry -
-// from the earliest sprint's start to the latest sprint's end (or today, for
-// one still ongoing). exported so a holiday-toggling caller can fetch
-// exactly the holidays this range will display, without duplicating the
-// "ongoing sprint runs through today" rule.
-export function calendarEntriesRange(entries: CalendarEntry[]): { rangeStart: string; rangeEnd: string } {
-    const today = formatIsoDate(new Date());
-    const rangeStart = entries.reduce((min, entry) => (entry.startDate < min ? entry.startDate : min), entries[0].startDate);
-    const rangeEnd = entries.reduce((max, entry) => {
-        const end = entry.endDate ?? today;
-        return end > max ? end : max;
-    }, entries[0].endDate ?? today);
-    return { rangeStart, rangeEnd };
 }
 
 const DAY_HEADERS: string[] = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -103,18 +88,37 @@ function barTitle(entry: CalendarEntry) {
     return entry.repos.length > 0 ? `${entry.sprintName}: ${range} — ${entry.repos.join(", ")}` : `${entry.sprintName}: ${range}`;
 }
 
-// display a calendar with each sprint shows as a range bar
-export function SprintRangeCalendar({ entries, holidays, onToggleHoliday }: SprintRangeCalendarProps) {
+// display a single month as a calendar, with each sprint shown as a range
+// bar - the "sprints" counterpart to CalendarGridMonth/StoryTimesheet's one
+// freely-navigable month, rather than listing every month a sprint's range
+// happens to touch.
+export function SprintRangeCalendar({
+    entries,
+    year,
+    month,
+    onPreviousMonth,
+    onNextMonth,
+    holidays,
+    onToggleHoliday,
+}: SprintRangeCalendarProps) {
     if (entries.length === 0) {
         return <p className="activity-calendar-empty">no sprints match this filter.</p>;
     }
 
     const today = formatIsoDate(new Date());
-    const { rangeStart, rangeEnd } = calendarEntriesRange(entries);
+    const monthLabel = new Date(Date.UTC(year, month, 1)).toLocaleString("en-US", {
+        month: "long",
+        year: "numeric",
+        timeZone: "UTC",
+    });
+    const weeks = buildMonthGridDates(year, month);
+    const hasNav = Boolean(onPreviousMonth || onNextMonth);
 
+    // lanes are assigned across every sprint, not just ones touching the
+    // visible month, so a given sprint keeps the same lane when navigating
+    // between months instead of jumping around.
     const bars = assignLanes(entries, today);
     const laneCount = bars.reduce((max, bar) => Math.max(max, bar.lane + 1), 1);
-    const months = monthsBetween(rangeStart, rangeEnd);
 
     // used to determine if two sprints should half/half share a day if their start/ends colids
     function hasSharedStart(bar: SprintBar): boolean {
@@ -126,94 +130,100 @@ export function SprintRangeCalendar({ entries, holidays, onToggleHoliday }: Spri
 
     return (
         <div className="sprint-calendar range-calendar">
-            {months.map(({ year, month }) => {
-                const monthLabel = new Date(Date.UTC(year, month, 1)).toLocaleString("en-US", {
-                    month: "long",
-                    year: "numeric",
-                    timeZone: "UTC",
-                });
-                const weeks = buildMonthGridDates(year, month);
-
-                return (
-                    <div key={`${year}-${month}`} className="calendar-month">
+            <div className="calendar-month">
+                {hasNav ? (
+                    <div className="calendar-month-header">
+                        <button
+                            type="button"
+                            className="calendar-month-nav"
+                            onClick={onPreviousMonth}
+                            aria-label="previous month"
+                        >
+                            &lt;
+                        </button>
                         <h3 className="calendar-month-title">{monthLabel}</h3>
-                        <div className="range-week-header">
-                            {DAY_HEADERS.map((label) => (
-                                <div key={label} className="calendar-day-header">
-                                    {label}
-                                </div>
-                            ))}
+                        <button type="button" className="calendar-month-nav" onClick={onNextMonth} aria-label="next month">
+                            &gt;
+                        </button>
+                    </div>
+                ) : (
+                    <h3 className="calendar-month-title">{monthLabel}</h3>
+                )}
+                <div className="range-week-header">
+                    {DAY_HEADERS.map((label) => (
+                        <div key={label} className="calendar-day-header">
+                            {label}
                         </div>
-                        {weeks.map((weekDates, weekIndex) => (
-                            <div key={weekIndex} className="range-week">
-                                <div className="range-daynumbers">
-                                    {weekDates.map((date) => {
-                                        const dateString = formatIsoDate(date);
-                                        const inMonth = isSameUtcMonth(date, year, month);
-                                        const dayOfWeek = date.getUTCDay();
-                                        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-                                        const isHoliday = holidays?.has(dateString) ?? false;
-                                        const canToggle = Boolean(onToggleHoliday) && inMonth && !isWeekend && dateString >= today;
+                    ))}
+                </div>
+                {weeks.map((weekDates, weekIndex) => (
+                    <div key={weekIndex} className="range-week">
+                        <div className="range-daynumbers">
+                            {weekDates.map((date) => {
+                                const dateString = formatIsoDate(date);
+                                const inMonth = isSameUtcMonth(date, year, month);
+                                const dayOfWeek = date.getUTCDay();
+                                const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+                                const isHoliday = holidays?.has(dateString) ?? false;
+                                const canToggle = Boolean(onToggleHoliday) && inMonth && !isWeekend && dateString >= today;
 
-                                        let dayClass = "range-day-number";
-                                        if (!inMonth) {
-                                            dayClass += " range-day-number-muted";
-                                        }
-                                        if (isHoliday) {
-                                            dayClass += " range-day-number-holiday";
-                                        }
-                                        if (canToggle) {
-                                            dayClass += " range-day-number-clickable";
-                                        }
+                                let dayClass = "range-day-number";
+                                if (!inMonth) {
+                                    dayClass += " range-day-number-muted";
+                                }
+                                if (isHoliday) {
+                                    dayClass += " range-day-number-holiday";
+                                }
+                                if (canToggle) {
+                                    dayClass += " range-day-number-clickable";
+                                }
 
+                                return (
+                                    <span
+                                        key={dateString}
+                                        className={dayClass}
+                                        onClick={canToggle ? () => onToggleHoliday!(dateString) : undefined}
+                                        title={canToggle ? "click to toggle holiday" : undefined}
+                                    >
+                                        {date.getUTCDate()}
+                                    </span>
+                                );
+                            })}
+                        </div>
+                        {Array.from({ length: laneCount }).map((_, lane) => {
+                            const laneBars: SprintBar[] = bars.filter((bar) => bar.lane === lane);
+                            return (
+                                <div key={lane} className="range-lane">
+                                    {laneBars.map((bar) => {
+                                        const span = weekSpan(bar, weekDates);
+                                        if (!span) {
+                                            return null;
+                                        }
+                                        const isTrueStart = formatIsoDate(weekDates[span.startCol]) === bar.start;
+                                        const isTrueEnd = formatIsoDate(weekDates[span.endCol]) === bar.end;
+                                        const colStart = span.startCol * COLUMNS_PER_DAY + (isTrueStart && hasSharedStart(bar) ? 2 : 1);
+                                        const colEnd = span.endCol * COLUMNS_PER_DAY + (isTrueEnd && hasSharedEnd(bar) ? 2 : COLUMNS_PER_DAY + 1);
                                         return (
-                                            <span
-                                                key={dateString}
-                                                className={dayClass}
-                                                onClick={canToggle ? () => onToggleHoliday!(dateString) : undefined}
-                                                title={canToggle ? "click to toggle holiday" : undefined}
+                                            <Link
+                                                key={bar.entry.sprintId}
+                                                to={`/sprints/${bar.entry.sprintId}`}
+                                                className="range-bar"
+                                                style={{
+                                                    gridColumn: `${colStart} / ${colEnd}`,
+                                                    backgroundColor: bar.color,
+                                                }}
+                                                title={barTitle(bar.entry)}
                                             >
-                                                {date.getUTCDate()}
-                                            </span>
+                                                {span.startCol === 0 || isTrueStart ? bar.entry.sprintName : ""}
+                                            </Link>
                                         );
                                     })}
                                 </div>
-                                {Array.from({ length: laneCount }).map((_, lane) => {
-                                    const laneBars: SprintBar[] = bars.filter((bar) => bar.lane === lane);
-                                    return (
-                                        <div key={lane} className="range-lane">
-                                            {laneBars.map((bar) => {
-                                                const span = weekSpan(bar, weekDates);
-                                                if (!span) {
-                                                    return null;
-                                                }
-                                                const isTrueStart = formatIsoDate(weekDates[span.startCol]) === bar.start;
-                                                const isTrueEnd = formatIsoDate(weekDates[span.endCol]) === bar.end;
-                                                const colStart = span.startCol * COLUMNS_PER_DAY + (isTrueStart && hasSharedStart(bar) ? 2 : 1);
-                                                const colEnd = span.endCol * COLUMNS_PER_DAY + (isTrueEnd && hasSharedEnd(bar) ? 2 : COLUMNS_PER_DAY + 1);
-                                                return (
-                                                    <Link
-                                                        key={bar.entry.sprintId}
-                                                        to={`/sprints/${bar.entry.sprintId}`}
-                                                        className="range-bar"
-                                                        style={{
-                                                            gridColumn: `${colStart} / ${colEnd}`,
-                                                            backgroundColor: bar.color,
-                                                        }}
-                                                        title={barTitle(bar.entry)}
-                                                    >
-                                                        {span.startCol === 0 || isTrueStart ? bar.entry.sprintName : ""}
-                                                    </Link>
-                                                );
-                                            })}
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
-                );
-            })}
+                ))}
+            </div>
         </div>
     );
 }
