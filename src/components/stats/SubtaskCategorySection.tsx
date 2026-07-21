@@ -4,8 +4,8 @@ import { ExportButton } from "../ExportButton";
 import { SUBTASK_TYPE_COLORS, formatSubtaskTypeName, renderTypeIconInSvg } from "../subtasks/SubtaskTypeIcon";
 
 const FALLBACK_COLOR = "#6b7280";
-const ICON_SIZE = 14;
-const CHAR_WIDTH = 8;
+const ICON_SIZE = 18;
+const CHAR_WIDTH = 9;
 const LABEL_RADIUS_OFFSET = 32;
 
 interface PieLabelProps {
@@ -31,7 +31,7 @@ function renderPieLabel({ cx, cy, midAngle, outerRadius, value, name }: PieLabel
 
     return (
         <g key={name}>
-            <text x={x} y={y + 4} textAnchor={textAnchor} fontSize={12} fontWeight="600" fill={color}>
+            <text x={x} y={y + 5} textAnchor={textAnchor} fontSize={14} fontWeight="600" fill={color}>
                 {value}
             </text>
             {renderTypeIconInSvg(name, iconX, y - ICON_SIZE / 2, ICON_SIZE)}
@@ -71,8 +71,8 @@ export const SubtaskCategorySection = forwardRef<HTMLDivElement, SubtaskCategory
                 </div>
                 <div ref={ref}>
                     {total > 0 ? (
-                        <ResponsiveContainer width="100%" height={280}>
-                            <PieChart>
+                        <ResponsiveContainer width="100%" height={300}>
+                            <PieChart margin={{ top: 30, right: 30, bottom: 10, left: 30 }}>
                                 <Pie
                                     data={data}
                                     dataKey="value"

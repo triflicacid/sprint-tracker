@@ -38,14 +38,27 @@ export const BugStorySection = forwardRef<HTMLDivElement, BugStorySectionProps>(
                 </div>
                 <div ref={ref}>
                     {storyCount > 0 ? (
-                        <ResponsiveContainer width="100%" height={280}>
-                            <PieChart>
+                        <ResponsiveContainer width="100%" height={300}>
+                            <PieChart margin={{ top: 30, right: 30, bottom: 10, left: 30 }}>
                                 <Pie
                                     data={data}
                                     dataKey="value"
                                     nameKey="name"
                                     outerRadius={100}
-                                    label={({ name, value }: { name?: string; value?: number }) => `${String(name ?? "").charAt(0).toUpperCase() + String(name ?? "").slice(1)}: ${value}`}
+                                    label={({ cx, cy, midAngle, outerRadius, name, value }: { cx: number; cy: number; midAngle: number; outerRadius: number; name: string; value: number }) => {
+                                        const RADIAN = Math.PI / 180;
+                                        const r = outerRadius + 30;
+                                        const x = cx + r * Math.cos(-midAngle * RADIAN);
+                                        const y = cy + r * Math.sin(-midAngle * RADIAN);
+                                        const color = name === "bug" ? BUG_COLOR : STORY_COLOR;
+                                        const displayName = String(name).charAt(0).toUpperCase() + String(name).slice(1);
+                                        return (
+                                            <text key={name} x={x} y={y + 5} textAnchor={x > cx ? "start" : "end"} fontSize={14} fontWeight="600" fill={color}>
+                                                {`${displayName}: ${value}`}
+                                            </text>
+                                        );
+                                    }}
+                                    labelLine={false}
                                 >
                                     {data.map((entry) => (
                                         <Cell key={entry.name} fill={entry.color} />

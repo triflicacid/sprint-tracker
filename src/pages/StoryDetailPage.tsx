@@ -330,8 +330,8 @@ export function StoryDetailPage(): React.ReactElement {
                         </ResponsiveContainer>
                     </div>
                     <div ref={subtaskCategoryChartRef}>
-                        <ResponsiveContainer width="100%" height={280}>
-                            <PieChart>
+                        <ResponsiveContainer width="100%" height={300}>
+                            <PieChart margin={{ top: 30, right: 30, bottom: 10, left: 30 }}>
                                 <Pie
                                     data={story.subtasks.reduce<{ name: string; value: number; color: string }[]>((acc, s) => {
                                         const existing = acc.find((e) => e.name === s.type);
@@ -351,13 +351,13 @@ export function StoryDetailPage(): React.ReactElement {
                                         const x = (cx as number) + r * Math.cos(-(midAngle as number) * RADIAN);
                                         const y = (cy as number) + r * Math.sin(-(midAngle as number) * RADIAN);
                                         const isRight = x >= (cx as number);
-                                        const textWidth = String(value).length * 8;
+                                        const textWidth = String(value).length * 9;
                                         const iconX = isRight ? x + textWidth + 3 : x + 3;
                                         const color = SUBTASK_TYPE_COLORS[name] ?? "#6b7280";
                                         return (
                                             <g key={name}>
-                                                <text x={x} y={y + 4} textAnchor={isRight ? "start" : "end"} fontSize={12} fontWeight="600" fill={color}>{value}</text>
-                                                {renderTypeIconInSvg(name, iconX, y - 7, 14)}
+                                                <text x={x} y={y + 5} textAnchor={isRight ? "start" : "end"} fontSize={14} fontWeight="600" fill={color}>{value}</text>
+                                                {renderTypeIconInSvg(name, iconX, y - 9, 18)}
                                             </g>
                                         );
                                     }}
