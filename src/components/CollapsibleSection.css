@@ -1,0 +1,62 @@
+/* outer wrapper carries the top margin the bare <h2> used to have */
+.collapsible-section {
+    margin-top: 32px;
+}
+
+/* flex row: trigger on the left, optional actions (e.g. export button) on the right */
+.collapsible-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+    gap: 16px;
+}
+
+/* full-width reset button wrapping chevron + heading */
+.collapsible-section-trigger {
+    all: unset;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    width: 100%;
+}
+
+.collapsible-section-trigger:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 2px;
+}
+
+/* strip margins/padding that global h2/h3 rules add; match their visual style */
+.collapsible-section-heading {
+    margin: 0;
+    padding: 0;
+    font-size: var(--font-xlarge);
+    color: var(--text-dim);
+    text-transform: lowercase;
+}
+
+/* open default: svg points right, rotated 90° to point down */
+.collapsible-chevron {
+    display: flex;
+    align-items: center;
+    transition: transform 150ms ease;
+    transform: rotate(90deg);
+    color: var(--text-dim);
+    flex-shrink: 0;
+}
+
+/* collapsed: svg points right (no rotation) */
+.collapsible-chevron.closed {
+    transform: rotate(0deg);
+}
+
+/* horizontal rule shown in place of the body when collapsed */
+.section-collapsed-rule {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 0;
+}
+
+

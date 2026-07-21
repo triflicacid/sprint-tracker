@@ -12,6 +12,7 @@ import { ComplexitySection, type ComplexitySectionHandle } from "../components/s
 import { StatusHistorySection, type StatusHistorySectionHandle } from "../components/stats/StatusHistorySection";
 import { CalendarSection, type CalendarSectionHandle } from "../components/stats/CalendarSection";
 import { ExportButton } from "../components/ExportButton";
+import { CollapseAllContext, ExpandAllContext } from "../components/CollapsibleSection";
 import { parseIsoDate, formatIsoDate } from "../utils/calendarGrid";
 import { exportSectionsAsPdf, type PdfSection } from "../utils/pdfExport";
 import { hexToRgb } from "../utils/colourUtils";
@@ -48,6 +49,9 @@ export function StatsPage() {
     const [stats, setStats] = useState<SprintStats | null>(null);
     const [holidays, setHolidays] = useState<Set<string>>(new Set());
     const [exportingAll, setExportingAll] = useState(false);
+    const [collapseSignal, setCollapseSignal] = useState(0);
+    const [expandSignal, setExpandSignal] = useState(0);
+    const [allCollapsed, setAllCollapsed] = useState(false);
 
     const bugStoryChartRef = useRef<HTMLDivElement>(null);
     const subtaskCategoryChartRef = useRef<HTMLDivElement>(null);
@@ -230,19 +234,33 @@ export function StatsPage() {
                     ))}
                 </select>
                 {stats && (
-                    <ExportButton
-                        onClick={handleExportAll}
-                        loading={exportingAll}
-                        label="export all as pdf"
-                    />
+                    <>
+                        <button onClick={() => {
+                            if (allCollapsed) {
+                                setExpandSignal((s) => s + 1);
+                            } else {
+                                setCollapseSignal((s) => s + 1);
+                            }
+                            setAllCollapsed((prev) => !prev);
+                        }}>
+                            {allCollapsed ? "expand all" : "collapse all"}
+                        </button>
+                        <ExportButton
+                            onClick={handleExportAll}
+                            loading={exportingAll}
+                            label="export all as pdf"
+                        />
+                    </>
                 )}
             </div>
 
-            {!selectedSprintId && latestSprintId && (
-                <VelocitySection sprints={sprints} latestSprintId={latestSprintId} />
-            )}
+            <CollapseAllContext.Provider value={collapseSignal}>
+            <ExpandAllContext.Provider value={expandSignal}>
+                {!selectedSprintId && latestSprintId && (
+                    <VelocitySection sprints={sprints} latestSprintId={latestSprintId} />
+                )}
 
-            {stats && selectedSprint && sprintEndDate && (
+                {stats && selectedSprint && sprintEndDate && (
                 <>
                     <SummarySection
                         ref={summaryRef}
@@ -307,6 +325,8 @@ export function StatsPage() {
                     />
                 </>
             )}
+            </ExpandAllContext.Provider>
+            </CollapseAllContext.Provider>
         </div>
     );
 }

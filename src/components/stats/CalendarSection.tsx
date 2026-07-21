@@ -3,6 +3,7 @@ import type { DayActivityMap } from "@shared/types";
 import { api } from "../../api/client";
 import { SprintActivityCalendar } from "../calendar/SprintActivityCalendar";
 import { ExportButton } from "../ExportButton";
+import { CollapsibleSection } from "../CollapsibleSection";
 import { formatDisplayDate } from "../../utils/calendarGrid";
 import type { PdfSection } from "../../utils/pdfExport";
 
@@ -59,11 +60,7 @@ export const CalendarSection = forwardRef<CalendarSectionHandle, CalendarSection
     }));
 
     return (
-        <>
-            <div className="page-header">
-                <h2>Calendar</h2>
-                <ExportButton onClick={handleExport} loading={loading} />
-            </div>
+        <CollapsibleSection title="Calendar" headerActions={<ExportButton onClick={handleExport} loading={loading} />}>
             <div ref={chartRef}>
                 <SprintActivityCalendar
                     startDate={startDate}
@@ -72,6 +69,6 @@ export const CalendarSection = forwardRef<CalendarSectionHandle, CalendarSection
                     dayActivity={dayActivity}
                 />
             </div>
-        </>
+        </CollapsibleSection>
     );
 });

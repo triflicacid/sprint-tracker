@@ -2,6 +2,7 @@ import React, { forwardRef, useState } from "react";
 import type { StatusBreakdownPoint, StatusBreakdownGranularity } from "@shared/types";
 import { StatusBreakdownChart } from "./StatusBreakdownChart";
 import { ExportButton } from "../ExportButton";
+import { CollapsibleSection } from "../CollapsibleSection";
 import { SUBTASK_STATUSES, STORY_STATUSES } from "../StatusBadge";
 
 interface StatusBreakdownSectionProps {
@@ -25,18 +26,14 @@ export const StatusBreakdownSection = forwardRef<HTMLDivElement, StatusBreakdown
         }
 
         return (
-            <>
-                <div className="page-header">
-                    <h2>Status breakdown</h2>
-                    <ExportButton onClick={handleExport} loading={loading} />
-                </div>
+            <CollapsibleSection title="Status breakdown" headerActions={<ExportButton onClick={handleExport} loading={loading} />}>
                 <div ref={ref}>
                     <StatusBreakdownChart
                         points={points}
                         statuses={granularity === "subtask" ? SUBTASK_STATUSES : STORY_STATUSES}
                     />
                 </div>
-            </>
+            </CollapsibleSection>
         );
     }
 );

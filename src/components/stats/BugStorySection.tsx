@@ -1,6 +1,7 @@
 import React, { forwardRef, useState } from "react";
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { ExportButton } from "../ExportButton";
+import { CollapsibleSection } from "../CollapsibleSection";
 
 interface BugStorySectionProps {
     storyCount: number;
@@ -31,11 +32,7 @@ export const BugStorySection = forwardRef<HTMLDivElement, BugStorySectionProps>(
         }
 
         return (
-            <>
-                <div className="page-header">
-                    <h2>Bugs vs stories</h2>
-                    <ExportButton onClick={handleExport} loading={loading} />
-                </div>
+            <CollapsibleSection title="Bugs vs stories" headerActions={<ExportButton onClick={handleExport} loading={loading} />}>
                 <div ref={ref}>
                     {storyCount > 0 ? (
                         <ResponsiveContainer width="100%" height={300}>
@@ -72,7 +69,7 @@ export const BugStorySection = forwardRef<HTMLDivElement, BugStorySectionProps>(
                         <p className="complexity-note">No stories recorded yet.</p>
                     )}
                 </div>
-            </>
+            </CollapsibleSection>
         );
     }
 );

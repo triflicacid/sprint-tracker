@@ -1,6 +1,7 @@
 import React, { forwardRef, useState } from "react";
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { ExportButton } from "../ExportButton";
+import { CollapsibleSection } from "../CollapsibleSection";
 import { SUBTASK_TYPE_COLORS, formatSubtaskTypeName, renderTypeIconInSvg } from "../subtasks/SubtaskTypeIcon";
 
 const FALLBACK_COLOR = "#6b7280";
@@ -64,11 +65,7 @@ export const SubtaskCategorySection = forwardRef<HTMLDivElement, SubtaskCategory
         }
 
         return (
-            <>
-                <div className="page-header">
-                    <h2>Subtask category breakdown</h2>
-                    <ExportButton onClick={handleExport} loading={loading} />
-                </div>
+            <CollapsibleSection title="Subtask category breakdown" headerActions={<ExportButton onClick={handleExport} loading={loading} />}>
                 <div ref={ref}>
                     {total > 0 ? (
                         <ResponsiveContainer width="100%" height={380}>
@@ -94,7 +91,7 @@ export const SubtaskCategorySection = forwardRef<HTMLDivElement, SubtaskCategory
                         <p className="complexity-note">No subtasks recorded yet.</p>
                     )}
                 </div>
-            </>
+            </CollapsibleSection>
         );
     }
 );

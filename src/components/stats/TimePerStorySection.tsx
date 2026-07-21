@@ -2,6 +2,7 @@ import React, { forwardRef, useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import type { SprintStats } from "@shared/types";
 import { ExportButton } from "../ExportButton";
+import { CollapsibleSection } from "../CollapsibleSection";
 
 interface TimePerStorySectionProps {
     storyTimeDays: SprintStats["storyTimeDays"];
@@ -23,11 +24,7 @@ export const TimePerStorySection = forwardRef<HTMLDivElement, TimePerStorySectio
         }
 
         return (
-            <>
-                <div className="page-header">
-                    <h2>Time per story (days)</h2>
-                    <ExportButton onClick={handleExport} loading={loading} />
-                </div>
+            <CollapsibleSection title="Time per story (days)" headerActions={<ExportButton onClick={handleExport} loading={loading} />}>
                 <div ref={ref}>
                     <ResponsiveContainer width="100%" height={280}>
                         <BarChart data={storyTimeDays} layout="vertical">
@@ -42,7 +39,7 @@ export const TimePerStorySection = forwardRef<HTMLDivElement, TimePerStorySectio
                         </BarChart>
                     </ResponsiveContainer>
                 </div>
-            </>
+            </CollapsibleSection>
         );
     }
 );
