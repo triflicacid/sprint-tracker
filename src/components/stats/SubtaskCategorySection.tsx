@@ -71,15 +71,16 @@ export const SubtaskCategorySection = forwardRef<HTMLDivElement, SubtaskCategory
                 </div>
                 <div ref={ref}>
                     {total > 0 ? (
-                        <ResponsiveContainer width="100%" height={300}>
-                            <PieChart margin={{ top: 30, right: 30, bottom: 10, left: 30 }}>
+                        <ResponsiveContainer width="100%" height={380}>
+                            <PieChart margin={{ top: 30, right: 60, bottom: 20, left: 60 }}>
                                 <Pie
                                     data={data}
                                     dataKey="value"
                                     nameKey="name"
                                     outerRadius={100}
+                                    cy="44%"
                                     label={renderPieLabel}
-                                    labelLine={false}
+                                    labelLine={{ stroke: "#888", strokeWidth: 1 }}
                                 >
                                     {data.map((entry) => (
                                         <Cell key={entry.name} fill={entry.color} />
