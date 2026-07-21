@@ -59,7 +59,7 @@ test("exporting all stats sections downloads one multi-page pdf", async ({ page,
     ]);
 
     expect(download.suggestedFilename()).toMatch(/^sprint-stats-\d{4}-\d{2}-\d{2}\.pdf$/);
-    // one page each for: summary, bugs vs stories, repo distribution, time
-    // per story, complexity, burndown, status breakdown, calendar.
-    expect(pdfPageCount(await download.path())).toBe(8);
+    // one page each for: summary, bugs vs stories, subtask categories, repo distribution,
+    // time per story, complexity, burndown, status breakdown, calendar.
+    expect(pdfPageCount(await download.path())).toBe(9);
 });
