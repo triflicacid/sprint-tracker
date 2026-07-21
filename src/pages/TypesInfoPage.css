@@ -1,0 +1,59 @@
+.type-info-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.type-info-entry {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 16px;
+}
+
+.type-info-badge {
+    width: 36px;
+    height: 36px;
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    .story-type-icon,
+    .subtask-type-icon {
+        width: 22px;
+        height: 22px;
+    }
+}
+
+.type-info-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.type-info-name {
+    font-weight: 600;
+}
+
+.type-info-description {
+    margin: 0;
+    color: var(--text-dim);
+    font-size: var(--font-medium);
+}
+
+.type-info-tier-label {
+    margin: 16px 0 6px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-dim);
+}
+
