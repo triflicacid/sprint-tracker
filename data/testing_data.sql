@@ -1073,4 +1073,231 @@ INSERT INTO entity_tags (entity_type, entity_id, tag_id) VALUES
     ('subtask', (SELECT id FROM subtasks WHERE title = 'lazy-load non-critical checkout scripts'), (SELECT id FROM tags WHERE name = 'frontend')),
     ('subtask', (SELECT id FROM subtasks WHERE title = 'add cdn caching for static checkout assets'), (SELECT id FROM tags WHERE name = 'frontend'));
 
+-- a few existing subtasks reclassified now that advanced types exist.
+-- NEB-951's latency subtasks are performance optimisations, not debt;
+-- NEB-925's debug panel is routine internal tooling rather than debt.
+UPDATE subtasks SET type = 'perf'  WHERE title = 'lazy-load non-critical checkout scripts';
+UPDATE subtasks SET type = 'perf'  WHERE title = 'add cdn caching for static checkout assets';
+UPDATE subtasks SET type = 'chore' WHERE title = 'add search relevance debug panel';
 
+-- ============================================================
+-- SPRINT 4 (past, closed 2026-05-05) - "platform hardening"
+-- sprint; stories collectively cover every subtask category type,
+-- including one subtask left as 'unknown' (type not yet assigned).
+-- ============================================================
+
+INSERT INTO sprints (name, start_date, end_date, comment) VALUES
+    ('Nebula Checkout Sprint 4', '2026-04-21', '2026-05-05', NULL);
+
+-- NEB-1110: security hardening - subtasks: security + test
+INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) VALUES
+    ((SELECT id FROM sprints WHERE name = 'Nebula Checkout Sprint 4'),
+     'https://nebula.atlassian.net/browse/NEB-1110', 'NEB-1110',
+     'Harden checkout against session replay attacks', 5);
+
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating, type) VALUES
+    ((SELECT id FROM stories WHERE jira_key = 'NEB-1110'),
+     'add CSRF token validation to checkout form submission', 'security/neb-1110-csrf-tokens', 'DONE',
+     'https://github.com/nebula-labs/checkout-web/pull/601', 'checkout-web', 'v4.15.0', 3, 'security');
+
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating, type) VALUES
+    ((SELECT id FROM stories WHERE jira_key = 'NEB-1110'),
+     'write regression tests for session replay vector', 'test/neb-1110-session-replay-tests', 'DONE',
+     'https://github.com/nebula-labs/checkout-web/pull/602', 'checkout-web', 'v4.15.0', 2, 'test');
+
+-- NEB-1115: latency reduction - subtasks: perf + spike
+INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) VALUES
+    ((SELECT id FROM sprints WHERE name = 'Nebula Checkout Sprint 4'),
+     'https://nebula.atlassian.net/browse/NEB-1115', 'NEB-1115',
+     'Reduce checkout API p95 latency', 8);
+
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating, type) VALUES
+    ((SELECT id FROM stories WHERE jira_key = 'NEB-1115'),
+     'add redis caching to product availability check', 'perf/neb-1115-availability-cache', 'DONE',
+     'https://github.com/nebula-labs/payments-service/pull/240', 'payments-service', 'v4.15.0', 4, 'perf');
+
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating, type) VALUES
+    ((SELECT id FROM stories WHERE jira_key = 'NEB-1115'),
+     'profile payment processor integration for latency hotspots', 'spike/neb-1115-latency-profile', 'DONE',
+     'https://github.com/nebula-labs/payments-service/pull/241', 'payments-service', 'v4.15.0', 3, 'spike');
+
+-- NEB-1120: accessibility improvements - subtasks: feature + docs
+INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) VALUES
+    ((SELECT id FROM sprints WHERE name = 'Nebula Checkout Sprint 4'),
+     'https://nebula.atlassian.net/browse/NEB-1120', 'NEB-1120',
+     'Improve checkout accessibility', 3);
+
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating, type) VALUES
+    ((SELECT id FROM stories WHERE jira_key = 'NEB-1120'),
+     'add ARIA labels and roles to checkout form fields', 'feature/neb-1120-aria-labels', 'DONE',
+     'https://github.com/nebula-labs/checkout-web/pull/603', 'checkout-web', 'v4.15.0', 2, 'feature');
+
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating, type) VALUES
+    ((SELECT id FROM stories WHERE jira_key = 'NEB-1120'),
+     'write accessibility contribution guide for checkout-web', 'docs/neb-1120-a11y-guide', 'DONE',
+     'https://github.com/nebula-labs/checkout-web/pull/604', 'checkout-web', 'v4.15.0', 1, 'docs');
+
+-- NEB-1125: bug - incorrect UK VAT post-Brexit - subtask: bugfix
+INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points, is_bug) VALUES
+    ((SELECT id FROM sprints WHERE name = 'Nebula Checkout Sprint 4'),
+     'https://nebula.atlassian.net/browse/NEB-1125', 'NEB-1125',
+     'Fix incorrect VAT shown for UK orders post-Brexit', 2, 1);
+
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating, type) VALUES
+    ((SELECT id FROM stories WHERE jira_key = 'NEB-1125'),
+     'correct UK VAT rate lookup after GB exit from EU tax zone', 'bugfix/neb-1125-uk-vat-rate', 'DONE',
+     'https://github.com/nebula-labs/tax-engine/pull/82', 'tax-engine', 'v4.15.0', 2, 'bugfix');
+
+-- NEB-1130: maintenance - subtasks: tech-debt + chore + unknown (unassigned)
+INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) VALUES
+    ((SELECT id FROM sprints WHERE name = 'Nebula Checkout Sprint 4'),
+     'https://nebula.atlassian.net/browse/NEB-1130', 'NEB-1130',
+     'Platform maintenance and cleanup', 5);
+
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating, type) VALUES
+    ((SELECT id FROM stories WHERE jira_key = 'NEB-1130'),
+     'replace deprecated moment.js calls with date-fns across checkout-web', 'tech-debt/neb-1130-moment-to-datefns', 'DONE',
+     'https://github.com/nebula-labs/checkout-web/pull/605', 'checkout-web', 'v4.15.0', 3, 'tech-debt');
+
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating, type) VALUES
+    ((SELECT id FROM stories WHERE jira_key = 'NEB-1130'),
+     'rotate payment processor API keys in staging and CI environments', 'chore/neb-1130-rotate-api-keys', 'DONE',
+     'https://github.com/nebula-labs/payments-service/pull/242', 'payments-service', 'v4.15.0', 1, 'chore');
+
+-- deliberately left untyped to exercise the 'unknown' default
+INSERT INTO subtasks (story_id, title, branch_name, status, type) VALUES
+    ((SELECT id FROM stories WHERE jira_key = 'NEB-1130'),
+     'audit third-party script dependencies for outdated versions', 'chore/neb-1130-dep-audit', 'NEW', 'unknown');
+
+INSERT INTO status_history (entity_type, entity_id, status, release_version, changed_at) VALUES
+    -- NEB-1110 / add CSRF token validation - skips pr_comments
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add CSRF token validation to checkout form submission'), 'NEW', NULL, '2026-04-21 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add CSRF token validation to checkout form submission'), 'WIP', NULL, '2026-04-21 09:15:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add CSRF token validation to checkout form submission'), 'IN_PR', NULL, '2026-04-23 11:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add CSRF token validation to checkout form submission'), 'IN_REVIEW', NULL, '2026-04-23 15:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add CSRF token validation to checkout form submission'), 'CUT_RELEASE', NULL, '2026-04-24 10:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add CSRF token validation to checkout form submission'), 'TESTING', 'v4.15.0', '2026-04-28 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add CSRF token validation to checkout form submission'), 'UAT', NULL, '2026-04-30 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add CSRF token validation to checkout form submission'), 'DONE', NULL, '2026-05-01 17:00:00'),
+
+    -- NEB-1110 / write regression tests for session replay vector
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'write regression tests for session replay vector'), 'NEW', NULL, '2026-04-21 09:05:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'write regression tests for session replay vector'), 'WIP', NULL, '2026-04-21 09:20:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'write regression tests for session replay vector'), 'IN_PR', NULL, '2026-04-22 14:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'write regression tests for session replay vector'), 'IN_REVIEW', NULL, '2026-04-22 17:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'write regression tests for session replay vector'), 'CUT_RELEASE', NULL, '2026-04-23 10:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'write regression tests for session replay vector'), 'TESTING', 'v4.15.0', '2026-04-28 09:15:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'write regression tests for session replay vector'), 'UAT', NULL, '2026-04-30 09:15:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'write regression tests for session replay vector'), 'DONE', NULL, '2026-05-01 17:15:00'),
+
+    -- NEB-1115 / add redis caching - one round of pr_comments
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add redis caching to product availability check'), 'NEW', NULL, '2026-04-21 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add redis caching to product availability check'), 'WIP', NULL, '2026-04-21 09:10:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add redis caching to product availability check'), 'IN_PR', NULL, '2026-04-24 13:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add redis caching to product availability check'), 'IN_REVIEW', NULL, '2026-04-24 17:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add redis caching to product availability check'), 'PR_COMMENTS', NULL, '2026-04-25 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add redis caching to product availability check'), 'IN_REVIEW', NULL, '2026-04-25 15:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add redis caching to product availability check'), 'CUT_RELEASE', NULL, '2026-04-28 10:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add redis caching to product availability check'), 'TESTING', 'v4.15.0', '2026-04-29 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add redis caching to product availability check'), 'UAT', NULL, '2026-04-30 09:30:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add redis caching to product availability check'), 'DONE', NULL, '2026-05-01 18:00:00'),
+
+    -- NEB-1115 / profile latency hotspots - skips in_pr
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'profile payment processor integration for latency hotspots'), 'NEW', NULL, '2026-04-22 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'profile payment processor integration for latency hotspots'), 'WIP', NULL, '2026-04-22 09:15:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'profile payment processor integration for latency hotspots'), 'IN_REVIEW', NULL, '2026-04-24 14:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'profile payment processor integration for latency hotspots'), 'CUT_RELEASE', NULL, '2026-04-25 10:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'profile payment processor integration for latency hotspots'), 'TESTING', 'v4.15.0', '2026-04-29 09:15:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'profile payment processor integration for latency hotspots'), 'UAT', NULL, '2026-04-30 09:45:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'profile payment processor integration for latency hotspots'), 'DONE', NULL, '2026-05-01 17:30:00'),
+
+    -- NEB-1120 / add ARIA labels - skips pr_comments
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add ARIA labels and roles to checkout form fields'), 'NEW', NULL, '2026-04-23 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add ARIA labels and roles to checkout form fields'), 'WIP', NULL, '2026-04-23 09:15:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add ARIA labels and roles to checkout form fields'), 'IN_PR', NULL, '2026-04-24 11:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add ARIA labels and roles to checkout form fields'), 'IN_REVIEW', NULL, '2026-04-24 16:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add ARIA labels and roles to checkout form fields'), 'CUT_RELEASE', NULL, '2026-04-25 10:30:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add ARIA labels and roles to checkout form fields'), 'TESTING', 'v4.15.0', '2026-04-28 10:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add ARIA labels and roles to checkout form fields'), 'UAT', NULL, '2026-04-30 10:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add ARIA labels and roles to checkout form fields'), 'DONE', NULL, '2026-05-02 09:00:00'),
+
+    -- NEB-1120 / write accessibility guide - straight through, no oscillation
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'write accessibility contribution guide for checkout-web'), 'NEW', NULL, '2026-04-24 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'write accessibility contribution guide for checkout-web'), 'WIP', NULL, '2026-04-24 09:10:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'write accessibility contribution guide for checkout-web'), 'IN_REVIEW', NULL, '2026-04-25 11:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'write accessibility contribution guide for checkout-web'), 'CUT_RELEASE', NULL, '2026-04-25 15:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'write accessibility contribution guide for checkout-web'), 'TESTING', 'v4.15.0', '2026-04-28 10:15:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'write accessibility contribution guide for checkout-web'), 'UAT', NULL, '2026-04-30 10:15:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'write accessibility contribution guide for checkout-web'), 'DONE', NULL, '2026-05-02 09:15:00'),
+
+    -- NEB-1125 / correct UK VAT rate - hotfix path, skips in_pr and pr_comments
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'correct UK VAT rate lookup after GB exit from EU tax zone'), 'NEW', NULL, '2026-04-21 14:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'correct UK VAT rate lookup after GB exit from EU tax zone'), 'WIP', NULL, '2026-04-21 14:15:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'correct UK VAT rate lookup after GB exit from EU tax zone'), 'IN_REVIEW', NULL, '2026-04-22 11:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'correct UK VAT rate lookup after GB exit from EU tax zone'), 'CUT_RELEASE', NULL, '2026-04-22 15:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'correct UK VAT rate lookup after GB exit from EU tax zone'), 'TESTING', 'v4.15.0', '2026-04-23 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'correct UK VAT rate lookup after GB exit from EU tax zone'), 'UAT', NULL, '2026-04-23 14:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'correct UK VAT rate lookup after GB exit from EU tax zone'), 'DONE', NULL, '2026-04-24 09:00:00'),
+
+    -- NEB-1130 / replace moment.js - two rounds of pr_comments
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'replace deprecated moment.js calls with date-fns across checkout-web'), 'NEW', NULL, '2026-04-21 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'replace deprecated moment.js calls with date-fns across checkout-web'), 'WIP', NULL, '2026-04-21 09:20:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'replace deprecated moment.js calls with date-fns across checkout-web'), 'IN_PR', NULL, '2026-04-23 13:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'replace deprecated moment.js calls with date-fns across checkout-web'), 'IN_REVIEW', NULL, '2026-04-24 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'replace deprecated moment.js calls with date-fns across checkout-web'), 'PR_COMMENTS', NULL, '2026-04-24 15:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'replace deprecated moment.js calls with date-fns across checkout-web'), 'IN_REVIEW', NULL, '2026-04-25 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'replace deprecated moment.js calls with date-fns across checkout-web'), 'PR_COMMENTS', NULL, '2026-04-25 14:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'replace deprecated moment.js calls with date-fns across checkout-web'), 'IN_REVIEW', NULL, '2026-04-28 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'replace deprecated moment.js calls with date-fns across checkout-web'), 'CUT_RELEASE', NULL, '2026-04-28 15:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'replace deprecated moment.js calls with date-fns across checkout-web'), 'TESTING', 'v4.15.0', '2026-04-29 09:30:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'replace deprecated moment.js calls with date-fns across checkout-web'), 'UAT', NULL, '2026-05-01 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'replace deprecated moment.js calls with date-fns across checkout-web'), 'DONE', NULL, '2026-05-02 17:00:00'),
+
+    -- NEB-1130 / rotate API keys - operational, fast path
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'rotate payment processor API keys in staging and CI environments'), 'NEW', NULL, '2026-04-22 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'rotate payment processor API keys in staging and CI environments'), 'WIP', NULL, '2026-04-22 09:10:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'rotate payment processor API keys in staging and CI environments'), 'IN_REVIEW', NULL, '2026-04-22 13:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'rotate payment processor API keys in staging and CI environments'), 'CUT_RELEASE', NULL, '2026-04-22 16:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'rotate payment processor API keys in staging and CI environments'), 'TESTING', 'v4.15.0', '2026-04-23 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'rotate payment processor API keys in staging and CI environments'), 'UAT', NULL, '2026-04-23 14:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'rotate payment processor API keys in staging and CI environments'), 'DONE', NULL, '2026-04-24 10:00:00'),
+
+    -- NEB-1130 / dep audit - left as NEW, no further progress
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'audit third-party script dependencies for outdated versions'), 'NEW', NULL, '2026-04-28 09:00:00');
+
+INSERT INTO tags (name, tag_type) VALUES
+    ('security', 'custom'),
+    ('accessibility', 'custom');
+
+INSERT INTO entity_tags (entity_type, entity_id, tag_id) VALUES
+    -- NEB-1110: security hardening
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-1110'), (SELECT id FROM tags WHERE name = 'security')),
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-1110'), (SELECT id FROM tags WHERE name = 'checkout-web')),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add CSRF token validation to checkout form submission'), (SELECT id FROM tags WHERE name = 'frontend')),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'write regression tests for session replay vector'), (SELECT id FROM tags WHERE name = 'frontend')),
+
+    -- NEB-1115: latency
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-1115'), (SELECT id FROM tags WHERE name = 'latency')),
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-1115'), (SELECT id FROM tags WHERE name = 'performance')),
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-1115'), (SELECT id FROM tags WHERE name = 'payments-service')),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add redis caching to product availability check'), (SELECT id FROM tags WHERE name = 'backend')),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'profile payment processor integration for latency hotspots'), (SELECT id FROM tags WHERE name = 'backend')),
+
+    -- NEB-1120: accessibility
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-1120'), (SELECT id FROM tags WHERE name = 'accessibility')),
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-1120'), (SELECT id FROM tags WHERE name = 'checkout-web')),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add ARIA labels and roles to checkout form fields'), (SELECT id FROM tags WHERE name = 'frontend')),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'write accessibility contribution guide for checkout-web'), (SELECT id FROM tags WHERE name = 'frontend')),
+
+    -- NEB-1125: UK VAT bug
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-1125'), (SELECT id FROM tags WHERE name = 'bug')),
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-1125'), (SELECT id FROM tags WHERE name = 'tax')),
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-1125'), (SELECT id FROM tags WHERE name = 'tax-engine')),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'correct UK VAT rate lookup after GB exit from EU tax zone'), (SELECT id FROM tags WHERE name = 'backend')),
+
+    -- NEB-1130: maintenance
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-1130'), (SELECT id FROM tags WHERE name = 'reliability')),
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-1130'), (SELECT id FROM tags WHERE name = 'checkout-web')),
+    ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-1130'), (SELECT id FROM tags WHERE name = 'payments-service')),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'replace deprecated moment.js calls with date-fns across checkout-web'), (SELECT id FROM tags WHERE name = 'frontend')),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'rotate payment processor API keys in staging and CI environments'), (SELECT id FROM tags WHERE name = 'backend'));
