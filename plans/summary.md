@@ -3,22 +3,6 @@
 Brief index of everything under `plans/`. Each entry links to the full doc — check there before
 acting on anything, since plans are point-in-time snapshots and code may have moved since.
 
-## [collapsible sections on the stats page](plan-collapsible-export-sections/plan-collapsible-export-sections.md)
-
-**Status: done**
-
-**Severity: none | Urgency: low | Worth doing: medium** — pure UX polish; self-contained with no
-backend or schema changes.
-
-Adds a `CollapsibleSection` shared component (`src/components/CollapsibleSection.tsx` + `.css`)
-used to wrap each section on `StatsPage`. Each section is open by default with a down-pointing
-chevron to the left of the title. Clicking the title row (text or chevron) rotates the chevron
-90° to point right (CSS transition, ~150 ms) and replaces the section body with a single
-horizontal rule; export buttons and header controls remain visible. `headerActions` prop lets each
-section pass its export button (and granularity toggles where applicable) as right-aligned header
-content. `BurndownSection`'s always-mounted off-screen div lives outside `CollapsibleSection` so
-its ref survives collapsing.
-
 ## [code auto-formatter + stricter unused-var/type checks](plan-code-formatter-and-strict-unused/plan-code-formatter-and-strict-unused.md)
 
 **Status: not started**
