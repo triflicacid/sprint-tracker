@@ -1,0 +1,253 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+  :root {
+    --bg: #121212;
+    --surface: #1a1a1a;
+    --surface-raised: #212121;
+    --border: #2a2a2a;
+    --text: #e5e5e5;
+    --text-dim: #9ca3af;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 40px;
+    background: var(--bg);
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: var(--text);
+  }
+  h1 { font-size: 15px; font-weight: 600; margin: 0 0 24px; color: var(--text-dim); text-transform: lowercase; }
+  .group-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin: 0 0 12px;
+  }
+  .group { margin-bottom: 28px; }
+  .row { display: flex; gap: 28px; }
+  .cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  .badge {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .badge svg { width: 26px; height: 26px; }
+  .label {
+    font-size: 11px;
+    color: var(--text-dim);
+    text-transform: lowercase;
+    letter-spacing: 0.02em;
+  }
+  .inline-demo {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .subtask-row-mock {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 13px;
+    width: 360px;
+  }
+  .subtask-row-mock svg { width: 15px; height: 15px; flex-shrink: 0; }
+  .subtask-row-mock .title { flex: 1; color: var(--text); }
+  .status-badge-mock {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 12px;
+    color: white;
+    white-space: nowrap;
+  }
+</style>
+</head>
+<body>
+<div id="content" style="display: inline-block;">
+  <h1>subtask type icons — mockup</h1>
+
+  <div class="group">
+    <div class="group-label">basic</div>
+    <div class="row" id="badge-row-basic">
+      <div class="cell">
+        <div class="badge" id="badge-feature"><svg viewBox="0 0 24 24" fill="#22a6b3"><path d="M12 2 L14.5 9.5 L22 12 L14.5 14.5 L12 22 L9.5 14.5 L2 12 L9.5 9.5 Z"/></svg></div>
+        <div class="label">feature</div>
+      </div>
+      <div class="cell">
+        <div class="badge" id="badge-bugfix">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#e5484d" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 4 L6.3 2.3" />
+            <path d="M16 4 L17.7 2.3" />
+            <circle cx="12" cy="5.2" r="2.1" />
+            <line x1="12" y1="7.3" x2="12" y2="9" />
+            <rect x="7" y="9" width="10" height="11" rx="5" />
+            <line x1="7" y1="11.5" x2="2.8" y2="9.8" />
+            <line x1="7" y1="14.5" x2="2" y2="14.5" />
+            <line x1="7" y1="17.5" x2="2.8" y2="19.2" />
+            <line x1="17" y1="11.5" x2="21.2" y2="9.8" />
+            <line x1="17" y1="14.5" x2="22" y2="14.5" />
+            <line x1="17" y1="17.5" x2="21.2" y2="19.2" />
+          </svg>
+        </div>
+        <div class="label">bugfix</div>
+      </div>
+      <div class="cell">
+        <div class="badge" id="badge-tech-debt">
+          <svg viewBox="0 0 24 24" fill="#a1662f">
+            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94z"/>
+          </svg>
+        </div>
+        <div class="label">tech-debt</div>
+      </div>
+      <div class="cell">
+        <div class="badge" id="badge-spike">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#7c6fe0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="10.5" cy="10.5" r="6.5" />
+            <line x1="15.5" y1="15.5" x2="21" y2="21" />
+          </svg>
+        </div>
+        <div class="label">spike</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="group-label">advanced</div>
+    <div class="row" id="badge-row-advanced">
+      <div class="cell">
+        <div class="badge" id="badge-chore">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#8c9c52" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M12 2.5v3M12 18.5v3M21.5 12h-3M5.5 12h-3M18.5 5.5l-2.1 2.1M7.6 16.4l-2.1 2.1M18.5 18.5l-2.1-2.1M7.6 7.6 5.5 5.5" />
+          </svg>
+        </div>
+        <div class="label">chore</div>
+      </div>
+      <div class="cell">
+        <div class="badge" id="badge-docs">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#7b93b0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 2 H14 L18 6 V22 H6 Z" />
+            <path d="M14 2 V6 H18" />
+            <line x1="9" y1="11" x2="15" y2="11" />
+            <line x1="9" y1="14.5" x2="15" y2="14.5" />
+            <line x1="9" y1="18" x2="13" y2="18" />
+          </svg>
+        </div>
+        <div class="label">docs</div>
+      </div>
+      <div class="cell">
+        <div class="badge" id="badge-test">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#5cae8a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="3" width="16" height="18" rx="2" />
+            <path d="M8 8h5" />
+            <path d="M8 12h5" />
+            <path d="M8.5 16.5l1.8 1.8L15 14" />
+          </svg>
+        </div>
+        <div class="label">test</div>
+      </div>
+      <div class="cell">
+        <div class="badge" id="badge-security">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#9d6fd1" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2 L19 5 V11 C19 16.5 15.8 20.2 12 22 C8.2 20.2 5 16.5 5 11 V5 Z" />
+            <path d="M9 12l2 2 4-4" />
+          </svg>
+        </div>
+        <div class="label">security</div>
+      </div>
+      <div class="cell">
+        <div class="badge" id="badge-perf">
+          <svg viewBox="0 0 24 24" fill="#c9648f"><path d="M13 2 L4 14 H10.5 L9 22 L20 9 H13.5 Z"/></svg>
+        </div>
+        <div class="label">perf</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="inline-demo">
+    <div class="subtask-row-mock">
+      <svg viewBox="0 0 24 24" fill="#22a6b3"><path d="M12 2 L14.5 9.5 L22 12 L14.5 14.5 L12 22 L9.5 14.5 L2 12 L9.5 9.5 Z"/></svg>
+      <span class="title">NEB-1234 add export button</span>
+      <span class="status-badge-mock" style="background:#d95926">wip</span>
+    </div>
+    <div class="subtask-row-mock">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#e5484d" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M8 4 L6.3 2.3" /><path d="M16 4 L17.7 2.3" /><circle cx="12" cy="5.2" r="2.1" />
+        <line x1="12" y1="7.3" x2="12" y2="9" /><rect x="7" y="9" width="10" height="11" rx="5" />
+        <line x1="7" y1="11.5" x2="2.8" y2="9.8" /><line x1="7" y1="14.5" x2="2" y2="14.5" /><line x1="7" y1="17.5" x2="2.8" y2="19.2" />
+        <line x1="17" y1="11.5" x2="21.2" y2="9.8" /><line x1="17" y1="14.5" x2="22" y2="14.5" /><line x1="17" y1="17.5" x2="21.2" y2="19.2" />
+      </svg>
+      <span class="title">NEB-1240 fix calendar off-by-one</span>
+      <span class="status-badge-mock" style="background:#c98500">in review</span>
+    </div>
+    <div class="subtask-row-mock">
+      <svg viewBox="0 0 24 24" fill="#a1662f">
+        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94z"/>
+      </svg>
+      <span class="title">NEB-1201 split global.css</span>
+      <span class="status-badge-mock" style="background:#6b7280">new</span>
+    </div>
+    <div class="subtask-row-mock">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#7c6fe0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="10.5" cy="10.5" r="6.5" /><line x1="15.5" y1="15.5" x2="21" y2="21" />
+      </svg>
+      <span class="title">NEB-1255 spike: evaluate electron packaging</span>
+      <span class="status-badge-mock" style="background:#3987e5">testing</span>
+    </div>
+    <div class="subtask-row-mock">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#8c9c52" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3" /><path d="M12 2.5v3M12 18.5v3M21.5 12h-3M5.5 12h-3M18.5 5.5l-2.1 2.1M7.6 16.4l-2.1 2.1M18.5 18.5l-2.1-2.1M7.6 7.6 5.5 5.5" />
+      </svg>
+      <span class="title">NEB-1261 bump eslint + plugin versions</span>
+      <span class="status-badge-mock" style="background:#008300">done</span>
+    </div>
+    <div class="subtask-row-mock">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#7b93b0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 2 H14 L18 6 V22 H6 Z" /><path d="M14 2 V6 H18" />
+        <line x1="9" y1="11" x2="15" y2="11" /><line x1="9" y1="14.5" x2="15" y2="14.5" /><line x1="9" y1="18" x2="13" y2="18" />
+      </svg>
+      <span class="title">NEB-1266 document the export api</span>
+      <span class="status-badge-mock" style="background:#6b7280">new</span>
+    </div>
+    <div class="subtask-row-mock">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#5cae8a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="4" y="3" width="16" height="18" rx="2" /><path d="M8 8h5" /><path d="M8 12h5" /><path d="M8.5 16.5l1.8 1.8L15 14" />
+      </svg>
+      <span class="title">NEB-1270 add coverage for status transitions</span>
+      <span class="status-badge-mock" style="background:#199e70">uat</span>
+    </div>
+    <div class="subtask-row-mock">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#9d6fd1" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2 L19 5 V11 C19 16.5 15.8 20.2 12 22 C8.2 20.2 5 16.5 5 11 V5 Z" /><path d="M9 12l2 2 4-4" />
+      </svg>
+      <span class="title">NEB-1277 patch dependency with known cve</span>
+      <span class="status-badge-mock" style="background:#e66767">wip</span>
+    </div>
+    <div class="subtask-row-mock">
+      <svg viewBox="0 0 24 24" fill="#c9648f"><path d="M13 2 L4 14 H10.5 L9 22 L20 9 H13.5 Z"/></svg>
+      <span class="title">NEB-1281 speed up sprint stats query</span>
+      <span class="status-badge-mock" style="background:#d95926">wip</span>
+    </div>
+  </div>
+</div>
+</body>
+</html>

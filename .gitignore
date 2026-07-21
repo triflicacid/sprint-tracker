@@ -7,4 +7,3 @@ data/dump_*.sql
 *.log
 .env
 test-results
-plans
