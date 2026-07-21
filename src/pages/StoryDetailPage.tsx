@@ -130,9 +130,6 @@ export function StoryDetailPage(): React.ReactElement {
             return;
         }
         (async () => {
-            // can only measure after a pain, so wait two frames first
-            await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-
             const typeCounts = Object.entries(
                 story.subtasks.reduce<Record<string, number>>((acc, s) => {
                     acc[s.type] = (acc[s.type] ?? 0) + 1;

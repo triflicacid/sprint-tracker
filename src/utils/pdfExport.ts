@@ -44,7 +44,30 @@ export interface PdfSection {
 }
 
 
+// waits until every recharts surface inside `element` has been measured and
+// painted by recharts (viewBox width > 0)
+async function waitForChartsReady(element: HTMLElement, timeoutMs = 3000): Promise<void> {
+    const surfaces = Array.from(element.querySelectorAll<SVGElement>(".recharts-surface"));
+    if (surfaces.length === 0) return;
+
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+        const allMeasured = surfaces.every((svg) => {
+            const [, , w] = (svg.getAttribute("viewBox") ?? "0 0 0 0").split(" ").map(Number);
+            return w > 0;
+        });
+        if (allMeasured) {
+            // one extra frame for custom label elements (e.g. SVG overlays
+            // rendered via Recharts' `label` prop) to be appended.
+            await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+            return;
+        }
+        await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    }
+}
+
 async function captureElement(element: HTMLElement): Promise<HTMLCanvasElement> {
+    await waitForChartsReady(element);
     const backgroundColor = getComputedStyle(document.body).getPropertyValue("--surface").trim() || "#1a1a1a";
     return html2canvas(element, { backgroundColor, scale: 2 });
 }
