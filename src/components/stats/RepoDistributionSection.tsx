@@ -2,6 +2,7 @@ import React, { forwardRef, useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import type { SprintStats } from "@shared/types";
 import { ExportButton } from "../ExportButton";
+import { CollapsibleSection } from "../CollapsibleSection";
 
 interface RepoDistributionSectionProps {
     repoCounts: SprintStats["repoCounts"];
@@ -23,11 +24,7 @@ export const RepoDistributionSection = forwardRef<HTMLDivElement, RepoDistributi
         }
 
         return (
-            <>
-                <div className="page-header">
-                    <h2>Repo distribution</h2>
-                    <ExportButton onClick={handleExport} loading={loading} />
-                </div>
+            <CollapsibleSection title="Repo distribution" headerActions={<ExportButton onClick={handleExport} loading={loading} />}>
                 <div ref={ref}>
                     <ResponsiveContainer width="100%" height={280}>
                         <BarChart data={repoCounts} layout="vertical">
@@ -39,7 +36,7 @@ export const RepoDistributionSection = forwardRef<HTMLDivElement, RepoDistributi
                         </BarChart>
                     </ResponsiveContainer>
                 </div>
-            </>
+            </CollapsibleSection>
         );
     }
 );

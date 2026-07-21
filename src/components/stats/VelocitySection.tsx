@@ -7,6 +7,7 @@ import {
 import type { SprintSummary, VelocityPoint, VelocitySelection } from "@shared/types";
 import { api } from "../../api/client";
 import { ExportButton } from "../ExportButton";
+import { CollapsibleSection } from "../CollapsibleSection";
 import { formatIsoDate } from "../../utils/calendarGrid";
 import { exportSectionsAsPdf, type PdfSection } from "../../utils/pdfExport";
 import "./statsShared.css";
@@ -130,9 +131,9 @@ export function VelocitySection({ sprints, latestSprintId }: VelocitySectionProp
     }
 
     return (
-        <>
-            <div className="page-header">
-                <h2>Velocity</h2>
+        <CollapsibleSection
+            title="Velocity"
+            headerActions={
                 <div className="page-header-actions">
                     <div className="granularity-toggle">
                         <button
@@ -179,7 +180,8 @@ export function VelocitySection({ sprints, latestSprintId }: VelocitySectionProp
                     )}
                     <ExportButton onClick={handleExportVelocity} loading={exporting} />
                 </div>
-            </div>
+            }
+        >
             <div ref={velocityChartRef}>
                 {velocityChartData.length > 0 ? (
                     <ResponsiveContainer width="100%" height={280}>
@@ -228,6 +230,6 @@ export function VelocitySection({ sprints, latestSprintId }: VelocitySectionProp
             {velocityPoints.length > 0 && (
                 <p>The average velocity within the selection is {averageVelocity(velocityPoints)} points per sprint</p>
             )}
-        </>
+        </CollapsibleSection>
     );
 }

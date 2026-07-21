@@ -2,6 +2,7 @@ import React, { forwardRef, useEffect, useImperativeHandle, useState } from "rea
 import type { SprintSummary, SprintStats, VelocityPoint } from "@shared/types";
 import { api } from "../../api/client";
 import { ExportButton } from "../ExportButton";
+import { CollapsibleSection } from "../CollapsibleSection";
 import { formatDisplayDate } from "../../utils/calendarGrid";
 import type { PdfSection } from "../../utils/pdfExport";
 import "./statsShared.css";
@@ -65,11 +66,7 @@ export const SummarySection = forwardRef<SummarySectionHandle, SummarySectionPro
     }));
 
     return (
-        <>
-            <div className="page-header">
-                <h2>Summary</h2>
-                <ExportButton onClick={handleExport} loading={loading} />
-            </div>
+        <CollapsibleSection title="Summary" headerActions={<ExportButton onClick={handleExport} loading={loading} />}>
             <div className="stats-summary">
                 <div className="stat-tile">
                     <span className="stat-value">{stats.prCount}</span>
@@ -110,6 +107,6 @@ export const SummarySection = forwardRef<SummarySectionHandle, SummarySectionPro
                     <span className="stat-label">completed</span>
                 </div>
             </div>
-        </>
+        </CollapsibleSection>
     );
 });

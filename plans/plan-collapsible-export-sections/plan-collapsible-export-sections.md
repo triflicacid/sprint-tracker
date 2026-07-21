@@ -1,6 +1,6 @@
-# Plan: collapsible sections on the export page
+# Plan: collapsible sections on the stats page
 
-Status: **not started** (2026-07-21)
+Status: **done** (2026-07-21)
 
 ## Context
 

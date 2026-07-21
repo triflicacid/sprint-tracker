@@ -15,6 +15,7 @@ import {
 import type { ComplexityStats, ComplexityTimingPoint } from "@shared/types";
 import { api } from "../../api/client";
 import { ExportButton } from "../ExportButton";
+import { CollapsibleSection } from "../CollapsibleSection";
 import { colorForStory } from "../../utils/storyColor";
 import {
     COMPLEXITY_RATINGS,
@@ -123,11 +124,7 @@ export const ComplexitySection = forwardRef<ComplexitySectionHandle, ComplexityS
             : [];
 
         return (
-            <>
-                <div className="page-header">
-                    <h2>Complexity</h2>
-                    <ExportButton onClick={handleExport} loading={loading} />
-                </div>
+            <CollapsibleSection title="Complexity" headerActions={<ExportButton onClick={handleExport} loading={loading} />}>
                 <div ref={chartRef}>
                     <div className="stats-summary">
                         {COMPLEXITY_RATINGS.map((rating) => (
@@ -222,7 +219,7 @@ export const ComplexitySection = forwardRef<ComplexitySectionHandle, ComplexityS
                         the chart above.
                     </p>
                 </div>
-            </>
+            </CollapsibleSection>
         );
     }
 );
