@@ -9,7 +9,7 @@ import { StoryTypeIcon } from "../components/stories/StoryTypeIcon";
 import { StatusBadge, STATUS_LABELS } from "../components/StatusBadge";
 import { SubtaskRow } from "../components/subtasks/SubtaskRow";
 import { SubtaskTypeSelect } from "../components/subtasks/SubtaskTypeSelect";
-import { SUBTASK_TYPE_COLORS } from "../components/subtasks/SubtaskTypeIcon";
+import { SUBTASK_TYPE_COLORS, formatSubtaskTypeName, renderTypeIconInSvg } from "../components/subtasks/SubtaskTypeIcon";
 import { exportSectionsAsPdf, type PdfSection, hexToRgb } from "../utils/pdfExport";
 import { computeSubtaskTiming, buildSubtaskPdfSection } from "../utils/subtaskTiming";
 import { buildStoryPdfFilename } from "../utils/pdfFilename";
@@ -345,7 +345,23 @@ export function StoryDetailPage(): React.ReactElement {
                                     dataKey="value"
                                     nameKey="name"
                                     outerRadius={100}
-                                    label={({ name, value }: { name?: string; value?: number }) => `${name}: ${value}`}
+                                    label={({ cx, cy, midAngle, outerRadius, value, name }: { cx: number; cy: number; midAngle: number; outerRadius: number; value: number; name: string }) => {
+                                        const RADIAN = Math.PI / 180;
+                                        const r = (outerRadius as number) + 32;
+                                        const x = (cx as number) + r * Math.cos(-(midAngle as number) * RADIAN);
+                                        const y = (cy as number) + r * Math.sin(-(midAngle as number) * RADIAN);
+                                        const isRight = x >= (cx as number);
+                                        const textWidth = String(value).length * 8;
+                                        const iconX = isRight ? x + textWidth + 3 : x + 3;
+                                        const color = SUBTASK_TYPE_COLORS[name] ?? "#6b7280";
+                                        return (
+                                            <g key={name}>
+                                                <text x={x} y={y + 4} textAnchor={isRight ? "start" : "end"} fontSize={12} fontWeight="600" fill={color}>{value}</text>
+                                                {renderTypeIconInSvg(name, iconX, y - 7, 14)}
+                                            </g>
+                                        );
+                                    }}
+                                    labelLine={false}
                                 >
                                     {story.subtasks
                                         .reduce<{ name: string; color: string }[]>((acc, s) => {
@@ -359,7 +375,7 @@ export function StoryDetailPage(): React.ReactElement {
                                         ))}
                                 </Pie>
                                 <Tooltip contentStyle={{ backgroundColor: "#1a1a1a", border: "1px solid #333" }} />
-                                <Legend />
+                                <Legend formatter={(value) => formatSubtaskTypeName(String(value))} />
                             </PieChart>
                         </ResponsiveContainer>
                     </div>

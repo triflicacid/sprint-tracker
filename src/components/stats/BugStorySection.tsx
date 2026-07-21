@@ -45,14 +45,14 @@ export const BugStorySection = forwardRef<HTMLDivElement, BugStorySectionProps>(
                                     dataKey="value"
                                     nameKey="name"
                                     outerRadius={100}
-                                    label={({ name, value }: { name?: string; value?: number }) => `${name}: ${value}`}
+                                    label={({ name, value }: { name?: string; value?: number }) => `${String(name ?? "").charAt(0).toUpperCase() + String(name ?? "").slice(1)}: ${value}`}
                                 >
                                     {data.map((entry) => (
                                         <Cell key={entry.name} fill={entry.color} />
                                     ))}
                                 </Pie>
                                 <Tooltip contentStyle={{ backgroundColor: "#1a1a1a", border: "1px solid #333" }} />
-                                <Legend />
+                                <Legend formatter={(value) => String(value).charAt(0).toUpperCase() + String(value).slice(1)} />
                             </PieChart>
                         </ResponsiveContainer>
                     ) : (
