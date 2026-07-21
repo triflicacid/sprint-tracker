@@ -13,7 +13,8 @@ import { StatusHistorySection, type StatusHistorySectionHandle } from "../compon
 import { CalendarSection, type CalendarSectionHandle } from "../components/stats/CalendarSection";
 import { ExportButton } from "../components/ExportButton";
 import { parseIsoDate, formatIsoDate } from "../utils/calendarGrid";
-import { exportSectionsAsPdf, type PdfSection, hexToRgb } from "../utils/pdfExport";
+import { exportSectionsAsPdf, type PdfSection } from "../utils/pdfExport";
+import { hexToRgb } from "../utils/colourUtils";
 import { SUBTASK_TYPE_COLORS } from "../components/subtasks/SubtaskTypeIcon";
 
 // counts weekdays (mon-fri) in an inclusive date range.

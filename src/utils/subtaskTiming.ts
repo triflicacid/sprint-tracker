@@ -1,6 +1,7 @@
 import type { StatusHistoryEntry, Subtask, SubtaskStatus } from "@shared/types";
 import { STATUS_LABELS, STATUS_COLORS, SUBTASK_STATUSES } from "../components/StatusBadge";
 import type { PdfSection, PdfTable } from "./pdfExport";
+import { hexToRgb } from "./colourUtils";
 
 export interface SubtaskTiming {
     // total days from the first history entry to the last
@@ -144,10 +145,6 @@ export function computeSubtaskTiming(history: StatusHistoryEntry[], now: Date = 
     } as SubtaskTiming;
 }
 
-function hexToRgb(hex: string): [number, number, number] {
-    const clean = hex.replace("#", "");
-    return [parseInt(clean.slice(0, 2), 16), parseInt(clean.slice(2, 4), 16), parseInt(clean.slice(4, 6), 16)];
-}
 
 // the transitions table, drawn as real pdf text (not a screenshot) with the
 // state column colored to match the on-screen status badge - mirrors
