@@ -6,6 +6,7 @@ import { VelocitySection } from "../components/stats/VelocitySection";
 import { SummarySection, type SummarySectionHandle } from "../components/stats/SummarySection";
 import { RepoDistributionSection } from "../components/stats/RepoDistributionSection";
 import { BugStorySection } from "../components/stats/BugStorySection";
+import { SubtaskCategorySection } from "../components/stats/SubtaskCategorySection";
 import { TimePerStorySection } from "../components/stats/TimePerStorySection";
 import { ComplexitySection, type ComplexitySectionHandle } from "../components/stats/ComplexitySection";
 import { StatusHistorySection, type StatusHistorySectionHandle } from "../components/stats/StatusHistorySection";
@@ -13,6 +14,8 @@ import { CalendarSection, type CalendarSectionHandle } from "../components/stats
 import { ExportButton } from "../components/ExportButton";
 import { parseIsoDate, formatIsoDate } from "../utils/calendarGrid";
 import { exportSectionsAsPdf, type PdfSection } from "../utils/pdfExport";
+import { hexToRgb } from "../utils/colourUtils";
+import { SUBTASK_TYPE_COLORS } from "../components/subtasks/SubtaskTypeIcon";
 
 // counts weekdays (mon-fri) in an inclusive date range.
 function countWeekdays(start: string, end: string) {
@@ -47,6 +50,7 @@ export function StatsPage() {
     const [exportingAll, setExportingAll] = useState(false);
 
     const bugStoryChartRef = useRef<HTMLDivElement>(null);
+    const subtaskCategoryChartRef = useRef<HTMLDivElement>(null);
     const repoChartRef = useRef<HTMLDivElement>(null);
     const timeChartRef = useRef<HTMLDivElement>(null);
     const summaryRef = useRef<SummarySectionHandle>(null);
@@ -105,18 +109,51 @@ export function StatsPage() {
         const bugStorySection = {
             title: "Bugs vs stories",
             element: bugStoryChartRef.current ?? undefined,
-            lines:
-                stats.storyCount > 0
-                    ? [
-                          `Stories: ${nonBugCount} (${Math.round((nonBugCount / stats.storyCount) * 100)}%)`,
-                          `Bugs: ${stats.bugCount} (${Math.round((stats.bugCount / stats.storyCount) * 100)}%)`,
-                      ]
-                    : ["No stories recorded yet."],
+            ...(stats.storyCount > 0
+                ? {
+                      table: {
+                          headers: ["", "count", "%"],
+                          rows: [
+                              [
+                                  { text: "stories", color: hexToRgb("#5a9b5a") },
+                                  { text: String(nonBugCount) },
+                                  { text: `${Math.round((nonBugCount / stats.storyCount) * 100)}%` },
+                              ],
+                              [
+                                  { text: "bugs", color: hexToRgb("#e5484d") },
+                                  { text: String(stats.bugCount) },
+                                  { text: `${Math.round((stats.bugCount / stats.storyCount) * 100)}%` },
+                              ],
+                          ],
+                          columnWidths: [120, 50, 50],
+                      },
+                  }
+                : { lines: ["No stories recorded yet."] }),
+        };
+
+        const totalSubtasks = stats.subtaskTypeCounts.reduce((sum, e) => sum + e.count, 0);
+        const subtaskCategorySection = {
+            title: "Subtask category breakdown",
+            element: subtaskCategoryChartRef.current ?? undefined,
+            ...(totalSubtasks > 0
+                ? {
+                      table: {
+                          headers: ["", "count", "%"],
+                          rows: stats.subtaskTypeCounts.map((e) => [
+                              { text: e.type, color: hexToRgb(SUBTASK_TYPE_COLORS[e.type] ?? "#6b7280") },
+                              { text: String(e.count) },
+                              { text: `${Math.round((e.count / totalSubtasks) * 100)}%` },
+                          ]),
+                          columnWidths: [120, 50, 50],
+                      },
+                  }
+                : { lines: ["No subtasks recorded yet."] }),
         };
 
         return [
             summarySection,
             bugStorySection,
+            subtaskCategorySection,
             {
                 title: "Repo distribution",
                 element: repoChartRef.current ?? undefined,
@@ -226,30 +263,36 @@ export function StatsPage() {
                         onExport={() => handleExportSection(1, "bug-story-breakdown")}
                     />
 
+                    <SubtaskCategorySection
+                        ref={subtaskCategoryChartRef}
+                        typeCounts={stats.subtaskTypeCounts}
+                        onExport={() => handleExportSection(2, "subtask-category-breakdown")}
+                    />
+
                     <RepoDistributionSection
                         ref={repoChartRef}
                         repoCounts={stats.repoCounts}
-                        onExport={() => handleExportSection(2, "repo-distribution")}
+                        onExport={() => handleExportSection(3, "repo-distribution")}
                     />
 
                     <TimePerStorySection
                         ref={timeChartRef}
                         storyTimeDays={stats.storyTimeDays}
-                        onExport={() => handleExportSection(3, "time-per-story")}
+                        onExport={() => handleExportSection(4, "time-per-story")}
                     />
 
                     <ComplexitySection
                         ref={complexityRef}
                         sprintId={Number(selectedSprintId)}
-                        onExport={() => handleExportSection(4, "complexity")}
+                        onExport={() => handleExportSection(5, "complexity")}
                     />
 
                     <StatusHistorySection
                         ref={statusHistoryRef}
                         sprintId={Number(selectedSprintId)}
                         isWorkingDay={isWorkingDay}
-                        onExportBurndown={() => handleExportSection(5, "burndown")}
-                        onExportStatusBreakdown={() => handleExportSection(6, "status-breakdown")}
+                        onExportBurndown={() => handleExportSection(6, "burndown")}
+                        onExportStatusBreakdown={() => handleExportSection(7, "status-breakdown")}
                     />
 
                     <CalendarSection
@@ -260,7 +303,7 @@ export function StatsPage() {
                         holidays={holidays}
                         totalWeekdays={totalWeekdays}
                         holidayWeekdays={holidayWeekdays}
-                        onExport={() => handleExportSection(7, "calendar")}
+                        onExport={() => handleExportSection(8, "calendar")}
                     />
                 </>
             )}

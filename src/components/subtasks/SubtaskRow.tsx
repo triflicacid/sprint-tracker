@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import type { Subtask, SubtaskStatus, StatusFlowConfig, FlowField } from "@shared/types";
 import { StatusBadge } from "../StatusBadge";
 import { RatingSelect } from "../RatingSelect";
+import { SubtaskTypeIcon } from "./SubtaskTypeIcon";
 import { api } from "../../api/client";
 import { useToast } from "../Toast";
 import "./SubtaskRow.css";
@@ -85,6 +86,9 @@ export function SubtaskRow({ subtask, flow, onChanged, disableNavigation, sprint
             className={disableNavigation ? "subtask-row" : "subtask-row subtask-row-clickable"}
             onClick={disableNavigation ? undefined : () => navigate(`/subtasks/${subtask.id}`)}
         >
+            <div className="subtask-type-badge" onClick={(event) => event.stopPropagation()}>
+                <SubtaskTypeIcon type={subtask.type} />
+            </div>
             <div className="subtask-header">
                 <div className="subtask-branch-pr">
                     {githubBranchUrl ? (

@@ -1,65 +1,62 @@
 [
   {
+    "shortName": "unknown",
+    "fullName": "Unknown",
+    "description": "No type assigned.",
+    "selectable": false
+  },
+  {
     "shortName": "feature",
     "fullName": "Feature",
     "description": "New user-facing functionality.",
-    "iconPath": "static/icons/feature.svg",
     "tier": "basic"
   },
   {
     "shortName": "bugfix",
     "fullName": "Bugfix",
     "description": "Fixes incorrect or broken behavior.",
-    "iconPath": "static/icons/bug.svg",
     "tier": "basic"
   },
   {
     "shortName": "tech-debt",
     "fullName": "Tech debt",
     "description": "Pays down accumulated shortcuts or cleanup work; not user-facing.",
-    "iconPath": "static/icons/tech-debt.svg",
     "tier": "basic"
   },
   {
     "shortName": "spike",
     "fullName": "Spike",
     "description": "Time-boxed investigation or research; not a shippable change.",
-    "iconPath": "static/icons/spike.svg",
     "tier": "basic"
   },
   {
     "shortName": "chore",
     "fullName": "Chore",
-    "description": "Routine upkeep with no urgency, e.g. dependency bumps or config tweaks.",
-    "iconPath": "static/icons/chore.svg",
+    "description": "Routine upkeep; nothing wrong, just needs doing.",
     "tier": "advanced"
   },
   {
     "shortName": "docs",
-    "fullName": "Documentation",
-    "description": "Documentation-only changes; no application behavior touched.",
-    "iconPath": "static/icons/docs.svg",
+    "fullName": "Docs",
+    "description": "Documentation-only work; no behavior change.",
     "tier": "advanced"
   },
   {
     "shortName": "test",
     "fullName": "Test",
-    "description": "Adds or improves test coverage without changing behavior.",
-    "iconPath": "static/icons/test.svg",
+    "description": "Test coverage or verification work.",
     "tier": "advanced"
   },
   {
     "shortName": "security",
     "fullName": "Security",
-    "description": "Vulnerability fixes or security hardening.",
-    "iconPath": "static/icons/security.svg",
+    "description": "Vulnerability fixes or hardening.",
     "tier": "advanced"
   },
   {
     "shortName": "perf",
-    "fullName": "Performance",
-    "description": "Optimization work where nothing was functionally broken, just slow.",
-    "iconPath": "static/icons/perf.svg",
+    "fullName": "Perf",
+    "description": "Performance optimisation; nothing was broken, just slow.",
     "tier": "advanced"
   }
 ]

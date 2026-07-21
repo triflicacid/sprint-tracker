@@ -3,6 +3,20 @@
 Brief index of everything under `plans/`. Each entry links to the full doc — check there before
 acting on anything, since plans are point-in-time snapshots and code may have moved since.
 
+## [collapsible sections on the export page](plan-collapsible-export-sections/plan-collapsible-export-sections.md)
+
+**Status: not started**
+
+**Severity: none | Urgency: low | Worth doing: medium** — pure UX polish; self-contained with no
+backend or schema changes.
+
+Adds a `CollapsibleSection` shared component (new `src/components/CollapsibleSection.tsx` +
+`.css`) used to wrap each `<h2>` section on `ExportPage`. Each section is open by default with a
+down-pointing chevron to the left of the title. Clicking the title row (text or chevron) rotates
+the chevron 90° to point right (CSS transition, ~150 ms) and replaces the section body with a
+single horizontal rule. State is ephemeral — resets to open on navigation. Three file touches:
+the new component, its CSS, and `ExportPage.tsx`.
+
 ## [code auto-formatter + stricter unused-var/type checks](plan-code-formatter-and-strict-unused/plan-code-formatter-and-strict-unused.md)
 
 **Status: not started**
@@ -37,35 +51,6 @@ the not-yet-built subtask-type feature (sibling `subtask-type-icons` plan) and r
 without it for now, adding the prefix once that plan lands. Sources the story's `jiraKey` onto
 `Subtask` itself via a server-side join (new `storyJiraKey` field) rather than prop-drilling or a
 second fetch, since `SubtaskDetailPage` doesn't currently load the parent story at all.
-
-## [subtask type icons](subtask-type-icons/subtask-type-icons.md)
-
-**Status: not started**
-
-**Severity: none | Urgency: low | Worth doing: medium** — pure UX polish on its own, but has knock-on
-value since the branch-autogen plan's `tech-debt/` prefix depends on it.
-
-Icon mockups for 9 subtask "type" categories, split into **basic** (feature, bugfix, tech-debt,
-spike) and **advanced** (chore, docs, test, security, perf) tiers — each with a distinct flat SVG
-icon (standalone `.svg` files in this folder). Covers recording the type as a nullable `subtasks.type`
-column, a data-driven `static/subtask-types.json` config (draft included, `shortName`/`fullName`/
-`description`/`iconPath`/`tier`) instead of a hardcoded TS union, a native-`<select>` creation dropdown
-grouped by tier via `<optgroup>`, and where the icon renders on `SubtaskRow` (top-left corner, still
-undecided between inline-in-header vs. an absolute-positioned corner badge).
-
-## [story vs. bug icons](story-bug-icons/story-bug-icons.md)
-
-**Status: not started**
-
-**Severity: none | Urgency: low | Worth doing: low-medium** — small, self-contained visual affordance;
-nice-to-have, nothing else depends on it.
-
-Ideation for flagging a story as a bug report vs. a regular story, each with its own icon (green
-open-book for `story`; the same bug icon used by the subtask `bugfix` type, shared rather than
-duplicated) rendered inline in `StoryCard`'s header. Proposes a boolean `stories.is_bug` flag
-(mirroring the existing `awaiting_more_subtasks` column) over a `kind` string, a checkbox in the story
-creation form, and a `static/story-types.json` config in the same shape as the subtask-types one,
-with `iconPath`s flattened to a single shared `static/icons/` directory.
 
 ## [past sprints are locked and cannot be edited](plan-lock-past-sprints/plan-lock-past-sprints.md)
 

@@ -35,10 +35,10 @@ test("exporting a story downloads one pdf page for the summary plus one per subt
     ]);
 
     expect(download.suggestedFilename()).toMatch(/^PDF-2-export-\d{4}-\d{2}-\d{2}\.pdf$/);
-    // one page for the story summary + one per subtask (2 subtasks seeded),
+    // one page for the story summary, one for subtask category breakdown + one per subtask (2 subtasks seeded),
     // no flow-diagram page per subtask.
     const savedPath = await download.path();
-    expect(pdfPageCount(savedPath)).toBe(3);
+    expect(pdfPageCount(savedPath)).toBe(4);
 
     const raw = fs.readFileSync(savedPath).toString("latin1");
     expect(raw).toContain("Jira: PDF-2");

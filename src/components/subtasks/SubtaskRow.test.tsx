@@ -40,6 +40,7 @@ const baseSubtask: Subtask = {
     repoName: null,
     complexityRating: null,
     releaseVersion: null,
+    type: "unknown",
     createdAt: "2026-01-01",
 };
 

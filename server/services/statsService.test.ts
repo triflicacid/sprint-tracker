@@ -34,12 +34,13 @@ function insertSubtask(
         url?: string | null;
         repoName?: string | null;
         complexityRating?: number | null;
+        type?: string;
     } = {}
 ) {
     const result = db
         .prepare(
-            `INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, complexity_rating)
-             VALUES (?, 'sub', ?, ?, ?, ?, ?)`
+            `INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, complexity_rating, type)
+             VALUES (?, 'sub', ?, ?, ?, ?, ?, ?)`
         )
         .run(
             storyId,
@@ -47,7 +48,8 @@ function insertSubtask(
             fields.status ?? "NEW",
             fields.url ?? null,
             fields.repoName ?? null,
-            fields.complexityRating ?? null
+            fields.complexityRating ?? null,
+            fields.type ?? "unknown"
         );
     return Number(result.lastInsertRowid);
 }
@@ -137,6 +139,55 @@ describe("getSprintStats", () => {
         const byId = Object.fromEntries(stats.storyTimeDays.map((story) => [story.storyId, story.storyLabel]));
         expect(byId[storyWithKey]).toBe("NEB-42");
         expect(byId[storyWithoutKey]).toBe(`#${storyWithoutKey}`);
+    });
+
+    it("returns an empty subtaskTypeCounts array when there are no subtasks", () => {
+        const sprintId = insertSprint("2026-01-01", "2026-01-31");
+        insertStory(sprintId);
+
+        const stats = getSprintStats(sprintId);
+        expect(stats.subtaskTypeCounts).toEqual([]);
+    });
+
+    it("counts subtasks by type and orders by count descending", () => {
+        const sprintId = insertSprint("2026-01-01", "2026-01-31");
+        const storyId = insertStory(sprintId);
+        insertSubtask(storyId, { type: "feature" });
+        insertSubtask(storyId, { type: "feature" });
+        insertSubtask(storyId, { type: "feature" });
+        insertSubtask(storyId, { type: "bugfix" });
+        insertSubtask(storyId, { type: "bugfix" });
+        insertSubtask(storyId, { type: "spike" });
+
+        const stats = getSprintStats(sprintId);
+        expect(stats.subtaskTypeCounts[0]).toEqual({ type: "feature", count: 3 });
+        expect(stats.subtaskTypeCounts[1]).toEqual({ type: "bugfix", count: 2 });
+        expect(stats.subtaskTypeCounts[2]).toEqual({ type: "spike", count: 1 });
+    });
+
+    it("counts unknown-type subtasks in the type breakdown", () => {
+        const sprintId = insertSprint("2026-01-01", "2026-01-31");
+        const storyId = insertStory(sprintId);
+        insertSubtask(storyId, { type: "unknown" });
+        insertSubtask(storyId, { type: "unknown" });
+
+        const stats = getSprintStats(sprintId);
+        const unknownEntry = stats.subtaskTypeCounts.find((e) => e.type === "unknown");
+        expect(unknownEntry?.count).toBe(2);
+    });
+
+    it("only counts subtasks belonging to the requested sprint", () => {
+        const sprintA = insertSprint("2026-01-01", "2026-01-31");
+        const sprintB = insertSprint("2026-02-01", "2026-02-28");
+        insertSubtask(insertStory(sprintA), { type: "feature" });
+        insertSubtask(insertStory(sprintB), { type: "feature" });
+        insertSubtask(insertStory(sprintB), { type: "feature" });
+
+        const statsA = getSprintStats(sprintA);
+        expect(statsA.subtaskTypeCounts).toEqual([{ type: "feature", count: 1 }]);
+
+        const statsB = getSprintStats(sprintB);
+        expect(statsB.subtaskTypeCounts).toEqual([{ type: "feature", count: 2 }]);
     });
 });
 

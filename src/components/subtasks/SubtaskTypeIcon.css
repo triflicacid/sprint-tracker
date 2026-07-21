@@ -1,0 +1,20 @@
+.subtask-type-icon {
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
+}
+
+.subtask-type-badge {
+    position: absolute;
+    top: -7px;
+    left: -7px;
+    width: 20px;
+    height: 20px;
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+

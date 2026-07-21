@@ -1,14 +1,17 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import type { StoryDetail, StatusFlowConfig, StatusHistoryEntry } from "@shared/types";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
+import type { StoryDetail, StatusFlowConfig, StatusHistoryEntry, SubtaskTypeEntry } from "@shared/types";
 import { isSprintLocked } from "@shared/sprintLock";
 import { api } from "../api/client";
 import { LockIcon } from "../components/LockIcon";
 import { StoryTypeIcon } from "../components/stories/StoryTypeIcon";
 import { StatusBadge, STATUS_LABELS } from "../components/StatusBadge";
 import { SubtaskRow } from "../components/subtasks/SubtaskRow";
+import { SubtaskTypeSelect } from "../components/subtasks/SubtaskTypeSelect";
+import { SUBTASK_TYPE_COLORS, formatSubtaskTypeName, renderTypeIconInSvg } from "../components/subtasks/SubtaskTypeIcon";
 import { exportSectionsAsPdf, type PdfSection } from "../utils/pdfExport";
+import { hexToRgb } from "../utils/colourUtils";
 import { computeSubtaskTiming, buildSubtaskPdfSection } from "../utils/subtaskTiming";
 import { buildStoryPdfFilename } from "../utils/pdfFilename";
 import { MetaRow } from "../components/MetaRow";
@@ -32,12 +35,15 @@ export function StoryDetailPage(): React.ReactElement {
     const [loadError, setLoadError] = useState<string | null>(null);
     const [flow, setFlow] = useState<StatusFlowConfig | null>(null);
     const [newSubtaskTitle, setNewSubtaskTitle] = useState<string>("");
+    const [newSubtaskType, setNewSubtaskType] = useState<string>("");
+    const [subtaskTypes, setSubtaskTypes] = useState<SubtaskTypeEntry[]>([]);
     const [newTagName, setNewTagName] = useState<string>("");
     const [jiraLoading, setJiraLoading] = useState<boolean>(false);
     const [exportSnapshot, setExportSnapshot] = useState<SubtaskHistorySnapshot[] | null>(null);
     const [exporting, setExporting] = useState<boolean>(false);
 
     const barChartRef = useRef<HTMLDivElement>(null);
+    const subtaskCategoryChartRef = useRef<HTMLDivElement>(null);
     const titleIconRef = useRef<HTMLSpanElement>(null);
 
     async function loadStory() {
@@ -55,6 +61,11 @@ export function StoryDetailPage(): React.ReactElement {
 
     useEffect(() => {
         api.getStatusFlow().then(setFlow);
+        api.getSubtaskTypes().then((types) => {
+            setSubtaskTypes(types);
+            const first = types.find((t) => t.selectable !== false);
+            if (first) setNewSubtaskType(first.shortName);
+        });
     }, []);
 
     async function handleAwaitingMoreSubtasksChange(checked: boolean) {
@@ -71,8 +82,10 @@ export function StoryDetailPage(): React.ReactElement {
         if (!newSubtaskTitle.trim()) {
             return;
         }
-        await api.createSubtask(storyId, { title: newSubtaskTitle.trim() });
+        await api.createSubtask(storyId, { title: newSubtaskTitle.trim(), type: newSubtaskType });
         setNewSubtaskTitle("");
+        const first = subtaskTypes.find((t) => t.selectable !== false);
+        setNewSubtaskType(first?.shortName ?? "");
         loadStory();
     }
 
@@ -117,8 +130,15 @@ export function StoryDetailPage(): React.ReactElement {
             return;
         }
         (async () => {
-            // can only measure after a pain, so wait two frames first
-            await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+            const typeCounts = Object.entries(
+                story.subtasks.reduce<Record<string, number>>((acc, s) => {
+                    acc[s.type] = (acc[s.type] ?? 0) + 1;
+                    return acc;
+                }, {})
+            )
+                .map(([type, count]) => ({ type, count: count as number }))
+                .sort((a, b) => b.count - a.count);
+            const totalSubtaskTypes = typeCounts.reduce((s, e) => s + e.count, 0);
 
             const sections: PdfSection[] = [
                 {
@@ -134,6 +154,23 @@ export function StoryDetailPage(): React.ReactElement {
                         ...(story.awaitingMoreSubtasks ? ["Awaiting more subtasks: yes"] : []),
                     ],
                 },
+                ...(typeCounts.length > 0
+                    ? [
+                          {
+                              title: "Subtask category breakdown",
+                              element: subtaskCategoryChartRef.current ?? undefined,
+                              table: {
+                                  headers: ["", "count", "%"],
+                                  rows: typeCounts.map((e) => [
+                                      { text: e.type, color: hexToRgb(SUBTASK_TYPE_COLORS[e.type] ?? "#6b7280") },
+                                      { text: String(e.count) },
+                                      { text: `${Math.round((e.count / totalSubtaskTypes) * 100)}%` },
+                                  ]),
+                                  columnWidths: [120, 50, 50],
+                              },
+                          },
+                      ]
+                    : []),
                 ...story.subtasks.map((subtask) => {
                     const history = exportSnapshot.find((snapshot) => snapshot.subtaskId === subtask.id)?.history ?? [];
                     return buildSubtaskPdfSection(subtask, history);
@@ -258,6 +295,12 @@ export function StoryDetailPage(): React.ReactElement {
                         placeholder="subtask title"
                         value={newSubtaskTitle}
                         onChange={(event) => setNewSubtaskTitle(event.target.value)}
+                        onKeyDown={(event) => event.key === "Enter" && handleAddSubtask()}
+                    />
+                    <SubtaskTypeSelect
+                        value={newSubtaskType}
+                        options={subtaskTypes.filter((t) => t.selectable !== false)}
+                        onChange={setNewSubtaskType}
                     />
                     <button onClick={handleAddSubtask}>add subtask</button>
                 </div>
@@ -282,6 +325,56 @@ export function StoryDetailPage(): React.ReactElement {
                                 <Tooltip contentStyle={{ backgroundColor: "#1a1a1a", border: "1px solid #333" }} />
                                 <Bar dataKey="days" fill="#2563eb" />
                             </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+                    <div ref={subtaskCategoryChartRef}>
+                        <ResponsiveContainer width="100%" height={300}>
+                            <PieChart margin={{ top: 30, right: 30, bottom: 10, left: 30 }}>
+                                <Pie
+                                    data={story.subtasks.reduce<{ name: string; value: number; color: string }[]>((acc, s) => {
+                                        const existing = acc.find((e) => e.name === s.type);
+                                        if (existing) {
+                                            existing.value += 1;
+                                        } else {
+                                            acc.push({ name: s.type, value: 1, color: SUBTASK_TYPE_COLORS[s.type] ?? "#6b7280" });
+                                        }
+                                        return acc;
+                                    }, [])}
+                                    dataKey="value"
+                                    nameKey="name"
+                                    outerRadius={100}
+                                    label={({ cx, cy, midAngle, outerRadius, value, name }: { cx: number; cy: number; midAngle: number; outerRadius: number; value: number; name: string }) => {
+                                        const RADIAN = Math.PI / 180;
+                                        const r = (outerRadius as number) + 32;
+                                        const x = (cx as number) + r * Math.cos(-(midAngle as number) * RADIAN);
+                                        const y = (cy as number) + r * Math.sin(-(midAngle as number) * RADIAN);
+                                        const isRight = x >= (cx as number);
+                                        const textWidth = String(value).length * 9;
+                                        const iconX = isRight ? x + textWidth + 3 : x + 3;
+                                        const color = SUBTASK_TYPE_COLORS[name] ?? "#6b7280";
+                                        return (
+                                            <g key={name}>
+                                                <text x={x} y={y + 5} textAnchor={isRight ? "start" : "end"} fontSize={14} fontWeight="600" fill={color}>{value}</text>
+                                                {renderTypeIconInSvg(name, iconX, y - 9, 18)}
+                                            </g>
+                                        );
+                                    }}
+                                    labelLine={false}
+                                >
+                                    {story.subtasks
+                                        .reduce<{ name: string; color: string }[]>((acc, s) => {
+                                            if (!acc.find((e) => e.name === s.type)) {
+                                                acc.push({ name: s.type, color: SUBTASK_TYPE_COLORS[s.type] ?? "#6b7280" });
+                                            }
+                                            return acc;
+                                        }, [])
+                                        .map((entry) => (
+                                            <Cell key={entry.name} fill={entry.color} />
+                                        ))}
+                                </Pie>
+                                <Tooltip contentStyle={{ backgroundColor: "#1a1a1a", border: "1px solid #333" }} />
+                                <Legend formatter={(value) => formatSubtaskTypeName(String(value))} />
+                            </PieChart>
                         </ResponsiveContainer>
                     </div>
                 </div>

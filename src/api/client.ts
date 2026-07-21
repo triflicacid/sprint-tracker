@@ -16,6 +16,7 @@ import type {
     StatusHistoryEntry,
     MarkdownExportFields,
     SubtaskStatus,
+    SubtaskTypeEntry,
     VelocityPoint,
     VelocitySelection,
 } from "@shared/types";
@@ -79,7 +80,7 @@ export const api = {
 
     getSubtaskHistory: (id: number): Promise<StatusHistoryEntry[]> => request(`/subtasks/${id}/history`),
 
-    createSubtask: (storyId: number, input: { title: string }): Promise<Subtask> =>
+    createSubtask: (storyId: number, input: { title: string; type?: string }): Promise<Subtask> =>
         request(`/stories/${storyId}/subtasks`, { method: "POST", body: JSON.stringify(input) }),
 
     updateSubtask: (
@@ -150,6 +151,8 @@ export const api = {
         request(`/jira/${key}${storyId ? `?storyId=${storyId}` : ""}`),
 
     getStatusFlow: (): Promise<StatusFlowConfig> => request("/status-flow"),
+
+    getSubtaskTypes: (): Promise<SubtaskTypeEntry[]> => request("/subtask-types"),
 
     updateStory: (id: number, input: { awaitingMoreSubtasks?: boolean; storyPoints?: number | null }): Promise<StorySummary> =>
         request(`/stories/${id}`, { method: "PATCH", body: JSON.stringify(input) }),

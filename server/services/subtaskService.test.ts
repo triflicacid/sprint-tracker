@@ -50,6 +50,31 @@ describe("createSubtask", () => {
         expect(history[0].status).toBe("NEW");
     });
 
+    it("defaults type to 'unknown' when no type is supplied", () => {
+        const subtask = createSubtask(storyId, { title: "add endpoint" });
+        expect(subtask.type).toBe("unknown");
+    });
+
+    it("stores the supplied type on the subtask", () => {
+        const subtask = createSubtask(storyId, { title: "add endpoint", type: "feature" });
+        expect(subtask.type).toBe("feature");
+    });
+
+    it("stores tech-debt type (hyphenated short name)", () => {
+        const subtask = createSubtask(storyId, { title: "cleanup old code", type: "tech-debt" });
+        expect(subtask.type).toBe("tech-debt");
+    });
+
+    it("throws SubtaskUpdateError for an unrecognised type", () => {
+        expect(() => createSubtask(storyId, { title: "x", type: "not-a-type" })).toThrow(SubtaskUpdateError);
+        expect(() => createSubtask(storyId, { title: "x", type: "not-a-type" })).toThrow(/invalid subtask type/i);
+    });
+
+    it("does not create the subtask when an invalid type is supplied", () => {
+        try { createSubtask(storyId, { title: "x", type: "bad" }); } catch {}
+        expect(getSubtasksForStory(storyId)).toHaveLength(0);
+    });
+
     it("throws SprintLockedError when the story's sprint has ended", () => {
         const lockedStoryId = insertStoryInLockedSprint();
         expect(() => createSubtask(lockedStoryId, { title: "too late" })).toThrow(SprintLockedError);

@@ -73,6 +73,15 @@ export interface StatusHistoryEntry {
   changedAt: string;
 }
 
+// one entry from static/subtask-types.json
+export interface SubtaskTypeEntry {
+  shortName: string;
+  fullName: string;
+  description: string;
+  selectable?: boolean;
+  tier?: "basic" | "advanced";
+}
+
 // a subtask has a branch and a PR. `title` is set on creation; `comment` is
 // an optional freeform note, editable afterwards, shown only on the
 // subtask's own detail page (not in the tile/row view).
@@ -87,6 +96,7 @@ export interface Subtask {
   repoName: string | null;
   complexityRating: number | null;
   releaseVersion: string | null;
+  type: string;
   createdAt: string;
 }
 
@@ -134,6 +144,7 @@ export interface SprintStats {
   bugCount: number;
   repoCounts: { repoName: string; count: number; proportion: number }[];
   storyTimeDays: { storyId: number; storyLabel: string; description: string; days: number }[];
+  subtaskTypeCounts: { type: string; count: number }[];
 }
 
 // which sprints to include in a velocity history query.

@@ -27,6 +27,7 @@ function subtask(overrides: Partial<Subtask> = {}): Subtask {
         repoName: null,
         complexityRating: null,
         releaseVersion: null,
+        type: "unknown",
         createdAt: "2026-01-01",
         ...overrides,
     };

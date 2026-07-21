@@ -5,6 +5,7 @@ import { isTransitionAllowed, getRequiredFields, locksComplexityRating } from ".
 import { extractRepoName } from "../utils/githubUrl.js";
 import { tagStoryWithRepo } from "./tagService.js";
 import { isSprintLocked, SprintLockedError } from "../../shared/sprintLock.js";
+import { isValidSubtaskType } from "./subtaskTypeService.js";
 
 interface SubtaskRow {
     id: number;
@@ -17,11 +18,13 @@ interface SubtaskRow {
     repo_name: string | null;
     complexity_rating: number | null;
     release_version: string | null;
+    type: string;
     created_at: string;
 }
 
 interface CreateSubtaskInput {
     title: string;
+    type?: string;
 }
 
 interface UpdateSubtaskInput {
@@ -69,6 +72,7 @@ function rowToSubtask(row: SubtaskRow): Subtask {
         repoName: row.repo_name,
         complexityRating: row.complexity_rating,
         releaseVersion: row.release_version,
+        type: row.type,
         createdAt: row.created_at,
     };
 }
@@ -89,9 +93,13 @@ export function getSubtaskById(id: number): Subtask | undefined {
 
 export function createSubtask(storyId: number, input: CreateSubtaskInput): Subtask {
     assertStorySprintUnlocked(storyId);
+    if (input.type !== undefined && !isValidSubtaskType(input.type)) {
+        throw new SubtaskUpdateError(`invalid subtask type: ${input.type}`);
+    }
+    const type = input.type ?? "unknown";
     const result = db
-        .prepare("INSERT INTO subtasks (story_id, title, status) VALUES (?, ?, 'NEW')")
-        .run(storyId, input.title);
+        .prepare("INSERT INTO subtasks (story_id, title, status, type) VALUES (?, ?, 'NEW', ?)")
+        .run(storyId, input.title, type);
     const id = Number(result.lastInsertRowid);
     recordStatusChange("subtask", id, "NEW", null);
     const created: SubtaskRow = db.prepare("SELECT * FROM subtasks WHERE id = ?").get(id) as SubtaskRow;

@@ -7,7 +7,7 @@ import {
     updateStoryPoints,
 } from "../services/storyService.js";
 import type { StorySummary } from "../../shared/types.js";
-import { createSubtask } from "../services/subtaskService.js";
+import { createSubtask, SubtaskUpdateError } from "../services/subtaskService.js";
 import { getTagsForEntity } from "../services/tagService.js";
 
 export const storiesRouter: Router = Router();
@@ -44,12 +44,20 @@ storiesRouter.patch("/:id", (req: Request, res: Response) => {
 
 storiesRouter.post("/:id/subtasks", (req: Request, res: Response) => {
     const storyId = Number(req.params.id);
-    const { title } = req.body;
+    const { title, type } = req.body;
     if (!title) {
         res.status(400).json({ error: "title is required" });
         return;
     }
-    res.status(201).json(createSubtask(storyId, { title }));
+    try {
+        res.status(201).json(createSubtask(storyId, { title, type }));
+    } catch (error) {
+        if (error instanceof SubtaskUpdateError) {
+            res.status(400).json({ error: (error as Error).message });
+            return;
+        }
+        throw error;
+    }
 });
 
 storiesRouter.get("/:id/tags", (req: Request, res: Response) => {

@@ -9,6 +9,7 @@ import { statsRouter } from "./routes/stats.js";
 import { calendarRouter } from "./routes/calendar.js";
 import { jiraRouter } from "./routes/jira.js";
 import { statusFlowRouter } from "./routes/statusFlow.js";
+import { subtaskTypesRouter } from "./routes/subtaskTypes.js";
 import { holidaysRouter } from "./routes/holidays.js";
 import { exportRouter } from "./routes/export.js";
 import { SprintLockedError } from "../shared/sprintLock.js";
@@ -26,6 +27,7 @@ export function createApp() {
     app.use("/api/calendar", calendarRouter);
     app.use("/api/jira", jiraRouter);
     app.use("/api/status-flow", statusFlowRouter);
+    app.use("/api/subtask-types", subtaskTypesRouter);
     app.use("/api/holidays", holidaysRouter);
     app.use("/api/export", exportRouter);
 

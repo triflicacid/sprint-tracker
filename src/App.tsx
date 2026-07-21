@@ -6,6 +6,7 @@ import { StoryDetailPage } from "./pages/StoryDetailPage";
 import { SubtaskDetailPage } from "./pages/SubtaskDetailPage";
 import { StatsPage } from "./pages/StatsPage";
 import { TransitionsInfoPage } from "./pages/TransitionsInfoPage";
+import { CategoriesInfoPage } from "./pages/CategoriesInfoPage";
 import { ExportPage } from "./pages/ExportPage";
 import { TimesheetPage } from "./pages/TimesheetPage";
 import { ToastProvider } from "./components/Toast";
@@ -22,6 +23,7 @@ export function App(): React.ReactElement {
                 <Route path="/stats/:sprintId" element={<StatsPage />} />
                 <Route path="/timesheet" element={<TimesheetPage />} />
                 <Route path="/transitions" element={<TransitionsInfoPage />} />
+                <Route path="/categories" element={<CategoriesInfoPage />} />
                 <Route path="/export" element={<ExportPage />} />
             </Routes>
         </ToastProvider>

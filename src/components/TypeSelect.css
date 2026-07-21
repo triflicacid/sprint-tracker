@@ -1,14 +1,14 @@
-.story-type-select {
+.type-select {
     position: relative;
 }
 
-.story-type-select-trigger {
+.type-select-trigger {
     display: flex;
     align-items: center;
     gap: 6px;
 }
 
-.story-type-select-list {
+.type-select-list {
     position: absolute;
     top: calc(100% + 4px);
     left: 0;
@@ -22,7 +22,7 @@
     border-radius: 6px;
 }
 
-.story-type-select-option {
+.type-select-option {
     display: flex;
     align-items: center;
     gap: 6px;
@@ -33,7 +33,18 @@
     white-space: nowrap;
 }
 
-.story-type-select-option:hover,
-.story-type-select-option[aria-selected="true"] {
+.type-select-option:hover,
+.type-select-option[aria-selected="true"] {
     background: var(--surface);
 }
+
+.type-select-group-label {
+    padding: 6px 10px 2px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-dim);
+    list-style: none;
+    user-select: none;
+}
+

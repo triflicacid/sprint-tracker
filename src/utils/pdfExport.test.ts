@@ -31,6 +31,7 @@ beforeEach(() => {
     } as unknown as typeof jsPDF);
 });
 
+
 describe("exportSectionsAsPdf", () => {
     it("writes the title and captures the element for a single image section", async () => {
         const element = document.createElement("div");
