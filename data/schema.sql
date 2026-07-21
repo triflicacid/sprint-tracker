@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS subtasks (
     repo_name TEXT,
     complexity_rating INTEGER,
     release_version TEXT,
+    type TEXT NOT NULL DEFAULT 'unknown',
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 

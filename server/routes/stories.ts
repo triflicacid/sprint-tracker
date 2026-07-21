@@ -44,12 +44,12 @@ storiesRouter.patch("/:id", (req: Request, res: Response) => {
 
 storiesRouter.post("/:id/subtasks", (req: Request, res: Response) => {
     const storyId = Number(req.params.id);
-    const { title } = req.body;
+    const { title, type } = req.body;
     if (!title) {
         res.status(400).json({ error: "title is required" });
         return;
     }
-    res.status(201).json(createSubtask(storyId, { title }));
+    res.status(201).json(createSubtask(storyId, { title, type }));
 });
 
 storiesRouter.get("/:id/tags", (req: Request, res: Response) => {

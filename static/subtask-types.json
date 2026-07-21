@@ -1,0 +1,28 @@
+[
+  {
+    "shortName": "unknown",
+    "fullName": "Unknown",
+    "description": "No type assigned.",
+    "selectable": false
+  },
+  {
+    "shortName": "feature",
+    "fullName": "Feature",
+    "description": "New user-facing functionality."
+  },
+  {
+    "shortName": "bugfix",
+    "fullName": "Bugfix",
+    "description": "Fixes incorrect or broken behavior."
+  },
+  {
+    "shortName": "tech-debt",
+    "fullName": "Tech debt",
+    "description": "Pays down accumulated shortcuts or cleanup work; not user-facing."
+  },
+  {
+    "shortName": "spike",
+    "fullName": "Spike",
+    "description": "Time-boxed investigation or research; not a shippable change."
+  }
+]

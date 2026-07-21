@@ -26,20 +26,20 @@ INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) V
      'https://nebula.atlassian.net/browse/NEB-1001', 'NEB-1001',
      'Support saved payment methods at checkout', 8);
 
-INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating, type) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1001'),
      'add saved card list endpoint', 'feature/neb-1001-saved-cards-api', 'DONE',
-     'https://github.com/nebula-labs/payments-service/pull/214', 'payments-service', 'v4.12.0', 2);
+     'https://github.com/nebula-labs/payments-service/pull/214', 'payments-service', 'v4.12.0', 2, 'feature');
 
-INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating, type) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1001'),
      'render saved card selector in checkout ui', 'feature/neb-1001-checkout-ui', 'DONE',
-     'https://github.com/nebula-labs/checkout-web/pull/588', 'checkout-web', 'v4.12.0', 1);
+     'https://github.com/nebula-labs/checkout-web/pull/588', 'checkout-web', 'v4.12.0', 1, 'feature');
 
-INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating, type) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1001'),
      'add card deletion endpoint', 'feature/neb-1001-delete-card', 'DONE',
-     'https://github.com/nebula-labs/payments-service/pull/215', 'payments-service', 'v4.12.0', 3);
+     'https://github.com/nebula-labs/payments-service/pull/215', 'payments-service', 'v4.12.0', 3, 'feature');
 
 -- story: NEB-1004, jira only, no subtasks yet - kept as a "just a jira
 -- ticket, no code work started" example. Left unpointed (story_points NULL)
@@ -57,15 +57,15 @@ INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) V
      'https://nebula.atlassian.net/browse/NEB-1010', 'NEB-1010',
      'Add fraud-score check before charging', 5);
 
-INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating, type) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1010'),
      'integrate fraud scoring api client', 'feature/neb-1010-fraud-client', 'DONE',
-     'https://github.com/nebula-labs/payments-service/pull/216', 'payments-service', 'v4.12.0', 2);
+     'https://github.com/nebula-labs/payments-service/pull/216', 'payments-service', 'v4.12.0', 2, 'feature');
 
-INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating, type) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1010'),
      'block checkout above fraud threshold', 'feature/neb-1010-fraud-block', 'DONE',
-     'https://github.com/nebula-labs/checkout-web/pull/589', 'checkout-web', 'v4.12.0', 4);
+     'https://github.com/nebula-labs/checkout-web/pull/589', 'checkout-web', 'v4.12.0', 4, 'feature');
 
 -- story: NEB-1012, bug, 1 subtask, DONE. Sprint 1 is mostly bugs (NEB-1004,
 -- NEB-1012, NEB-1020 vs. just NEB-1001/NEB-1010 as regular stories).
@@ -74,10 +74,10 @@ INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points, i
      'https://nebula.atlassian.net/browse/NEB-1012', 'NEB-1012',
      'Fix duplicate order confirmation emails on webhook retry', 2, 1);
 
-INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating, type) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1012'),
      'dedupe email dispatch on webhook retry', 'bugfix/neb-1012-dedupe-email', 'DONE',
-     'https://github.com/nebula-labs/notifications-service/pull/304', 'notifications-service', 'v4.12.0', 1);
+     'https://github.com/nebula-labs/notifications-service/pull/304', 'notifications-service', 'v4.12.0', 1, 'bugfix');
 
 -- story: NEB-1020, bug, 1 subtask, DONE (skips pr_comments).
 INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points, is_bug) VALUES
@@ -85,10 +85,10 @@ INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points, i
      'https://nebula.atlassian.net/browse/NEB-1020', 'NEB-1020',
      'Fix checkout crash when a saved card has expired', 3, 1);
 
-INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating, type) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1020'),
      'guard against expired saved card in checkout flow', 'bugfix/neb-1020-expired-card-guard', 'DONE',
-     'https://github.com/nebula-labs/checkout-web/pull/592', 'checkout-web', 'v4.12.0', 2);
+     'https://github.com/nebula-labs/checkout-web/pull/592', 'checkout-web', 'v4.12.0', 2, 'bugfix');
 
 -- ============================================================
 -- SPRINT 2 (past, closed 2026-03-30) - every subtask reaches DONE.
@@ -101,15 +101,15 @@ INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) V
      'https://nebula.atlassian.net/browse/NEB-1032', 'NEB-1032',
      'Add regional tax calculation for EU checkout', 5);
 
-INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating, type) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1032'),
      'integrate vat rate lookup service', 'feature/neb-1032-vat-lookup', 'DONE',
-     'https://github.com/nebula-labs/tax-engine/pull/77', 'tax-engine', 'v4.13.0', 3);
+     'https://github.com/nebula-labs/tax-engine/pull/77', 'tax-engine', 'v4.13.0', 3, 'feature');
 
-INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating, type) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1032'),
      'surface tax breakdown in order summary', 'feature/neb-1032-tax-breakdown-ui', 'DONE',
-     'https://github.com/nebula-labs/checkout-web/pull/590', 'checkout-web', 'v4.13.0', 2);
+     'https://github.com/nebula-labs/checkout-web/pull/590', 'checkout-web', 'v4.13.0', 2, 'feature');
 
 -- story: NEB-1040, 2 subtasks, both DONE (one continues the existing
 -- pr-comments <-> in-review oscillation - two rounds of feedback total).
@@ -118,15 +118,15 @@ INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) V
      'https://nebula.atlassian.net/browse/NEB-1040', 'NEB-1040',
      'Retry failed webhook deliveries automatically', 8);
 
-INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating, type) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1040'),
      'add exponential backoff to webhook dispatcher', 'feature/neb-1040-webhook-retry', 'DONE',
-     'https://github.com/nebula-labs/notifications-service/pull/301', 'notifications-service', 'v4.13.1', 4);
+     'https://github.com/nebula-labs/notifications-service/pull/301', 'notifications-service', 'v4.13.1', 4, 'feature');
 
-INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating, type) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1040'),
      'add dead-letter queue for exhausted retries', 'feature/neb-1040-dlq', 'DONE',
-     'https://github.com/nebula-labs/notifications-service/pull/302', 'notifications-service', 'v4.13.0', 3);
+     'https://github.com/nebula-labs/notifications-service/pull/302', 'notifications-service', 'v4.13.0', 3, 'feature');
 
 -- story: NEB-1045, 2 subtasks, both DONE.
 INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) VALUES
@@ -134,15 +134,15 @@ INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) V
      'https://nebula.atlassian.net/browse/NEB-1045', 'NEB-1045',
      'Send webhook delivery status to customer dashboard', 3);
 
-INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating, type) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1045'),
      'add delivery-status api endpoint', 'feature/neb-1045-status-api', 'DONE',
-     'https://github.com/nebula-labs/notifications-service/pull/303', 'notifications-service', 'v4.13.0', 2);
+     'https://github.com/nebula-labs/notifications-service/pull/303', 'notifications-service', 'v4.13.0', 2, 'feature');
 
-INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating, type) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1045'),
      'render delivery status widget', 'feature/neb-1045-status-widget', 'DONE',
-     'https://github.com/nebula-labs/checkout-web/pull/591', 'checkout-web', 'v4.13.0', 4);
+     'https://github.com/nebula-labs/checkout-web/pull/591', 'checkout-web', 'v4.13.0', 4, 'feature');
 
 -- story: NEB-1042, bug, 1 subtask, DONE - sprint 2's one bug alongside its
 -- three regular stories (not a majority here, unlike sprint 1).
@@ -151,10 +151,10 @@ INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points, i
      'https://nebula.atlassian.net/browse/NEB-1042', 'NEB-1042',
      'Fix webhook retries double-charging customers', 5, 1);
 
-INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating, type) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1042'),
      'add idempotency key to webhook retry dispatch', 'bugfix/neb-1042-webhook-idempotency', 'DONE',
-     'https://github.com/nebula-labs/notifications-service/pull/305', 'notifications-service', 'v4.13.1', 3);
+     'https://github.com/nebula-labs/notifications-service/pull/305', 'notifications-service', 'v4.13.1', 3, 'bugfix');
 
 -- ============================================================
 -- SPRINT 3 (current, open - no end_date) - a mix: some subtasks reach
@@ -168,10 +168,10 @@ INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) V
      'https://nebula.atlassian.net/browse/NEB-1058', 'NEB-1058',
      'Allow partial refunds from the support console', 2);
 
-INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating, type) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1058'),
      'add partial refund endpoint', 'feature/neb-1058-partial-refund-api', 'DONE',
-     'https://github.com/nebula-labs/payments-service/pull/229', 'payments-service', 'v4.14.0', 3);
+     'https://github.com/nebula-labs/payments-service/pull/229', 'payments-service', 'v4.14.0', 3, 'feature');
 
 -- story: NEB-1061, 1 subtask - deliberately left at UAT (not done yet),
 -- showing work still in flight this sprint.
@@ -180,10 +180,10 @@ INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) V
      'https://nebula.atlassian.net/browse/NEB-1061', 'NEB-1061',
      'Show refund status timeline to support agents', 3);
 
-INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, type) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1061'),
      'build refund timeline component', 'feature/neb-1061-refund-timeline', 'UAT',
-     'https://github.com/nebula-labs/support-console/pull/142', 'support-console', 'v4.13.0');
+     'https://github.com/nebula-labs/support-console/pull/142', 'support-console', 'v4.13.0', 'feature');
 
 -- story: NEB-1070, 3 subtasks spanning done / done / just started,
 -- including a two-round in_review <-> pr_comments oscillation.
@@ -192,19 +192,19 @@ INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) V
      'https://nebula.atlassian.net/browse/NEB-1070', 'NEB-1070',
      'Support multi-currency refunds', 13);
 
-INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating, type) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1070'),
      'add currency conversion helper', 'feature/neb-1070-fx-helper', 'DONE',
-     'https://github.com/nebula-labs/payments-service/pull/230', 'payments-service', 'v4.14.0', 2);
+     'https://github.com/nebula-labs/payments-service/pull/230', 'payments-service', 'v4.14.0', 2, 'feature');
 
-INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating, type) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1070'),
      'wire multi-currency refund endpoint', 'feature/neb-1070-fx-endpoint', 'DONE',
-     'https://github.com/nebula-labs/payments-service/pull/231', 'payments-service', 'v4.14.0', 5);
+     'https://github.com/nebula-labs/payments-service/pull/231', 'payments-service', 'v4.14.0', 5, 'feature');
 
-INSERT INTO subtasks (story_id, title, branch_name, status) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, type) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1070'),
-     'add currency selector to refund form', 'feature/neb-1070-fx-selector', 'WIP');
+     'add currency selector to refund form', 'feature/neb-1070-fx-selector', 'WIP', 'feature');
 
 -- story: NEB-1075, 2 subtasks, both early/mid-flight (one not started at all).
 INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) VALUES
@@ -212,14 +212,14 @@ INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) V
      'https://nebula.atlassian.net/browse/NEB-1075', 'NEB-1075',
      'Add refund audit log', 5);
 
-INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, complexity_rating) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, complexity_rating, type) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1075'),
      'create audit log table and write path', 'feature/neb-1075-audit-log', 'IN_PR',
-     'https://github.com/nebula-labs/payments-service/pull/232', 'payments-service', 2);
+     'https://github.com/nebula-labs/payments-service/pull/232', 'payments-service', 2, 'tech-debt');
 
-INSERT INTO subtasks (story_id, title, status) VALUES
+INSERT INTO subtasks (story_id, title, status, type) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1075'),
-     'expose audit log to support ui', 'NEW');
+     'expose audit log to support ui', 'NEW', 'tech-debt');
 
 -- story: NEB-1080, jira only, no subtasks yet - not every ticket in the
 -- current sprint has code work started either. Left unpointed (story_points
@@ -236,10 +236,10 @@ INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points, i
      'https://nebula.atlassian.net/browse/NEB-1078', 'NEB-1078',
      'Fix incorrect currency rounding on multi-currency refunds', 3, 1);
 
-INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, complexity_rating) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, complexity_rating, type) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1078'),
      'round converted refund amount to target currency precision', 'bugfix/neb-1078-fx-rounding', 'IN_REVIEW',
-     'https://github.com/nebula-labs/payments-service/pull/233', 'payments-service', 2);
+     'https://github.com/nebula-labs/payments-service/pull/233', 'payments-service', 2, 'bugfix');
 
 -- story: NEB-1082, bug, 1 subtask - just started, no pr yet. Sprint 3 now
 -- has two bugs (NEB-1078, NEB-1082) alongside its five regular stories.
@@ -248,9 +248,9 @@ INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points, i
      'https://nebula.atlassian.net/browse/NEB-1082', 'NEB-1082',
      'Fix refund audit log missing entries for partial refunds', 2, 1);
 
-INSERT INTO subtasks (story_id, title, branch_name, status) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, type) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1082'),
-     'log partial refund amount in audit trail', 'bugfix/neb-1082-audit-log-partial', 'WIP');
+     'log partial refund amount in audit trail', 'bugfix/neb-1082-audit-log-partial', 'WIP', 'bugfix');
 
 -- ============================================================
 -- status_history: every subtask's full transition path from NEW up to its
@@ -623,20 +623,20 @@ INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) V
      'https://nebula.atlassian.net/browse/NEB-901', 'NEB-901',
      'Add guest checkout flow', 8);
 
-INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating, type) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-901'),
      'scaffold guest checkout page', 'feature/neb-901-guest-page', 'DONE',
-     'https://github.com/nebula-labs/checkout-web/pull/540', 'checkout-web', 'v4.9.0', 3);
+     'https://github.com/nebula-labs/checkout-web/pull/540', 'checkout-web', 'v4.9.0', 3, 'feature');
 
-INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating, type) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-901'),
      'add guest order creation endpoint', 'feature/neb-901-guest-order-api', 'DONE',
-     'https://github.com/nebula-labs/payments-service/pull/188', 'payments-service', 'v4.9.0', 2);
+     'https://github.com/nebula-labs/payments-service/pull/188', 'payments-service', 'v4.9.0', 2, 'feature');
 
-INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating, type) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-901'),
      'send guest checkout confirmation email', 'feature/neb-901-guest-email', 'DONE',
-     'https://github.com/nebula-labs/notifications-service/pull/260', 'notifications-service', 'v4.9.0', 1);
+     'https://github.com/nebula-labs/notifications-service/pull/260', 'notifications-service', 'v4.9.0', 1, 'feature');
 
 -- story: NEB-905, 2 subtasks, both DONE.
 INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) VALUES
@@ -644,15 +644,15 @@ INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) V
      'https://nebula.atlassian.net/browse/NEB-905', 'NEB-905',
      'Add address autocomplete to checkout', 5);
 
-INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating, type) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-905'),
      'integrate address lookup api client', 'feature/neb-905-address-api', 'DONE',
-     'https://github.com/nebula-labs/payments-service/pull/189', 'payments-service', 'v4.9.0', 2);
+     'https://github.com/nebula-labs/payments-service/pull/189', 'payments-service', 'v4.9.0', 2, 'feature');
 
-INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating, type) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-905'),
      'wire autocomplete widget into checkout form', 'feature/neb-905-address-ui', 'DONE',
-     'https://github.com/nebula-labs/checkout-web/pull/541', 'checkout-web', 'v4.9.0', 3);
+     'https://github.com/nebula-labs/checkout-web/pull/541', 'checkout-web', 'v4.9.0', 3, 'feature');
 
 -- story: NEB-912, 2 subtasks, both DONE.
 INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) VALUES
@@ -660,15 +660,15 @@ INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) V
      'https://nebula.atlassian.net/browse/NEB-912', 'NEB-912',
      'Support promo code stacking rules', 3);
 
-INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating, type) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-912'),
      'enforce promo stacking rules in pricing engine', 'feature/neb-912-promo-rules', 'DONE',
-     'https://github.com/nebula-labs/payments-service/pull/190', 'payments-service', 'v4.9.1', 3);
+     'https://github.com/nebula-labs/payments-service/pull/190', 'payments-service', 'v4.9.1', 3, 'feature');
 
-INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating, type) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-912'),
      'surface stacking error message in checkout ui', 'feature/neb-912-promo-error-ui', 'DONE',
-     'https://github.com/nebula-labs/checkout-web/pull/542', 'checkout-web', 'v4.9.1', 1);
+     'https://github.com/nebula-labs/checkout-web/pull/542', 'checkout-web', 'v4.9.1', 1, 'feature');
 
 -- ============================================================
 -- SPRINT -1 (past, closed 2026-02-16) - every subtask reaches DONE.
@@ -680,15 +680,15 @@ INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) V
      'https://nebula.atlassian.net/browse/NEB-920', 'NEB-920',
      'Add Apple Pay support', 8);
 
-INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating, type) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-920'),
      'integrate apple pay merchant session api', 'feature/neb-920-apple-pay-api', 'DONE',
-     'https://github.com/nebula-labs/payments-service/pull/191', 'payments-service', 'v4.10.0', 4);
+     'https://github.com/nebula-labs/payments-service/pull/191', 'payments-service', 'v4.10.0', 4, 'feature');
 
-INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating, type) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-920'),
      'add apple pay button to checkout', 'feature/neb-920-apple-pay-ui', 'DONE',
-     'https://github.com/nebula-labs/checkout-web/pull/543', 'checkout-web', 'v4.10.0', 2);
+     'https://github.com/nebula-labs/checkout-web/pull/543', 'checkout-web', 'v4.10.0', 2, 'feature');
 
 -- story: NEB-925, 2 subtasks, both DONE (one with a one-round in_pr <-> in_review oscillation).
 INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) VALUES
@@ -696,15 +696,15 @@ INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) V
      'https://nebula.atlassian.net/browse/NEB-925', 'NEB-925',
      'Improve search relevance ranking', 5);
 
-INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating, type) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-925'),
      'tune bm25 weighting for product search', 'feature/neb-925-search-ranking', 'DONE',
-     'https://github.com/nebula-labs/search-service/pull/44', 'search-service', 'v4.10.0', 3);
+     'https://github.com/nebula-labs/search-service/pull/44', 'search-service', 'v4.10.0', 3, 'spike');
 
-INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating, type) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-925'),
      'add search relevance debug panel', 'feature/neb-925-search-debug-ui', 'DONE',
-     'https://github.com/nebula-labs/checkout-web/pull/544', 'checkout-web', 'v4.10.0', 2);
+     'https://github.com/nebula-labs/checkout-web/pull/544', 'checkout-web', 'v4.10.0', 2, 'tech-debt');
 
 -- story: NEB-931, 3 subtasks, all DONE (two with pr-comments oscillations).
 INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) VALUES
@@ -712,20 +712,20 @@ INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) V
      'https://nebula.atlassian.net/browse/NEB-931', 'NEB-931',
      'Add account merge for duplicate signups', 13);
 
-INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating, type) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-931'),
      'detect duplicate accounts by email+phone', 'feature/neb-931-dup-detection', 'DONE',
-     'https://github.com/nebula-labs/user-service/pull/12', 'user-service', 'v4.10.1', 4);
+     'https://github.com/nebula-labs/user-service/pull/12', 'user-service', 'v4.10.1', 4, 'feature');
 
-INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating, type) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-931'),
      'merge order history across accounts', 'feature/neb-931-merge-orders', 'DONE',
-     'https://github.com/nebula-labs/user-service/pull/13', 'user-service', 'v4.10.1', 5);
+     'https://github.com/nebula-labs/user-service/pull/13', 'user-service', 'v4.10.1', 5, 'feature');
 
-INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating, type) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-931'),
      'notify user after account merge', 'feature/neb-931-merge-notify', 'DONE',
-     'https://github.com/nebula-labs/notifications-service/pull/261', 'notifications-service', 'v4.10.1', 1);
+     'https://github.com/nebula-labs/notifications-service/pull/261', 'notifications-service', 'v4.10.1', 1, 'feature');
 
 -- ============================================================
 -- SPRINT 0 (past, closed 2026-03-02) - every subtask reaches DONE.
@@ -737,15 +737,15 @@ INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) V
      'https://nebula.atlassian.net/browse/NEB-940', 'NEB-940',
      'Add subscription billing support', 5);
 
-INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating, type) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-940'),
      'add recurring charge scheduler', 'feature/neb-940-recurring-charge', 'DONE',
-     'https://github.com/nebula-labs/payments-service/pull/192', 'payments-service', 'v4.11.0', 3);
+     'https://github.com/nebula-labs/payments-service/pull/192', 'payments-service', 'v4.11.0', 3, 'feature');
 
-INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating, type) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-940'),
      'show subscription management page', 'feature/neb-940-subscription-ui', 'DONE',
-     'https://github.com/nebula-labs/checkout-web/pull/545', 'checkout-web', 'v4.11.0', 2);
+     'https://github.com/nebula-labs/checkout-web/pull/545', 'checkout-web', 'v4.11.0', 2, 'feature');
 
 -- story: NEB-945, 2 subtasks, both DONE (skip pr_comments).
 INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) VALUES
@@ -753,15 +753,15 @@ INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) V
      'https://nebula.atlassian.net/browse/NEB-945', 'NEB-945',
      'Add order export to CSV for support team', 3);
 
-INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating, type) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-945'),
      'add csv export endpoint', 'feature/neb-945-csv-export-api', 'DONE',
-     'https://github.com/nebula-labs/support-console/pull/118', 'support-console', 'v4.11.0', 2);
+     'https://github.com/nebula-labs/support-console/pull/118', 'support-console', 'v4.11.0', 2, 'feature');
 
-INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating, type) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-945'),
      'add export button to support console', 'feature/neb-945-csv-export-ui', 'DONE',
-     'https://github.com/nebula-labs/support-console/pull/119', 'support-console', 'v4.11.0', 1);
+     'https://github.com/nebula-labs/support-console/pull/119', 'support-console', 'v4.11.0', 1, 'feature');
 
 -- story: NEB-951, 2 subtasks, both DONE (one with a two-round in_review <-> pr_comments oscillation).
 INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) VALUES
@@ -769,15 +769,15 @@ INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) V
      'https://nebula.atlassian.net/browse/NEB-951', 'NEB-951',
      'Reduce checkout page load latency', 8);
 
-INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating, type) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-951'),
      'lazy-load non-critical checkout scripts', 'feature/neb-951-lazy-load', 'DONE',
-     'https://github.com/nebula-labs/checkout-web/pull/546', 'checkout-web', 'v4.11.1', 3);
+     'https://github.com/nebula-labs/checkout-web/pull/546', 'checkout-web', 'v4.11.1', 3, 'tech-debt');
 
-INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating) VALUES
+INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, release_version, complexity_rating, type) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-951'),
      'add cdn caching for static checkout assets', 'feature/neb-951-cdn-cache', 'DONE',
-     'https://github.com/nebula-labs/checkout-web/pull/547', 'checkout-web', 'v4.11.1', 2);
+     'https://github.com/nebula-labs/checkout-web/pull/547', 'checkout-web', 'v4.11.1', 2, 'tech-debt');
 
 -- ============================================================
 -- status_history for sprints -2/-1/0's subtasks - same full-transition-path
@@ -1072,3 +1072,5 @@ INSERT INTO entity_tags (entity_type, entity_id, tag_id) VALUES
     ('story', (SELECT id FROM stories WHERE jira_key = 'NEB-951'), (SELECT id FROM tags WHERE name = 'checkout-web')),
     ('subtask', (SELECT id FROM subtasks WHERE title = 'lazy-load non-critical checkout scripts'), (SELECT id FROM tags WHERE name = 'frontend')),
     ('subtask', (SELECT id FROM subtasks WHERE title = 'add cdn caching for static checkout assets'), (SELECT id FROM tags WHERE name = 'frontend'));
+
+

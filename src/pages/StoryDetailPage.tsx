@@ -1,13 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import type { StoryDetail, StatusFlowConfig, StatusHistoryEntry } from "@shared/types";
+import type { StoryDetail, StatusFlowConfig, StatusHistoryEntry, SubtaskTypeEntry } from "@shared/types";
 import { isSprintLocked } from "@shared/sprintLock";
 import { api } from "../api/client";
 import { LockIcon } from "../components/LockIcon";
 import { StoryTypeIcon } from "../components/stories/StoryTypeIcon";
 import { StatusBadge, STATUS_LABELS } from "../components/StatusBadge";
 import { SubtaskRow } from "../components/subtasks/SubtaskRow";
+import { SubtaskTypeSelect } from "../components/subtasks/SubtaskTypeSelect";
 import { exportSectionsAsPdf, type PdfSection } from "../utils/pdfExport";
 import { computeSubtaskTiming, buildSubtaskPdfSection } from "../utils/subtaskTiming";
 import { buildStoryPdfFilename } from "../utils/pdfFilename";
@@ -32,6 +33,8 @@ export function StoryDetailPage(): React.ReactElement {
     const [loadError, setLoadError] = useState<string | null>(null);
     const [flow, setFlow] = useState<StatusFlowConfig | null>(null);
     const [newSubtaskTitle, setNewSubtaskTitle] = useState<string>("");
+    const [newSubtaskType, setNewSubtaskType] = useState<string>("");
+    const [subtaskTypes, setSubtaskTypes] = useState<SubtaskTypeEntry[]>([]);
     const [newTagName, setNewTagName] = useState<string>("");
     const [jiraLoading, setJiraLoading] = useState<boolean>(false);
     const [exportSnapshot, setExportSnapshot] = useState<SubtaskHistorySnapshot[] | null>(null);
@@ -55,6 +58,11 @@ export function StoryDetailPage(): React.ReactElement {
 
     useEffect(() => {
         api.getStatusFlow().then(setFlow);
+        api.getSubtaskTypes().then((types) => {
+            setSubtaskTypes(types);
+            const first = types.find((t) => t.selectable !== false);
+            if (first) setNewSubtaskType(first.shortName);
+        });
     }, []);
 
     async function handleAwaitingMoreSubtasksChange(checked: boolean) {
@@ -71,8 +79,10 @@ export function StoryDetailPage(): React.ReactElement {
         if (!newSubtaskTitle.trim()) {
             return;
         }
-        await api.createSubtask(storyId, { title: newSubtaskTitle.trim() });
+        await api.createSubtask(storyId, { title: newSubtaskTitle.trim(), type: newSubtaskType });
         setNewSubtaskTitle("");
+        const first = subtaskTypes.find((t) => t.selectable !== false);
+        setNewSubtaskType(first?.shortName ?? "");
         loadStory();
     }
 
@@ -258,6 +268,12 @@ export function StoryDetailPage(): React.ReactElement {
                         placeholder="subtask title"
                         value={newSubtaskTitle}
                         onChange={(event) => setNewSubtaskTitle(event.target.value)}
+                        onKeyDown={(event) => event.key === "Enter" && handleAddSubtask()}
+                    />
+                    <SubtaskTypeSelect
+                        value={newSubtaskType}
+                        options={subtaskTypes.filter((t) => t.selectable !== false)}
+                        onChange={setNewSubtaskType}
                     />
                     <button onClick={handleAddSubtask}>add subtask</button>
                 </div>
