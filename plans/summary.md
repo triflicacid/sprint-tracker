@@ -52,35 +52,6 @@ without it for now, adding the prefix once that plan lands. Sources the story's 
 `Subtask` itself via a server-side join (new `storyJiraKey` field) rather than prop-drilling or a
 second fetch, since `SubtaskDetailPage` doesn't currently load the parent story at all.
 
-## [subtask type icons](subtask-type-icons/subtask-type-icons.md)
-
-**Status: not started**
-
-**Severity: none | Urgency: low | Worth doing: medium** — pure UX polish on its own, but has knock-on
-value since the branch-autogen plan's `tech-debt/` prefix depends on it.
-
-Icon mockups for 9 subtask "type" categories, split into **basic** (feature, bugfix, tech-debt,
-spike) and **advanced** (chore, docs, test, security, perf) tiers — each with a distinct flat SVG
-icon (standalone `.svg` files in this folder). Covers recording the type as a nullable `subtasks.type`
-column, a data-driven `static/subtask-types.json` config (draft included, `shortName`/`fullName`/
-`description`/`iconPath`/`tier`) instead of a hardcoded TS union, a native-`<select>` creation dropdown
-grouped by tier via `<optgroup>`, and where the icon renders on `SubtaskRow` (top-left corner, still
-undecided between inline-in-header vs. an absolute-positioned corner badge).
-
-## [story vs. bug icons](story-bug-icons/story-bug-icons.md)
-
-**Status: not started**
-
-**Severity: none | Urgency: low | Worth doing: low-medium** — small, self-contained visual affordance;
-nice-to-have, nothing else depends on it.
-
-Ideation for flagging a story as a bug report vs. a regular story, each with its own icon (green
-open-book for `story`; the same bug icon used by the subtask `bugfix` type, shared rather than
-duplicated) rendered inline in `StoryCard`'s header. Proposes a boolean `stories.is_bug` flag
-(mirroring the existing `awaiting_more_subtasks` column) over a `kind` string, a checkbox in the story
-creation form, and a `static/story-types.json` config in the same shape as the subtask-types one,
-with `iconPath`s flattened to a single shared `static/icons/` directory.
-
 ## [past sprints are locked and cannot be edited](plan-lock-past-sprints/plan-lock-past-sprints.md)
 
 **Status: not started**
