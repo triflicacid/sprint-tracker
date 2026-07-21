@@ -8,21 +8,55 @@
   {
     "shortName": "feature",
     "fullName": "Feature",
-    "description": "New user-facing functionality."
+    "description": "New user-facing functionality.",
+    "tier": "basic"
   },
   {
     "shortName": "bugfix",
     "fullName": "Bugfix",
-    "description": "Fixes incorrect or broken behavior."
+    "description": "Fixes incorrect or broken behavior.",
+    "tier": "basic"
   },
   {
     "shortName": "tech-debt",
     "fullName": "Tech debt",
-    "description": "Pays down accumulated shortcuts or cleanup work; not user-facing."
+    "description": "Pays down accumulated shortcuts or cleanup work; not user-facing.",
+    "tier": "basic"
   },
   {
     "shortName": "spike",
     "fullName": "Spike",
-    "description": "Time-boxed investigation or research; not a shippable change."
+    "description": "Time-boxed investigation or research; not a shippable change.",
+    "tier": "basic"
+  },
+  {
+    "shortName": "chore",
+    "fullName": "Chore",
+    "description": "Routine upkeep; nothing wrong, just needs doing.",
+    "tier": "advanced"
+  },
+  {
+    "shortName": "docs",
+    "fullName": "Docs",
+    "description": "Documentation-only work; no behavior change.",
+    "tier": "advanced"
+  },
+  {
+    "shortName": "test",
+    "fullName": "Test",
+    "description": "Test coverage or verification work.",
+    "tier": "advanced"
+  },
+  {
+    "shortName": "security",
+    "fullName": "Security",
+    "description": "Vulnerability fixes or hardening.",
+    "tier": "advanced"
+  },
+  {
+    "shortName": "perf",
+    "fullName": "Perf",
+    "description": "Performance optimisation; nothing was broken, just slow.",
+    "tier": "advanced"
   }
 ]

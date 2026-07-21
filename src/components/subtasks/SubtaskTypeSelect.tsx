@@ -13,7 +13,7 @@ export function SubtaskTypeSelect({ value, options, onChange }: SubtaskTypeSelec
     return (
         <TypeSelect
             value={value}
-            options={options.map((o) => ({ value: o.shortName, label: o.fullName, icon: <SubtaskTypeIcon type={o.shortName} /> }))}
+            options={options.map((o) => ({ value: o.shortName, label: o.fullName, icon: <SubtaskTypeIcon type={o.shortName} />, group: o.tier }))}
             onChange={onChange}
         />
     );

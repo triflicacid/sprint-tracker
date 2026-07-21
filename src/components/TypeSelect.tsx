@@ -5,6 +5,7 @@ export interface TypeSelectOption {
     value: string;
     label: string;
     icon: React.ReactNode;
+    group?: string;
 }
 
 interface TypeSelectProps {
@@ -53,23 +54,34 @@ export function TypeSelect({ value, options, onChange }: TypeSelectProps) {
             </button>
             {open && (
                 <ul className="type-select-list" role="listbox">
-                    {options.map((option) => (
-                        <li key={option.value}>
-                            <button
-                                type="button"
-                                role="option"
-                                aria-selected={value === option.value}
-                                className="type-select-option"
-                                onClick={() => { onChange(option.value); setOpen(false); }}
-                            >
-                                <span aria-hidden="true">{option.icon}</span>
-                                {option.label}
-                            </button>
-                        </li>
-                    ))}
+                    {options.map((option, i) => {
+                        const showHeader =
+                            option.group !== undefined &&
+                            (i === 0 || options[i - 1].group !== option.group);
+                        return (
+                            <React.Fragment key={option.value}>
+                                {showHeader && (
+                                    <li className="type-select-group-label" aria-hidden="true">
+                                        {option.group}
+                                    </li>
+                                )}
+                                <li>
+                                    <button
+                                        type="button"
+                                        role="option"
+                                        aria-selected={value === option.value}
+                                        className="type-select-option"
+                                        onClick={() => { onChange(option.value); setOpen(false); }}
+                                    >
+                                        <span aria-hidden="true">{option.icon}</span>
+                                        {option.label}
+                                    </button>
+                                </li>
+                            </React.Fragment>
+                        );
+                    })}
                 </ul>
             )}
         </div>
     );
 }
-

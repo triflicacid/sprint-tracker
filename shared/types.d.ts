@@ -79,6 +79,7 @@ export interface SubtaskTypeEntry {
   fullName: string;
   description: string;
   selectable?: boolean;
+  tier?: "basic" | "advanced";
 }
 
 // a subtask has a branch and a PR. `title` is set on creation; `comment` is
