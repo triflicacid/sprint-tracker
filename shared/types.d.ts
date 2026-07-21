@@ -143,6 +143,7 @@ export interface SprintStats {
   bugCount: number;
   repoCounts: { repoName: string; count: number; proportion: number }[];
   storyTimeDays: { storyId: number; storyLabel: string; description: string; days: number }[];
+  subtaskTypeCounts: { type: string; count: number }[];
 }
 
 // which sprints to include in a velocity history query.

@@ -1,6 +1,14 @@
 import React from "react";
 import "./SubtaskTypeIcon.css";
 
+export const SUBTASK_TYPE_COLORS: Record<string, string> = {
+    unknown: "#6b7280",
+    feature: "#22a6b3",
+    bugfix: "#e5484d",
+    "tech-debt": "#a1662f",
+    spike: "#7c6fe0",
+};
+
 interface SubtaskTypeIconProps {
     type: string;
 }

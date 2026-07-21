@@ -43,6 +43,12 @@ export interface PdfSection {
     lines?: PdfLine[];
 }
 
+// converts a css hex colour (#rrggbb) to an rgb triple for PdfTableCell.color.
+export function hexToRgb(hex: string): [number, number, number] {
+    const n = parseInt(hex.slice(1), 16);
+    return [(n >> 16) & 0xff, (n >> 8) & 0xff, n & 0xff];
+}
+
 async function captureElement(element: HTMLElement): Promise<HTMLCanvasElement> {
     const backgroundColor = getComputedStyle(document.body).getPropertyValue("--surface").trim() || "#1a1a1a";
     return html2canvas(element, { backgroundColor, scale: 2 });

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 import type { StoryDetail, StatusFlowConfig, StatusHistoryEntry, SubtaskTypeEntry } from "@shared/types";
 import { isSprintLocked } from "@shared/sprintLock";
 import { api } from "../api/client";
@@ -9,7 +9,8 @@ import { StoryTypeIcon } from "../components/stories/StoryTypeIcon";
 import { StatusBadge, STATUS_LABELS } from "../components/StatusBadge";
 import { SubtaskRow } from "../components/subtasks/SubtaskRow";
 import { SubtaskTypeSelect } from "../components/subtasks/SubtaskTypeSelect";
-import { exportSectionsAsPdf, type PdfSection } from "../utils/pdfExport";
+import { SUBTASK_TYPE_COLORS } from "../components/subtasks/SubtaskTypeIcon";
+import { exportSectionsAsPdf, type PdfSection, hexToRgb } from "../utils/pdfExport";
 import { computeSubtaskTiming, buildSubtaskPdfSection } from "../utils/subtaskTiming";
 import { buildStoryPdfFilename } from "../utils/pdfFilename";
 import { MetaRow } from "../components/MetaRow";
@@ -41,6 +42,7 @@ export function StoryDetailPage(): React.ReactElement {
     const [exporting, setExporting] = useState<boolean>(false);
 
     const barChartRef = useRef<HTMLDivElement>(null);
+    const subtaskCategoryChartRef = useRef<HTMLDivElement>(null);
     const titleIconRef = useRef<HTMLSpanElement>(null);
 
     async function loadStory() {
@@ -130,6 +132,16 @@ export function StoryDetailPage(): React.ReactElement {
             // can only measure after a pain, so wait two frames first
             await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 
+            const typeCounts = Object.entries(
+                story.subtasks.reduce<Record<string, number>>((acc, s) => {
+                    acc[s.type] = (acc[s.type] ?? 0) + 1;
+                    return acc;
+                }, {})
+            )
+                .map(([type, count]) => ({ type, count: count as number }))
+                .sort((a, b) => b.count - a.count);
+            const totalSubtaskTypes = typeCounts.reduce((s, e) => s + e.count, 0);
+
             const sections: PdfSection[] = [
                 {
                     title: story.jiraTitle ?? story.description,
@@ -144,6 +156,23 @@ export function StoryDetailPage(): React.ReactElement {
                         ...(story.awaitingMoreSubtasks ? ["Awaiting more subtasks: yes"] : []),
                     ],
                 },
+                ...(typeCounts.length > 0
+                    ? [
+                          {
+                              title: "Subtask category breakdown",
+                              element: subtaskCategoryChartRef.current ?? undefined,
+                              table: {
+                                  headers: ["", "count", "%"],
+                                  rows: typeCounts.map((e) => [
+                                      { text: e.type, color: hexToRgb(SUBTASK_TYPE_COLORS[e.type] ?? "#6b7280") },
+                                      { text: String(e.count) },
+                                      { text: `${Math.round((e.count / totalSubtaskTypes) * 100)}%` },
+                                  ]),
+                                  columnWidths: [120, 50, 50],
+                              },
+                          },
+                      ]
+                    : []),
                 ...story.subtasks.map((subtask) => {
                     const history = exportSnapshot.find((snapshot) => snapshot.subtaskId === subtask.id)?.history ?? [];
                     return buildSubtaskPdfSection(subtask, history);
@@ -298,6 +327,40 @@ export function StoryDetailPage(): React.ReactElement {
                                 <Tooltip contentStyle={{ backgroundColor: "#1a1a1a", border: "1px solid #333" }} />
                                 <Bar dataKey="days" fill="#2563eb" />
                             </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+                    <div ref={subtaskCategoryChartRef}>
+                        <ResponsiveContainer width="100%" height={280}>
+                            <PieChart>
+                                <Pie
+                                    data={story.subtasks.reduce<{ name: string; value: number; color: string }[]>((acc, s) => {
+                                        const existing = acc.find((e) => e.name === s.type);
+                                        if (existing) {
+                                            existing.value += 1;
+                                        } else {
+                                            acc.push({ name: s.type, value: 1, color: SUBTASK_TYPE_COLORS[s.type] ?? "#6b7280" });
+                                        }
+                                        return acc;
+                                    }, [])}
+                                    dataKey="value"
+                                    nameKey="name"
+                                    outerRadius={100}
+                                    label={({ name, value }: { name?: string; value?: number }) => `${name}: ${value}`}
+                                >
+                                    {story.subtasks
+                                        .reduce<{ name: string; color: string }[]>((acc, s) => {
+                                            if (!acc.find((e) => e.name === s.type)) {
+                                                acc.push({ name: s.type, color: SUBTASK_TYPE_COLORS[s.type] ?? "#6b7280" });
+                                            }
+                                            return acc;
+                                        }, [])
+                                        .map((entry) => (
+                                            <Cell key={entry.name} fill={entry.color} />
+                                        ))}
+                                </Pie>
+                                <Tooltip contentStyle={{ backgroundColor: "#1a1a1a", border: "1px solid #333" }} />
+                                <Legend />
+                            </PieChart>
                         </ResponsiveContainer>
                     </div>
                 </div>

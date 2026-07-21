@@ -103,7 +103,18 @@ export function getSprintStats(sprintId: number) {
         };
     });
 
-    return { sprintId, prCount, storyCount, bugCount, repoCounts, storyTimeDays } as SprintStats;
+    const typeRows = db
+        .prepare(
+            `SELECT subtasks.type AS type, COUNT(*) AS count
+             FROM subtasks
+             JOIN stories ON stories.id = subtasks.story_id
+             WHERE stories.sprint_id = ?
+             GROUP BY subtasks.type
+             ORDER BY count DESC`
+        )
+        .all(sprintId) as { type: string; count: number }[];
+
+    return { sprintId, prCount, storyCount, bugCount, repoCounts, storyTimeDays, subtaskTypeCounts: typeRows } as SprintStats;
 }
 
 interface ComplexitySubtaskRow {
