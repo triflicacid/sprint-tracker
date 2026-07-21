@@ -18,6 +18,11 @@ async function createSubtask(): Promise<{ id: number }> {
     return response.body;
 }
 
+async function createSubtaskWithType(type: string): Promise<{ status: number; body: Record<string, unknown> }> {
+    const response = await request(app).post(`/api/stories/${storyId}/subtasks`).send({ title: "sub", type });
+    return { status: response.status, body: response.body };
+}
+
 describe("GET /api/subtasks/:id", () => {
     it("fetches a subtask", async () => {
         const subtask = await createSubtask();
@@ -26,9 +31,56 @@ describe("GET /api/subtasks/:id", () => {
         expect(response.body.status).toBe("NEW");
     });
 
+    it("includes a type field on the returned subtask", async () => {
+        const subtask = await createSubtask();
+        const response = await request(app).get(`/api/subtasks/${subtask.id}`);
+        expect(response.status).toBe(200);
+        expect(response.body.type).toBe("unknown");
+    });
+
     it("404s for a missing subtask", async () => {
         const response = await request(app).get("/api/subtasks/999999");
         expect(response.status).toBe(404);
+    });
+});
+
+describe("POST /api/stories/:id/subtasks - type field", () => {
+    it("defaults to 'unknown' when no type is provided", async () => {
+        const { body } = await createSubtaskWithType("unknown");
+        // already tested via createSubtask, but confirm explicitly
+        const response = await request(app).post(`/api/stories/${storyId}/subtasks`).send({ title: "no type" });
+        expect(response.status).toBe(201);
+        expect(response.body.type).toBe("unknown");
+    });
+
+    it("stores the given type when a valid type is supplied", async () => {
+        const response = await request(app)
+            .post(`/api/stories/${storyId}/subtasks`)
+            .send({ title: "feature work", type: "feature" });
+        expect(response.status).toBe(201);
+        expect(response.body.type).toBe("feature");
+    });
+
+    it("stores tech-debt (hyphenated) type correctly", async () => {
+        const response = await request(app)
+            .post(`/api/stories/${storyId}/subtasks`)
+            .send({ title: "cleanup", type: "tech-debt" });
+        expect(response.status).toBe(201);
+        expect(response.body.type).toBe("tech-debt");
+    });
+
+    it("rejects an unrecognised type with 400", async () => {
+        const response = await request(app)
+            .post(`/api/stories/${storyId}/subtasks`)
+            .send({ title: "bad", type: "not-real" });
+        expect(response.status).toBe(400);
+        expect(response.body.error).toMatch(/invalid subtask type/i);
+    });
+
+    it("does not create the subtask when the type is invalid", async () => {
+        await request(app).post(`/api/stories/${storyId}/subtasks`).send({ title: "bad", type: "nope" });
+        const story = await request(app).get(`/api/stories/${storyId}`);
+        expect(story.body.subtasks).toHaveLength(0);
     });
 });
 

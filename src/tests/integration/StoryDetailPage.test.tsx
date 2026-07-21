@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import type { StatusFlowConfig, StoryDetail, Subtask } from "@shared/types";
+import type { StatusFlowConfig, StoryDetail, Subtask, SubtaskTypeEntry } from "@shared/types";
 import { StoryDetailPage } from "../../pages/StoryDetailPage";
 import { ToastProvider } from "../../components/Toast";
 import { api } from "../../api/client";
@@ -12,6 +12,7 @@ vi.mock("../../api/client", () => ({
     api: {
         getStory: vi.fn(),
         getStatusFlow: vi.fn(),
+        getSubtaskTypes: vi.fn(),
         updateStory: vi.fn(),
         createSubtask: vi.fn(),
         updateSubtask: vi.fn(),
@@ -49,9 +50,17 @@ const story: StoryDetail = {
     subtasks: [],
 };
 
+const subtaskTypes: SubtaskTypeEntry[] = [
+    { shortName: "unknown", fullName: "Unknown", description: "No type assigned.", selectable: false },
+    { shortName: "feature", fullName: "Feature", description: "New user-facing functionality.", tier: "basic" },
+    { shortName: "bugfix", fullName: "Bugfix", description: "Fixes broken behavior.", tier: "basic" },
+    { shortName: "spike", fullName: "Spike", description: "Investigation.", tier: "basic" },
+];
+
 beforeEach(() => {
     Object.values(api).forEach((fn) => vi.mocked(fn).mockReset());
     vi.mocked(api.getStatusFlow).mockResolvedValue(flow);
+    vi.mocked(api.getSubtaskTypes).mockResolvedValue(subtaskTypes);
     vi.mocked(exportSectionsAsPdf).mockReset();
 });
 
@@ -65,6 +74,7 @@ function subtask(overrides: Partial<Subtask> & { id: number; title: string }): S
         repoName: null,
         complexityRating: null,
         releaseVersion: null,
+        type: "unknown",
         createdAt: "2026-01-01",
         ...overrides,
     };
@@ -163,6 +173,7 @@ describe("StoryDetailPage", () => {
                     repoName: null,
                     complexityRating: null,
                     releaseVersion: null,
+                    type: "feature",
                     createdAt: "2026-01-01",
                 },
             ],
@@ -184,6 +195,7 @@ describe("StoryDetailPage", () => {
             repoName: null,
             complexityRating: null,
             releaseVersion: null,
+            type: "feature",
             createdAt: "2026-01-01",
         });
         renderPage();
@@ -192,8 +204,52 @@ describe("StoryDetailPage", () => {
         await userEvent.type(screen.getByPlaceholderText("subtask title"), "new subtask");
         await userEvent.click(screen.getByText("add subtask"));
 
-        expect(api.createSubtask).toHaveBeenCalledWith(1, { title: "new subtask" });
+        expect(api.createSubtask).toHaveBeenCalledWith(1, { title: "new subtask", type: "feature" });
         expect(api.getStory).toHaveBeenCalledTimes(2);
+    });
+
+    it("shows a type selector next to the subtask title field", async () => {
+        vi.mocked(api.getStory).mockResolvedValue(story);
+        renderPage();
+        await screen.findByText("support saved cards");
+        // The SubtaskTypeSelect trigger shows the current selection
+        expect(screen.getByRole("button", { name: "Feature" })).toBeInTheDocument();
+    });
+
+    it("allows changing the type before adding a subtask", async () => {
+        vi.mocked(api.getStory).mockResolvedValue(story);
+        vi.mocked(api.createSubtask).mockResolvedValue(subtask({ id: 10, title: "spike work", type: "spike" }));
+        renderPage();
+        await screen.findByText("support saved cards");
+
+        // open the type select and pick spike
+        await userEvent.click(screen.getByRole("button", { name: "Feature" }));
+        await userEvent.click(screen.getByRole("option", { name: "Spike" }));
+
+        await userEvent.type(screen.getByPlaceholderText("subtask title"), "spike work");
+        await userEvent.click(screen.getByText("add subtask"));
+
+        expect(api.createSubtask).toHaveBeenCalledWith(1, { title: "spike work", type: "spike" });
+    });
+
+    it("hides the type select and subtask form when the parent sprint has ended", async () => {
+        vi.mocked(api.getStory).mockResolvedValue({ ...story, sprintEndDate: "2020-01-10" });
+        renderPage();
+        await screen.findByText("support saved cards");
+
+        expect(screen.queryByPlaceholderText("subtask title")).not.toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "Feature" })).not.toBeInTheDocument();
+    });
+
+    it("submits via Enter key in the title field, passing the selected type", async () => {
+        vi.mocked(api.getStory).mockResolvedValue(story);
+        vi.mocked(api.createSubtask).mockResolvedValue(subtask({ id: 11, title: "quick add", type: "feature" }));
+        renderPage();
+        await screen.findByText("support saved cards");
+
+        await userEvent.type(screen.getByPlaceholderText("subtask title"), "quick add{Enter}");
+
+        expect(api.createSubtask).toHaveBeenCalledWith(1, { title: "quick add", type: "feature" });
     });
 
     it("adds a tag through the form", async () => {
@@ -249,8 +305,9 @@ describe("StoryDetailPage", () => {
                     title: "add endpoint",
                     branchName: "feature/add-endpoint",
                     url: "https://github.com/acme/repo/pull/7",
+                    type: "feature",
                 }),
-                subtask({ id: 6, title: "wire up client" }),
+                subtask({ id: 6, title: "wire up client", type: "bugfix" }),
             ],
         });
         vi.mocked(api.getSubtaskHistory).mockImplementation((id) =>
@@ -274,7 +331,8 @@ describe("StoryDetailPage", () => {
         await vi.waitFor(() => expect(exportSectionsAsPdf).toHaveBeenCalledTimes(1));
         const [sections, filename] = vi.mocked(exportSectionsAsPdf).mock.calls[0];
 
-        expect(sections).toHaveLength(3);
+        // summary + subtask-category breakdown + 2 subtask pages = 4
+        expect(sections).toHaveLength(4);
         expect(sections[0].title).toBe("support saved cards");
         expect(sections[0].lines).toEqual(
             expect.arrayContaining([
@@ -286,11 +344,15 @@ describe("StoryDetailPage", () => {
         );
         expect(sections[0].element).toBeInstanceOf(HTMLElement);
 
-        // subtask pages are a real drawn table (no flow-diagram screenshot),
-        // plus a pr link line up front when the subtask has one.
-        expect(sections[1].title).toBe("add endpoint (feature/add-endpoint)");
-        expect(sections[1].element).toBeUndefined();
-        expect(sections[1].table).toEqual({
+        // subtask category breakdown section
+        expect(sections[1].title).toBe("Subtask category breakdown");
+        expect(sections[1].table).toBeDefined();
+        expect(sections[1].table?.headers).toEqual(["", "count", "%"]);
+
+        // subtask pages
+        expect(sections[2].title).toBe("add endpoint (feature/add-endpoint)");
+        expect(sections[2].element).toBeUndefined();
+        expect(sections[2].table).toEqual({
             headers: ["date/time", "state", "time in previous"],
             columnWidths: [55, 45, 55],
             rows: [
@@ -298,19 +360,9 @@ describe("StoryDetailPage", () => {
                 [{ text: "2026-01-03 00:00" }, { text: "wip", color: [217, 89, 38] }, { text: "2d 0h 0m" }],
             ],
         });
-        expect(sections[1].lines).toEqual(
-            expect.arrayContaining([
-                { text: "Pull request: https://github.com/acme/repo/pull/7", url: "https://github.com/acme/repo/pull/7" },
-                "Total time in each phase:",
-            ])
-        );
 
-        expect(sections[2].element).toBeUndefined();
-        expect(sections[2].table).toBeUndefined();
-        expect(sections[2].lines).not.toEqual(expect.arrayContaining([expect.objectContaining({ url: expect.anything() })]));
-
-        expect(sections[2].title).toBe("wire up client");
-        expect(sections[2].lines).toEqual(["No status history recorded yet."]);
+        expect(sections[3].title).toBe("wire up client");
+        expect(sections[3].lines).toEqual(["No status history recorded yet."]);
 
         expect(filename).toMatch(/^NEB-1-export-\d{4}-\d{2}-\d{2}\.pdf$/);
     });

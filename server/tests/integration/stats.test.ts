@@ -29,6 +29,25 @@ describe("GET /api/stats/sprint/:id", () => {
         expect(response.status).toBe(200);
         expect(response.body).toMatchObject({ sprintId, storyCount: 1, prCount: 0 });
     });
+
+    it("includes subtaskTypeCounts in the response", async () => {
+        const response = await request(app).get(`/api/stats/sprint/${sprintId}`);
+        expect(response.status).toBe(200);
+        expect(Array.isArray(response.body.subtaskTypeCounts)).toBe(true);
+    });
+
+    it("counts subtasks by type when subtasks exist", async () => {
+        await request(app).post(`/api/stories/${storyId}/subtasks`).send({ title: "a feature", type: "feature" });
+        await request(app).post(`/api/stories/${storyId}/subtasks`).send({ title: "a bugfix", type: "bugfix" });
+        await request(app).post(`/api/stories/${storyId}/subtasks`).send({ title: "another feature", type: "feature" });
+
+        const response = await request(app).get(`/api/stats/sprint/${sprintId}`);
+        const typeCounts: { type: string; count: number }[] = response.body.subtaskTypeCounts;
+        const featureEntry = typeCounts.find((e) => e.type === "feature");
+        const bugfixEntry = typeCounts.find((e) => e.type === "bugfix");
+        expect(featureEntry?.count).toBe(2);
+        expect(bugfixEntry?.count).toBe(1);
+    });
 });
 
 describe("GET /api/stats/status-breakdown/:id", () => {
