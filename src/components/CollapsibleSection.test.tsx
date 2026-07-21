@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { CollapsibleSection } from "./CollapsibleSection";
+import { CollapsibleSection, CollapseAllContext, ExpandAllContext } from "./CollapsibleSection";
 
 describe("CollapsibleSection", () => {
     it("renders the title and children open by default", () => {
@@ -107,6 +107,72 @@ describe("CollapsibleSection", () => {
         expect(screen.queryByText("body content")).toBeNull();
         expect(screen.getByRole("button", { name: "export" })).toBeInTheDocument();
     });
+
+    describe("CollapseAllContext", () => {
+        function CollapseAllHarness({ signal }: { signal: number }) {
+            return (
+                <CollapseAllContext.Provider value={signal}>
+                    <CollapsibleSection title="sprints">body content</CollapsibleSection>
+                </CollapseAllContext.Provider>
+            );
+        }
+
+        it("collapses when the context signal increments", async () => {
+            const { rerender } = render(<CollapseAllHarness signal={0} />);
+            expect(screen.getByText("body content")).toBeInTheDocument();
+            rerender(<CollapseAllHarness signal={1} />);
+            expect(screen.queryByText("body content")).toBeNull();
+            expect(document.querySelector("hr.section-collapsed-rule")).toBeInTheDocument();
+        });
+
+        it("can be re-opened individually after a collapse-all signal", async () => {
+            const { rerender } = render(<CollapseAllHarness signal={0} />);
+            rerender(<CollapseAllHarness signal={1} />);
+            await userEvent.click(screen.getByRole("button", { name: /sprints/i }));
+            expect(screen.getByText("body content")).toBeInTheDocument();
+        });
+
+        it("does not collapse on initial render with a non-zero signal", () => {
+            // signal starts at 1 (e.g. component mounts after a collapse-all was fired)
+            // sections should still open by default since they weren't alive for that signal
+            render(<CollapseAllHarness signal={1} />);
+            expect(screen.getByText("body content")).toBeInTheDocument();
+        });
+    });
+
+    describe("ExpandAllContext", () => {
+        function ExpandAllHarness({ signal }: { signal: number }) {
+            return (
+                <ExpandAllContext.Provider value={signal}>
+                    <CollapsibleSection title="sprints" defaultOpen={false}>body content</CollapsibleSection>
+                </ExpandAllContext.Provider>
+            );
+        }
+
+        it("expands when the context signal increments", async () => {
+            const { rerender } = render(<ExpandAllHarness signal={0} />);
+            expect(screen.queryByText("body content")).toBeNull();
+            rerender(<ExpandAllHarness signal={1} />);
+            expect(screen.getByText("body content")).toBeInTheDocument();
+        });
+
+        it("can be re-collapsed individually after an expand-all signal", async () => {
+            const { rerender } = render(<ExpandAllHarness signal={0} />);
+            rerender(<ExpandAllHarness signal={1} />);
+            await userEvent.click(screen.getByRole("button", { name: /sprints/i }));
+            expect(screen.queryByText("body content")).toBeNull();
+        });
+
+        it("does not expand on initial render with a non-zero signal", () => {
+            render(<ExpandAllHarness signal={1} />);
+            // defaultOpen=false, signal was already 1 on mount — should stay closed
+            expect(screen.queryByText("body content")).toBeNull();
+        });
+    });
 });
+
+
+
+
 
 
