@@ -42,7 +42,7 @@ export function SprintListPage(): React.ReactElement {
                     <Link to="/stats">stats</Link>
                     <Link to="/timesheet">timesheet</Link>
                     <Link to="/transitions">transitions</Link>
-                    <Link to="/types">types</Link>
+                    <Link to="/categories">categories</Link>
                     <Link to="/export">export</Link>
                     <button onClick={() => setShowForm(!showForm)}>new sprint</button>
                 </div>
