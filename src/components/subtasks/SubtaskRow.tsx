@@ -94,6 +94,8 @@ export function SubtaskRow({ subtask, flow, onChanged, disableNavigation, sprint
     const pendingFields: FlowField[] = pendingStatus ? requiredFields(subtask.status, pendingStatus) : [];
     const githubBranchUrl: string | null = branchUrl(subtask);
     const complexityLocked = flow.states.find((state) => state.id === subtask.status)?.locksComplexity ?? false;
+    // branch display is suppressed for states where no branch exists yet
+    const branchApplicable = !(flow.states.find((state) => state.id === subtask.status)?.noBranch ?? false);
 
     return (
         <div
@@ -105,7 +107,7 @@ export function SubtaskRow({ subtask, flow, onChanged, disableNavigation, sprint
             </div>
             <div className="subtask-header">
                 <div className="subtask-branch-pr">
-                    {githubBranchUrl ? (
+                    {branchApplicable && (githubBranchUrl ? (
                         <a
                             href={githubBranchUrl}
                             target="_blank"
@@ -117,7 +119,7 @@ export function SubtaskRow({ subtask, flow, onChanged, disableNavigation, sprint
                         </a>
                     ) : (
                         <span className="branch-name">{subtask.branchName}</span>
-                    )}
+                    ))}
                     {subtask.url && (
                         <a
                             href={subtask.url}

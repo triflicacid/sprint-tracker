@@ -6,7 +6,8 @@
       "rank": 0,
       "color": "#6b7280",
       "description": "Not started yet - no branch has been created for this subtask.",
-      "burndownMilestone": true
+      "burndownMilestone": true,
+      "noBranch": true
     },
     {
       "id": "WIP",

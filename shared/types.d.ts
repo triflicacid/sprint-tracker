@@ -43,6 +43,8 @@ export interface FlowState {
   locksComplexity?: boolean;
   // includes this state as a burndown checkpoint
   burndownMilestone?: boolean;
+  // branch name is not yet applicable in this state - suppress its display
+  noBranch?: boolean;
 }
 
 // status flow config loaded from `status_flow.json`

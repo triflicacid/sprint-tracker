@@ -16,7 +16,7 @@ vi.mock("../../api/client", () => ({
 
 const flow: StatusFlowConfig = {
     states: [
-        { id: "NEW", label: "new", rank: 0, color: "#6b7280", description: "" },
+        { id: "NEW", label: "new", rank: 0, color: "#6b7280", description: "", noBranch: true },
         { id: "WIP", label: "wip", rank: 1, color: "#d95926", description: "" },
         { id: "IN_PR", label: "in pr", rank: 2, color: "#9085e9", description: "" },
         { id: "CUT_RELEASE", label: "cut release", rank: 3, color: "#d55181", description: "", locksComplexity: true },
@@ -80,11 +80,14 @@ afterEach(() => {
 });
 
 describe("SubtaskRow - rendering", () => {
-    it("shows the branch name, title and current status", () => {
-        renderRow(baseSubtask);
-        expect(screen.getByText("(unknown)")).toBeInTheDocument();
-        expect(screen.getByText("add endpoint")).toBeInTheDocument();
-        expect(screen.getByText("new")).toBeInTheDocument();
+    it("hides the branch name when the current state has noBranch set", () => {
+        renderRow(baseSubtask); // baseSubtask is NEW, which has noBranch: true
+        expect(screen.queryByText("(unknown)")).not.toBeInTheDocument();
+    });
+
+    it("shows the branch name once the subtask is in a state where a branch exists", () => {
+        renderRow({ ...baseSubtask, status: "WIP", branchName: "feature/NEB-1234-add-endpoint" });
+        expect(screen.getByText("feature/NEB-1234-add-endpoint")).toBeInTheDocument();
     });
 
     it("does not show the comment, even when one is set", () => {

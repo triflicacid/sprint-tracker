@@ -623,6 +623,9 @@ components:
         burndownMilestone:
           type: boolean
           description: When true, this state is drawn as its own checkpoint line on the stats page's advanced burndown chart.
+        noBranch:
+          type: boolean
+          description: When true, the branch name is not yet applicable in this state and should not be displayed.
 
     StatusFlowConfig:
       type: object
