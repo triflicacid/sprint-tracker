@@ -14,12 +14,13 @@ The favicon was sourced from <a href="https://www.flaticon.com/free-icons/run" t
 ## Features
 
 - Track sprints, stories and subtasks in one place, alongside their linked Jira issues
+- Subtasks support categories (feature, bugfix, tech-debt, spike) with icons
 - Each subtask follows a clear status workflow from not-started through to released
 - Story progress is worked out automatically from the status of its subtasks
 - Optional Jira integration to pull in an issue's title and labels
 - Full history of every status change, viewable as flow diagrams
 - Calendar views for sprint timelines and day-to-day activity
-- A stats page with charts summarising sprint progress
+- A stats page with charts summarising sprint progress, including cross-sprint velocity trends
 - Tagging support, both automatic (by repo) and custom labels
 - Holiday tracking, so calendars can distinguish working days
 - Export any set of sprints to a markdown file, with a picker for which story/subtask fields to include
