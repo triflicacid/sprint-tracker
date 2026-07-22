@@ -10,9 +10,10 @@ import { isValidSubtaskType } from "./subtaskTypeService.js";
 interface SubtaskRow {
     id: number;
     story_id: number;
+    story_jira_key: string | null;
     title: string;
     comment: string | null;
-    branch_name: string;
+    branch_name: string | null;
     status: SubtaskStatus;
     url: string | null;
     repo_name: string | null;
@@ -76,9 +77,10 @@ function assertStorySprintUnlocked(storyId: number): void {
  * @returns mapped subtask.
  */
 function rowToSubtask(row: SubtaskRow): Subtask {
-    return {
+    const subtask: Subtask & { storyJiraKey: string | null } = {
         id: row.id,
         storyId: row.story_id,
+        storyJiraKey: row.story_jira_key,
         title: row.title,
         comment: row.comment,
         branchName: row.branch_name,
@@ -90,6 +92,7 @@ function rowToSubtask(row: SubtaskRow): Subtask {
         type: row.type,
         createdAt: row.created_at,
     };
+    return subtask;
 }
 
 /**
@@ -100,7 +103,13 @@ function rowToSubtask(row: SubtaskRow): Subtask {
  */
 export function getSubtasksForStory(storyId: number): Subtask[] {
     const rows: SubtaskRow[] = db
-        .prepare("SELECT * FROM subtasks WHERE story_id = ? ORDER BY id")
+        .prepare(
+            `SELECT subtasks.*, stories.jira_key AS story_jira_key
+             FROM subtasks
+             JOIN stories ON stories.id = subtasks.story_id
+             WHERE subtasks.story_id = ?
+             ORDER BY subtasks.id`
+        )
         .all(storyId) as SubtaskRow[];
     return rows.map(rowToSubtask);
 }
@@ -112,7 +121,12 @@ export function getSubtasksForStory(storyId: number): Subtask[] {
  * @returns the subtask or `undefined` when it is missing.
  */
 export function getSubtaskById(id: number): Subtask | undefined {
-    const row: SubtaskRow | undefined = db.prepare("SELECT * FROM subtasks WHERE id = ?").get(id) as
+    const row: SubtaskRow | undefined = db.prepare(
+        `SELECT subtasks.*, stories.jira_key AS story_jira_key
+         FROM subtasks
+         JOIN stories ON stories.id = subtasks.story_id
+         WHERE subtasks.id = ?`
+    ).get(id) as
         | SubtaskRow
         | undefined;
     return row ? rowToSubtask(row) : undefined;
@@ -136,8 +150,7 @@ export function createSubtask(storyId: number, input: CreateSubtaskInput): Subta
         .run(storyId, input.title, type);
     const id = Number(result.lastInsertRowid);
     recordStatusChange("subtask", id, "NEW", null);
-    const created: SubtaskRow = db.prepare("SELECT * FROM subtasks WHERE id = ?").get(id) as SubtaskRow;
-    return rowToSubtask(created);
+    return getSubtaskById(id) as Subtask;
 }
 
 /**
@@ -202,6 +215,5 @@ export function updateSubtask(subtaskId: number, input: UpdateSubtaskInput): Sub
         recordStatusChange("subtask", subtaskId, nextStatus, input.releaseVersion ?? null);
     }
 
-    const updated: SubtaskRow = db.prepare("SELECT * FROM subtasks WHERE id = ?").get(subtaskId) as SubtaskRow;
-    return rowToSubtask(updated);
+    return getSubtaskById(subtaskId) as Subtask;
 }

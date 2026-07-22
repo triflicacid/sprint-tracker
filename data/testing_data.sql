@@ -7,7 +7,7 @@ INSERT INTO sprints (name, start_date, end_date, comment) VALUES
     ('Nebula Checkout Sprint 2', '2026-03-16', '2026-03-30', '1-day holiday, public holiday');
 
 INSERT INTO sprints (name, start_date, end_date, comment) VALUES
-    ('Nebula Checkout Sprint 4', '2026-03-30', NULL, NULL);
+    ('Nebula Checkout Sprint 4', '2026-05-05', NULL, NULL);
 
 -- a couple of holiday-block days early in sprint 1, plus the public
 -- holiday mentioned in sprint 2's comment above.
@@ -383,60 +383,60 @@ INSERT INTO status_history (entity_type, entity_id, status, release_version, cha
     ('subtask', (SELECT id FROM subtasks WHERE title = 'render delivery status widget'), 'DONE', NULL, '2026-03-28 18:15:00'),
 
     -- NEB-1058 / add partial refund endpoint - now pushed through to done
-    ('subtask', (SELECT id FROM subtasks WHERE title = 'add partial refund endpoint'), 'NEW', NULL, '2026-03-30 09:00:00'),
-    ('subtask', (SELECT id FROM subtasks WHERE title = 'add partial refund endpoint'), 'WIP', NULL, '2026-03-30 09:10:00'),
-    ('subtask', (SELECT id FROM subtasks WHERE title = 'add partial refund endpoint'), 'IN_REVIEW', NULL, '2026-04-01 14:00:00'),
-    ('subtask', (SELECT id FROM subtasks WHERE title = 'add partial refund endpoint'), 'PR_COMMENTS', NULL, '2026-04-02 10:00:00'),
-    ('subtask', (SELECT id FROM subtasks WHERE title = 'add partial refund endpoint'), 'CUT_RELEASE', NULL, '2026-04-02 16:00:00'),
-    ('subtask', (SELECT id FROM subtasks WHERE title = 'add partial refund endpoint'), 'TESTING', 'v4.14.0', '2026-04-07 09:00:00'),
-    ('subtask', (SELECT id FROM subtasks WHERE title = 'add partial refund endpoint'), 'UAT', NULL, '2026-04-09 09:00:00'),
-    ('subtask', (SELECT id FROM subtasks WHERE title = 'add partial refund endpoint'), 'DONE', NULL, '2026-04-10 17:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add partial refund endpoint'), 'NEW', NULL, '2026-05-05 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add partial refund endpoint'), 'WIP', NULL, '2026-05-05 09:10:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add partial refund endpoint'), 'IN_REVIEW', NULL, '2026-05-07 14:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add partial refund endpoint'), 'PR_COMMENTS', NULL, '2026-05-08 10:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add partial refund endpoint'), 'CUT_RELEASE', NULL, '2026-05-08 16:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add partial refund endpoint'), 'TESTING', 'v4.14.0', '2026-05-13 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add partial refund endpoint'), 'UAT', NULL, '2026-05-15 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add partial refund endpoint'), 'DONE', NULL, '2026-05-16 17:00:00'),
 
     -- NEB-1061 / build refund timeline component - still in flight, ends at uat
-    ('subtask', (SELECT id FROM subtasks WHERE title = 'build refund timeline component'), 'NEW', NULL, '2026-03-31 09:00:00'),
-    ('subtask', (SELECT id FROM subtasks WHERE title = 'build refund timeline component'), 'WIP', NULL, '2026-03-31 09:15:00'),
-    ('subtask', (SELECT id FROM subtasks WHERE title = 'build refund timeline component'), 'IN_REVIEW', NULL, '2026-04-02 13:00:00'),
-    ('subtask', (SELECT id FROM subtasks WHERE title = 'build refund timeline component'), 'PR_COMMENTS', NULL, '2026-04-03 10:00:00'),
-    ('subtask', (SELECT id FROM subtasks WHERE title = 'build refund timeline component'), 'CUT_RELEASE', NULL, '2026-04-03 15:30:00'),
-    ('subtask', (SELECT id FROM subtasks WHERE title = 'build refund timeline component'), 'TESTING', 'v4.13.0', '2026-04-07 10:00:00'),
-    ('subtask', (SELECT id FROM subtasks WHERE title = 'build refund timeline component'), 'UAT', NULL, '2026-04-09 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'build refund timeline component'), 'NEW', NULL, '2026-05-06 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'build refund timeline component'), 'WIP', NULL, '2026-05-06 09:15:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'build refund timeline component'), 'IN_REVIEW', NULL, '2026-05-08 13:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'build refund timeline component'), 'PR_COMMENTS', NULL, '2026-05-09 10:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'build refund timeline component'), 'CUT_RELEASE', NULL, '2026-05-09 15:30:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'build refund timeline component'), 'TESTING', 'v4.13.0', '2026-05-13 10:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'build refund timeline component'), 'UAT', NULL, '2026-05-15 09:00:00'),
 
     -- NEB-1070 / add currency conversion helper - done, no oscillation
-    ('subtask', (SELECT id FROM subtasks WHERE title = 'add currency conversion helper'), 'NEW', NULL, '2026-03-31 09:00:00'),
-    ('subtask', (SELECT id FROM subtasks WHERE title = 'add currency conversion helper'), 'WIP', NULL, '2026-03-31 09:10:00'),
-    ('subtask', (SELECT id FROM subtasks WHERE title = 'add currency conversion helper'), 'IN_PR', NULL, '2026-04-01 11:00:00'),
-    ('subtask', (SELECT id FROM subtasks WHERE title = 'add currency conversion helper'), 'IN_REVIEW', NULL, '2026-04-01 16:00:00'),
-    ('subtask', (SELECT id FROM subtasks WHERE title = 'add currency conversion helper'), 'CUT_RELEASE', NULL, '2026-04-01 18:00:00'),
-    ('subtask', (SELECT id FROM subtasks WHERE title = 'add currency conversion helper'), 'TESTING', 'v4.14.0', '2026-04-07 09:30:00'),
-    ('subtask', (SELECT id FROM subtasks WHERE title = 'add currency conversion helper'), 'UAT', NULL, '2026-04-09 09:30:00'),
-    ('subtask', (SELECT id FROM subtasks WHERE title = 'add currency conversion helper'), 'DONE', NULL, '2026-04-10 17:30:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add currency conversion helper'), 'NEW', NULL, '2026-05-06 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add currency conversion helper'), 'WIP', NULL, '2026-05-06 09:10:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add currency conversion helper'), 'IN_PR', NULL, '2026-05-07 11:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add currency conversion helper'), 'IN_REVIEW', NULL, '2026-05-07 16:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add currency conversion helper'), 'CUT_RELEASE', NULL, '2026-05-07 18:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add currency conversion helper'), 'TESTING', 'v4.14.0', '2026-05-13 09:30:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add currency conversion helper'), 'UAT', NULL, '2026-05-15 09:30:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add currency conversion helper'), 'DONE', NULL, '2026-05-16 17:30:00'),
 
     -- NEB-1070 / wire multi-currency refund endpoint - two rounds of pr comments,
     -- pushed through to done.
-    ('subtask', (SELECT id FROM subtasks WHERE title = 'wire multi-currency refund endpoint'), 'NEW', NULL, '2026-04-01 09:00:00'),
-    ('subtask', (SELECT id FROM subtasks WHERE title = 'wire multi-currency refund endpoint'), 'WIP', NULL, '2026-04-01 09:10:00'),
-    ('subtask', (SELECT id FROM subtasks WHERE title = 'wire multi-currency refund endpoint'), 'IN_PR', NULL, '2026-04-02 13:00:00'),
-    ('subtask', (SELECT id FROM subtasks WHERE title = 'wire multi-currency refund endpoint'), 'IN_REVIEW', NULL, '2026-04-03 09:00:00'),
-    ('subtask', (SELECT id FROM subtasks WHERE title = 'wire multi-currency refund endpoint'), 'PR_COMMENTS', NULL, '2026-04-03 15:00:00'),
-    ('subtask', (SELECT id FROM subtasks WHERE title = 'wire multi-currency refund endpoint'), 'IN_REVIEW', NULL, '2026-04-04 09:00:00'),
-    ('subtask', (SELECT id FROM subtasks WHERE title = 'wire multi-currency refund endpoint'), 'PR_COMMENTS', NULL, '2026-04-04 14:00:00'),
-    ('subtask', (SELECT id FROM subtasks WHERE title = 'wire multi-currency refund endpoint'), 'IN_REVIEW', NULL, '2026-04-05 09:00:00'),
-    ('subtask', (SELECT id FROM subtasks WHERE title = 'wire multi-currency refund endpoint'), 'CUT_RELEASE', NULL, '2026-04-05 16:00:00'),
-    ('subtask', (SELECT id FROM subtasks WHERE title = 'wire multi-currency refund endpoint'), 'TESTING', 'v4.14.0', '2026-04-07 10:00:00'),
-    ('subtask', (SELECT id FROM subtasks WHERE title = 'wire multi-currency refund endpoint'), 'UAT', NULL, '2026-04-09 10:00:00'),
-    ('subtask', (SELECT id FROM subtasks WHERE title = 'wire multi-currency refund endpoint'), 'DONE', NULL, '2026-04-10 18:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'wire multi-currency refund endpoint'), 'NEW', NULL, '2026-05-07 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'wire multi-currency refund endpoint'), 'WIP', NULL, '2026-05-07 09:10:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'wire multi-currency refund endpoint'), 'IN_PR', NULL, '2026-05-08 13:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'wire multi-currency refund endpoint'), 'IN_REVIEW', NULL, '2026-05-09 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'wire multi-currency refund endpoint'), 'PR_COMMENTS', NULL, '2026-05-09 15:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'wire multi-currency refund endpoint'), 'IN_REVIEW', NULL, '2026-05-10 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'wire multi-currency refund endpoint'), 'PR_COMMENTS', NULL, '2026-05-10 14:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'wire multi-currency refund endpoint'), 'IN_REVIEW', NULL, '2026-05-11 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'wire multi-currency refund endpoint'), 'CUT_RELEASE', NULL, '2026-05-11 16:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'wire multi-currency refund endpoint'), 'TESTING', 'v4.14.0', '2026-05-13 10:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'wire multi-currency refund endpoint'), 'UAT', NULL, '2026-05-15 10:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'wire multi-currency refund endpoint'), 'DONE', NULL, '2026-05-16 18:00:00'),
 
     -- NEB-1070 / add currency selector to refund form - just started
-    ('subtask', (SELECT id FROM subtasks WHERE title = 'add currency selector to refund form'), 'NEW', NULL, '2026-04-03 09:00:00'),
-    ('subtask', (SELECT id FROM subtasks WHERE title = 'add currency selector to refund form'), 'WIP', NULL, '2026-04-03 09:15:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add currency selector to refund form'), 'NEW', NULL, '2026-05-09 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'add currency selector to refund form'), 'WIP', NULL, '2026-05-09 09:15:00'),
 
     -- NEB-1075 / create audit log table and write path - mid-flight, no review yet
-    ('subtask', (SELECT id FROM subtasks WHERE title = 'create audit log table and write path'), 'NEW', NULL, '2026-04-04 09:00:00'),
-    ('subtask', (SELECT id FROM subtasks WHERE title = 'create audit log table and write path'), 'WIP', NULL, '2026-04-04 09:10:00'),
-    ('subtask', (SELECT id FROM subtasks WHERE title = 'create audit log table and write path'), 'IN_PR', NULL, '2026-04-06 11:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'create audit log table and write path'), 'NEW', NULL, '2026-05-10 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'create audit log table and write path'), 'WIP', NULL, '2026-05-10 09:10:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'create audit log table and write path'), 'IN_PR', NULL, '2026-05-12 11:00:00'),
 
     -- NEB-1075 / expose audit log to support ui - not started
-    ('subtask', (SELECT id FROM subtasks WHERE title = 'expose audit log to support ui'), 'NEW', NULL, '2026-04-05 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'expose audit log to support ui'), 'NEW', NULL, '2026-05-11 09:00:00'),
 
     -- NEB-1012 / dedupe email dispatch on webhook retry - bug fix, skips pr_comments
     ('subtask', (SELECT id FROM subtasks WHERE title = 'dedupe email dispatch on webhook retry'), 'NEW', NULL, '2026-03-06 09:00:00'),
@@ -468,14 +468,14 @@ INSERT INTO status_history (entity_type, entity_id, status, release_version, cha
     ('subtask', (SELECT id FROM subtasks WHERE title = 'add idempotency key to webhook retry dispatch'), 'DONE', NULL, '2026-03-28 18:30:00'),
 
     -- NEB-1078 / round converted refund amount to target currency precision - bug fix, still in review
-    ('subtask', (SELECT id FROM subtasks WHERE title = 'round converted refund amount to target currency precision'), 'NEW', NULL, '2026-04-06 09:00:00'),
-    ('subtask', (SELECT id FROM subtasks WHERE title = 'round converted refund amount to target currency precision'), 'WIP', NULL, '2026-04-06 09:15:00'),
-    ('subtask', (SELECT id FROM subtasks WHERE title = 'round converted refund amount to target currency precision'), 'IN_PR', NULL, '2026-04-08 11:00:00'),
-    ('subtask', (SELECT id FROM subtasks WHERE title = 'round converted refund amount to target currency precision'), 'IN_REVIEW', NULL, '2026-04-08 15:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'round converted refund amount to target currency precision'), 'NEW', NULL, '2026-05-12 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'round converted refund amount to target currency precision'), 'WIP', NULL, '2026-05-12 09:15:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'round converted refund amount to target currency precision'), 'IN_PR', NULL, '2026-05-14 11:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'round converted refund amount to target currency precision'), 'IN_REVIEW', NULL, '2026-05-14 15:00:00'),
 
     -- NEB-1082 / log partial refund amount in audit trail - bug fix, just started
-    ('subtask', (SELECT id FROM subtasks WHERE title = 'log partial refund amount in audit trail'), 'NEW', NULL, '2026-04-07 09:00:00'),
-    ('subtask', (SELECT id FROM subtasks WHERE title = 'log partial refund amount in audit trail'), 'WIP', NULL, '2026-04-07 09:15:00');
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'log partial refund amount in audit trail'), 'NEW', NULL, '2026-05-13 09:00:00'),
+    ('subtask', (SELECT id FROM subtasks WHERE title = 'log partial refund amount in audit trail'), 'WIP', NULL, '2026-05-13 09:15:00');
 
 -- tags: a mix of custom and repo tags, attached across several stories and subtasks.
 INSERT INTO tags (name, tag_type) VALUES
@@ -1165,9 +1165,9 @@ INSERT INTO subtasks (story_id, title, branch_name, status, url, repo_name, rele
      'https://github.com/nebula-labs/payments-service/pull/242', 'payments-service', 'v4.15.0', 1, 'chore');
 
 -- deliberately left untyped to exercise the 'unknown' default
-INSERT INTO subtasks (story_id, title, branch_name, status, type) VALUES
+INSERT INTO subtasks (story_id, title, status, type) VALUES
     ((SELECT id FROM stories WHERE jira_key = 'NEB-1130'),
-     'audit third-party script dependencies for outdated versions', 'chore/neb-1130-dep-audit', 'NEW', 'unknown');
+     'audit third-party script dependencies for outdated versions', 'NEW', 'unknown');
 
 INSERT INTO status_history (entity_type, entity_id, status, release_version, changed_at) VALUES
     -- NEB-1110 / add CSRF token validation - skips pr_comments

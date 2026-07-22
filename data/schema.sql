@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS subtasks (
     story_id INTEGER NOT NULL REFERENCES stories(id) ON DELETE CASCADE,
     title TEXT NOT NULL,
     comment TEXT,
-    branch_name TEXT NOT NULL DEFAULT '(unknown)',
+    branch_name TEXT,
     status TEXT NOT NULL DEFAULT 'NEW',
     url TEXT,
     repo_name TEXT,

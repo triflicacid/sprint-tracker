@@ -6,6 +6,7 @@ import { RatingSelect } from "../RatingSelect";
 import { SubtaskTypeIcon } from "./SubtaskTypeIcon";
 import { api } from "../../api/client";
 import { useToast } from "../Toast";
+import { generateBranchName } from "../../utils/branchName";
 import "./SubtaskRow.css";
 
 const COMPLEXITY_OPTIONS = [1, 2, 3, 4, 5];
@@ -20,7 +21,7 @@ interface SubtaskRowProps {
 
 // e.g. https://github.com/org/repo/pull/123 -> .../tree/<branch>
 function branchUrl(subtask: Subtask) {
-    if (!subtask.url) {
+    if (!subtask.url || !subtask.branchName) {
         return null;
     }
     const match = subtask.url.match(/^(https:\/\/github\.com\/[^/]+\/[^/]+)\/pull/);
@@ -52,8 +53,13 @@ export function SubtaskRow({ subtask, flow, onChanged, disableNavigation, sprint
     }
 
     function startTransition(nextStatus: SubtaskStatus): void {
+        const fields = requiredFields(subtask.status, nextStatus);
+        const nextFieldValues: Record<string, string> = {};
+        if (fields.some((field) => field.field === "branchName")) {
+            nextFieldValues.branchName = generateBranchName(subtask.type, subtask.storyJiraKey, subtask.title);
+        }
         setPendingStatus(nextStatus);
-        setPendingFieldValues({});
+        setPendingFieldValues(nextFieldValues);
     }
 
     async function submitPendingTransition() {
@@ -88,6 +94,8 @@ export function SubtaskRow({ subtask, flow, onChanged, disableNavigation, sprint
     const pendingFields: FlowField[] = pendingStatus ? requiredFields(subtask.status, pendingStatus) : [];
     const githubBranchUrl: string | null = branchUrl(subtask);
     const complexityLocked = flow.states.find((state) => state.id === subtask.status)?.locksComplexity ?? false;
+    // branch display is suppressed for states where no branch exists yet
+    const branchApplicable = !(flow.states.find((state) => state.id === subtask.status)?.noBranch ?? false);
 
     return (
         <div
@@ -99,18 +107,22 @@ export function SubtaskRow({ subtask, flow, onChanged, disableNavigation, sprint
             </div>
             <div className="subtask-header">
                 <div className="subtask-branch-pr">
-                    {githubBranchUrl ? (
-                        <a
-                            href={githubBranchUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="branch-name"
-                            onClick={(event) => event.stopPropagation()}
-                        >
-                            {subtask.branchName}
-                        </a>
+                    {subtask.branchName ? (
+                        githubBranchUrl ? (
+                            <a
+                                href={githubBranchUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="branch-name"
+                                onClick={(event) => event.stopPropagation()}
+                            >
+                                {subtask.branchName}
+                            </a>
+                        ) : (
+                            <span className="branch-name">{subtask.branchName}</span>
+                        )
                     ) : (
-                        <span className="branch-name">{subtask.branchName}</span>
+                        <span className="branch-placeholder">(no branch yet)</span>
                     )}
                     {subtask.url && (
                         <a
@@ -148,6 +160,8 @@ export function SubtaskRow({ subtask, flow, onChanged, disableNavigation, sprint
                             type={field.type}
                             placeholder={field.label}
                             value={pendingFieldValues[field.field] ?? ""}
+                            autoFocus={field.field === "branchName"}
+                            onFocus={field.field === "branchName" ? (event) => event.target.select() : undefined}
                             onChange={(event) =>
                                 setPendingFieldValues((values) => ({
                                     ...values,

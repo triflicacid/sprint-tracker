@@ -623,6 +623,9 @@ components:
         burndownMilestone:
           type: boolean
           description: When true, this state is drawn as its own checkpoint line on the stats page's advanced burndown chart.
+        noBranch:
+          type: boolean
+          description: When true, the branch name is not yet applicable in this state and should not be displayed.
 
     StatusFlowConfig:
       type: object
@@ -657,10 +660,11 @@ components:
     Subtask:
       type: object
       description: Maps 1:1 to a single git branch/pull request
-      required: [id, storyId, title, comment, branchName, status, url, repoName, complexityRating, releaseVersion, createdAt]
+      required: [id, storyId, storyJiraKey, title, comment, branchName, status, url, repoName, complexityRating, releaseVersion, type, createdAt]
       properties:
         id: { type: integer }
         storyId: { type: integer }
+        storyJiraKey: { type: string, nullable: true, description: "Parent story jira key, if known." }
         title: { type: string, description: "Set on creation." }
         comment: { type: string, nullable: true, description: "Freeform note, editable afterwards. Shown only on the subtask's own detail page, not in tile/row views." }
         branchName: { type: string }
@@ -669,6 +673,7 @@ components:
         repoName: { type: string, nullable: true }
         complexityRating: { type: integer, nullable: true, minimum: 1, maximum: 5 }
         releaseVersion: { type: string, nullable: true }
+        type: { type: string }
         createdAt: { type: string, format: date-time }
 
     CreateSubtaskInput:

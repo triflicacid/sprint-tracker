@@ -37,6 +37,12 @@
     border-radius: 4px;
 }
 
+.branch-placeholder {
+    font-size: var(--font-small);
+    color: var(--text-dim);
+    font-style: italic;
+}
+
 .status-flow {
     display: flex;
     align-items: center;

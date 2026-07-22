@@ -215,7 +215,7 @@ export function buildPhaseTotalsLines(history: StatusHistoryEntry[], now: Date =
  */
 export function buildSubtaskPdfSection(subtask: Subtask, history: StatusHistoryEntry[]): PdfSection {
     return {
-        title: subtask.branchName === "(unknown)" ? subtask.title : `${subtask.title} (${subtask.branchName})`,
+        title: !subtask.branchName || subtask.branchName === "(unknown)" ? subtask.title : `${subtask.title} (${subtask.branchName})`,
         table: history.length > 0 ? buildTransitionsPdfTable(history) : undefined,
         lines: [
             ...(subtask.url ? [{ text: `Pull request: ${subtask.url}`, url: subtask.url }] : []),
