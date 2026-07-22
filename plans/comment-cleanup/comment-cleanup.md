@@ -93,7 +93,7 @@ Goal:
 1. ~~`shared/`~~
 2. ~~`server/`~~
 3. `src/`
-4. `electron/`
+4. ~~`electron/`~~
 5. `e2e/`
 
 ## Risks and guardrails

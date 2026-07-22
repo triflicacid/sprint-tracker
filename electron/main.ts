@@ -9,8 +9,8 @@ const __dirname = path.dirname(__filename);
 const isDev: boolean = process.env.NODE_ENV === "development";
 const port: number = Number(process.env.PORT) || 4000;
 
-// starts the bundled express server. in dev mode the server is expected
-// to already be running separately via `npm run dev:server`.
+// starts the bundled express server; in dev mode the server is expected
+// to already be running separately via `npm run dev:server`
 async function startServer() {
     if (isDev) {
         return;
