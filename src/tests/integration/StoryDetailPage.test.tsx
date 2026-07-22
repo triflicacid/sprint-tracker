@@ -92,8 +92,8 @@ function renderPage() {
     );
 }
 
-describe("StoryDetailPage", () => {
-    it("shows loading then the story once fetched", async () => {
+describe("story detail page", () => {
+    it("shows loading, then the story once fetched", async () => {
         vi.mocked(api.getStory).mockResolvedValue(story);
         renderPage();
         expect(screen.getByText("loading...")).toBeInTheDocument();
@@ -270,7 +270,7 @@ describe("StoryDetailPage", () => {
         expect(api.removeStoryTag).toHaveBeenCalledWith(1, 1);
     });
 
-    it("refreshes from jira when the jira key is present", async () => {
+    it("refreshes from JIRA when the key is present", async () => {
         vi.mocked(api.getStory).mockResolvedValue(story);
         vi.mocked(api.getJiraInfo).mockResolvedValue({ key: "NEB-1", title: "x", labels: [] });
         renderPage();
@@ -296,7 +296,7 @@ describe("StoryDetailPage", () => {
         expect(api.updateStory).toHaveBeenCalledWith(1, { storyPoints: 5 });
     });
 
-    it("exports a pdf with one section per subtask plus a summary section, fetching each subtask's history first", async () => {
+    it("exports a PDF with summary and per-subtask sections, fetching history first", async () => {
         vi.mocked(api.getStory).mockResolvedValue({
             ...story,
             subtasks: [

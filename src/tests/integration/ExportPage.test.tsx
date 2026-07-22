@@ -59,8 +59,8 @@ function renderPage() {
     );
 }
 
-describe("ExportPage", () => {
-    it("lists every sprint", async () => {
+describe("export page", () => {
+    it("lists all sprints", async () => {
         renderPage();
         expect(await screen.findByText(/Sprint One/)).toBeInTheDocument();
         expect(screen.getByText(/Sprint Two/)).toBeInTheDocument();
@@ -109,7 +109,7 @@ describe("ExportPage", () => {
         );
     });
 
-    it("includes a field that defaults to excluded, once selected", async () => {
+    it("includes a field that defaults to excluded once selected", async () => {
         vi.mocked(api.exportMarkdown).mockResolvedValue("markdown");
         renderPage();
         await screen.findByText(/Sprint One/);
@@ -150,7 +150,7 @@ describe("ExportPage", () => {
         renderPage();
         await screen.findByText(/Sprint One/);
 
-        // Comment defaults to excluded (unchecked).
+        // Comment defaults to excluded (unchecked)
         const commentCheckbox = screen.getByText("Comment", { exact: true }).closest("label")!.querySelector("input") as HTMLInputElement;
         expect(commentCheckbox.checked).toBe(false);
         await userEvent.click(commentCheckbox);
@@ -160,7 +160,7 @@ describe("ExportPage", () => {
         expect(commentCheckbox.checked).toBe(false);
     });
 
-    it("persists field changes to localStorage across a remount", async () => {
+    it("persists changes to localStorage", async () => {
         const { unmount } = renderPage();
         await screen.findByText(/Sprint One/);
         await userEvent.click(screen.getByText("Comment", { exact: true }));

@@ -78,8 +78,8 @@ function renderPage() {
     );
 }
 
-describe("SprintDetailPage", () => {
-    it("shows loading then the sprint's stories", async () => {
+describe("sprint detail page", () => {
+    it("shows loading, then the sprint's stories", async () => {
         renderPage();
         expect(screen.getByText("loading...")).toBeInTheDocument();
         expect(await screen.findByText("a story")).toBeInTheDocument();
@@ -97,7 +97,7 @@ describe("SprintDetailPage", () => {
         expect(api.addHoliday).toHaveBeenCalledWith("2026-01-05");
     });
 
-    it("collapses consecutive holiday dates into a single range pill, formatted dd/mm/yyyy with an em dash", async () => {
+    it("collapses consecutive holiday dates into a dd/mm/yyyy range", async () => {
         vi.mocked(api.listHolidays).mockResolvedValue(["2026-01-12", "2026-01-13", "2026-01-14", "2026-01-20"]);
         renderPage();
         await screen.findByText("a story");
@@ -109,7 +109,7 @@ describe("SprintDetailPage", () => {
 
     it("allows toggling a holiday well beyond today for an ongoing sprint (no endDate yet)", async () => {
         // startDate is far in the future so this test stays correct
-        // regardless of when it actually runs - no need to mock "today".
+        // regardless of when it actually runs - no need to mock "today"
         const ongoingSprint = { ...sprint, startDate: "2030-01-01", endDate: null };
         vi.mocked(api.getSprint).mockResolvedValue(ongoingSprint);
         vi.mocked(api.addHoliday).mockResolvedValue(undefined);
@@ -118,12 +118,11 @@ describe("SprintDetailPage", () => {
 
         // an ongoing sprint has no endDate to bound the fetch by - must stay
         // unbounded (not capped at "today"), or a holiday added beyond today
-        // would silently vanish from the list on refetch.
+        // would silently vanish from the list on refetch
         expect(api.listHolidays).toHaveBeenCalledWith("2030-01-01", "9999-12-31");
 
         await userEvent.click(screen.getByRole("button", { name: "edit holidays" }));
         const januaryGrid = screen.getByText("January 2030").closest(".calendar-month") as HTMLElement;
-        // 2030-01-10 is a thursday.
         const day = within(januaryGrid).getByText("10").closest(".calendar-day") as HTMLElement;
         expect(day).toHaveClass("calendar-day-clickable");
         expect(day).not.toHaveClass("calendar-day-muted");
@@ -155,7 +154,7 @@ describe("SprintDetailPage", () => {
         expect(heading.querySelector("svg.lock-icon")).toBeNull();
     });
 
-    it("removes the new-story button and the empty comment editor once the sprint has ended", async () => {
+    it("removes the new-story button and empty comment editor once the sprint has ended", async () => {
         vi.mocked(api.getSprint).mockResolvedValue(lockedSprint);
         renderPage();
         await screen.findByText("a story");
