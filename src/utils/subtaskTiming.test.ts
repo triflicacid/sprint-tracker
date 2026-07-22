@@ -22,7 +22,7 @@ function subtask(overrides: Partial<Subtask> = {}): Subtask {
         storyJiraKey: "NEB-1",
         title: "add endpoint",
         comment: null,
-        branchName: "(unknown)",
+        branchName: null,
         status: "NEW",
         url: null,
         repoName: null,
@@ -271,7 +271,12 @@ describe("buildSubtaskPdfSection", () => {
         expect(section.title).toBe("add endpoint (feature/x)");
     });
 
-    it("leaves the title bare when the branch name is unknown", () => {
+    it("leaves the title bare when the branch name is null", () => {
+        const section = buildSubtaskPdfSection(subtask({ title: "add endpoint", branchName: null }), []);
+        expect(section.title).toBe("add endpoint");
+    });
+
+    it("leaves the title bare when the branch name is the legacy (unknown) sentinel", () => {
         const section = buildSubtaskPdfSection(subtask({ title: "add endpoint", branchName: "(unknown)" }), []);
         expect(section.title).toBe("add endpoint");
     });

@@ -21,7 +21,7 @@ interface SubtaskRowProps {
 
 // e.g. https://github.com/org/repo/pull/123 -> .../tree/<branch>
 function branchUrl(subtask: Subtask) {
-    if (!subtask.url) {
+    if (!subtask.url || !subtask.branchName) {
         return null;
     }
     const match = subtask.url.match(/^(https:\/\/github\.com\/[^/]+\/[^/]+)\/pull/);

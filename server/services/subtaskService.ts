@@ -13,7 +13,7 @@ interface SubtaskRow {
     story_jira_key: string | null;
     title: string;
     comment: string | null;
-    branch_name: string;
+    branch_name: string | null;
     status: SubtaskStatus;
     url: string | null;
     repo_name: string | null;

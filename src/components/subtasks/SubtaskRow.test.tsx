@@ -35,7 +35,7 @@ const baseSubtask: Subtask = {
     storyJiraKey: "NEB-1234",
     title: "add endpoint",
     comment: null,
-    branchName: "(unknown)",
+    branchName: null,
     status: "NEW",
     url: null,
     repoName: null,

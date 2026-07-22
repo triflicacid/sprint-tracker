@@ -88,7 +88,7 @@ export interface Subtask {
   storyJiraKey: string | null;
   title: string;
   comment: string | null;
-  branchName: string;
+  branchName: string | null;
   status: SubtaskStatus;
   url: string | null;
   repoName: string | null;
