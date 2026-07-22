@@ -3,24 +3,17 @@
 Brief index of everything under `plans/`. Each entry links to the full doc — check there before
 acting on anything, since plans are point-in-time snapshots and code may have moved since.
 
-## [code auto-formatter + stricter unused-var/type checks](plan-code-formatter-and-strict-unused/plan-code-formatter-and-strict-unused.md)
+## [code formatter](plan-code-formatter/plan-code-formatter.md)
 
 **Status: not started**
 
-**Severity: low | Urgency: low | Worth doing: medium-high** — no correctness risk, but unused-var
-drift and inconsistent formatting is quiet tech debt that compounds; cheap now (16 known violations),
-gets more expensive to retrofit the longer it's left.
+**Severity: low | Urgency: low | Worth doing: medium-high** — no correctness risk, but formatting
+consistency and check automation reduce day-to-day diff noise and review churn.
 
-Two independent dev-tooling pieces. (1) Enable `noUnusedLocals`/`noUnusedParameters` in all three
-tsconfigs (`tsconfig.json`/`server/tsconfig.json` currently set them to `false` explicitly;
-`electron/tsconfig.json` doesn't set them at all) — a live scan found exactly 16 existing violations
-(mostly dead `React` default imports, now unnecessary under the `react-jsx` transform), all listed
-with file/line, small enough to fix in one pass. (2) Add a formatter — recommends Prettier, configured
-to match the codebase's existing observed style (4-space indent, double quotes, semicolons) rather
-than impose a new one, with an `npm run format`/`format:check` script pair over a git hook. Flags two
-open calls: the real `printWidth` to use (needs a line-length scan, not guessed), and whether
-enforcement should be a hook or stay manual/script-based. Explicitly scopes ESLint out as a bigger,
-separate follow-on.
+Adds Prettier as formatter while keeping ESLint as the lint baseline. Includes `eslint-config-prettier`
+so ESLint stylistic rules do not conflict with formatting. Adds `format` and `format:check` scripts,
+plus `pnpm lint` and `pnpm format:check` in `scripts/run-checks.ps1`. Recommends one dedicated
+format-only commit for the first full-tree run.
 
 ## [auto-generate subtask branch name](plan-subtask-branch-name-autogen/plan-subtask-branch-name-autogen.md)
 
