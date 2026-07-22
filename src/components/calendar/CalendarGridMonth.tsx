@@ -12,20 +12,26 @@ interface CalendarGridMonthProps {
     year: number;
     month: number;
     renderDay: (date: Date, info: CalendarDayInfo) => React.ReactNode;
-    // when provided, renders '<'/'>' chevrons flanking the month title (a
-    // typical single-month calendar-selector header) instead of the plain
-    // title alone. omit both for a multi-month, non-navigable listing (e.g.
-    // SprintActivityCalendar's read-only stack of months).
+    /** when provided, renders navigation chevrons flanking the month title */
     onPreviousMonth?: () => void;
     onNextMonth?: () => void;
     previousDisabled?: boolean;
     nextDisabled?: boolean;
 }
 
-// one month's grid: title (optionally with prev/next chevrons) + Mon-Sun
-// headers + day cells. cell content and interactivity are fully delegated
-// via renderDay, since consumers (activity chips, holiday toggling, plain
-// date selection) mute/enable days under different rules.
+/**
+ * one month's calendar grid with optional navigation
+ *
+ * cell content and interactivity fully delegated via renderDay
+ *
+ * @param year year
+ * @param month month (0-11)
+ * @param renderDay callback to render each day cell
+ * @param onPreviousMonth callback for previous month navigation
+ * @param onNextMonth callback for next month navigation
+ * @param previousDisabled if true, disables previous month button
+ * @param nextDisabled if true, disables next month button
+ */
 export function CalendarGridMonth({
     year,
     month,

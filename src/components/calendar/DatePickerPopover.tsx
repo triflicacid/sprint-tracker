@@ -15,10 +15,15 @@ const MONTH_NAMES: string[] = Array.from({ length: 12 }, (_, index) =>
     new Date(Date.UTC(2000, index, 1)).toLocaleString("en-US", { month: "long", timeZone: "UTC" })
 );
 
-// a styled replacement for a bare <input type="date">: single-select,
-// closes on pick. unbounded (any month can be navigated to, unlike
-// HolidayPickerPopover which is fixed to a sprint's range) and weekends
-// stay clickable, since an export range boundary can legitimately be one.
+/**
+ * styled date picker with calendar popover
+ * 
+ * single-select, closes on pick, unbounded month navigation, weekends clickable
+ * 
+ * @param label button label
+ * @param value current ISO date value
+ * @param onSelect callback when a date is selected
+ */
 export function DatePickerPopover({ label, value, onSelect }: DatePickerPopoverProps) {
     const initial = value ? parseIsoDate(value) : new Date();
     const [year, setYear] = useState<number>(initial.getUTCFullYear());

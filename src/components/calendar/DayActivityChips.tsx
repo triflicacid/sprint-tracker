@@ -20,18 +20,18 @@ function activityTitle(entry: DayActivityEntry, linkMode: LinkMode) {
 
 interface DayActivityChipsProps {
     activities: DayActivityEntry[];
-    // "pr" (default): a chip with a pr url opens it in a new tab, otherwise
-    // it's inert. "story": every chip links to its story's detail page
-    // instead - used where activities have already been grouped per-story
-    // (see groupActivitiesByStory), so a single pr url no longer applies.
+    /** "pr" (default): chip opens PR URL; "story": chip links to story detail page */
     linkMode?: LinkMode;
 }
 
-// one day's activity chips (story code + branch, colored by status), capped
-// at MAX_VISIBLE_CHIPS with the rest folded into a "+N more" chip. every
-// chip stops the click from bubbling, since a parent day-cell may itself be
-// clickable (e.g. a holiday-toggle) and a chip click shouldn't also trigger
-// that.
+/**
+ * displays activity chips for one day, capped with overflow indicator
+ *
+ * chips are colored by status and stop click bubbling to prevent parent triggers
+ *
+ * @param activities array of day activity entries
+ * @param linkMode link mode ("pr" or "story")
+ */
 export function DayActivityChips({ activities, linkMode = "pr" }: DayActivityChipsProps) {
     if (activities.length === 0) {
         return null;

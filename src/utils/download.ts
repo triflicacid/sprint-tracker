@@ -1,5 +1,10 @@
-// triggers a browser download of in-memory text content, with no server
-// round-trip needed beyond however the caller obtained the content.
+/**
+ * triggers a browser download of in-memory text content
+ *
+ * @param filename download filename
+ * @param content text content to download
+ * @param mimeType MIME type (defaults to "text/markdown")
+ */
 export function downloadTextFile(filename: string, content: string, mimeType = "text/markdown"): void {
     const blob = new Blob([content], { type: mimeType });
     const url = URL.createObjectURL(blob);

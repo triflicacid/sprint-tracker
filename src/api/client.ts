@@ -23,8 +23,14 @@ import type {
 
 const BASE_URL = "/api";
 
-// generic request helper. throws with the server's error message when
-// the response is not ok.
+/**
+ * generic request helper
+ *
+ * @param path API path (appended to BASE_URL)
+ * @param options fetch options
+ * @returns parsed JSON response
+ * @throws Error with server's error message when response is not ok
+ */
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
     const response = await fetch(`${BASE_URL}${path}`, {
         headers: { "Content-Type": "application/json" },
@@ -40,8 +46,14 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     return (await response.json()) as T;
 }
 
-// like request(), but for endpoints that return a raw text body (the
-// markdown export) rather than JSON.
+/**
+ * request helper for endpoints that return raw text instead of JSON
+ * 
+ * @param path API path (appended to BASE_URL)
+ * @param options fetch options
+ * @returns raw text response
+ * @throws Error with server's error message when response is not ok
+ */
 async function requestText(path: string, options?: RequestInit): Promise<string> {
     const response = await fetch(`${BASE_URL}${path}`, {
         headers: { "Content-Type": "application/json" },

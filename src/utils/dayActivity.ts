@@ -1,11 +1,13 @@
 import type { DayActivityEntry } from "@shared/types";
 
-// collapses a day's per-subtask activity entries down to one per story -
-// "which stories did I touch today" rather than "which of their
-// subtasks/branches did I touch". a story with more than one active
-// subtask that day loses its single branch name/pr link (ambiguous once
-// merged) in favor of a "N subtasks" hint; a single-subtask story keeps
-// its branch name and pr link unchanged.
+/**
+ * collapses a day's per-subtask activity entries down to one per story
+ *
+ * multi-subtask stories lose branch name/PR link in favor of "N subtasks" hint
+ *
+ * @param activities array of activity entries
+ * @returns array of story-grouped activity entries
+ */
 export function groupActivitiesByStory(activities: DayActivityEntry[]): DayActivityEntry[] {
     const byStory = new Map<number, DayActivityEntry[]>();
     for (const entry of activities) {

@@ -30,8 +30,16 @@ const SUBTASK_FIELD_LABELS: Record<keyof MarkdownExportFields["subtask"], string
     createdAt: "Created date",
 };
 
-// sprint "overlaps" the range if any day of the sprint's run falls within
-// [from, to]. an empty bound is treated as unbounded on that side.
+/**
+ * checks if a sprint overlaps a date range
+ *
+ * empty bounds are treated as unbounded
+ *
+ * @param sprint the sprint to check
+ * @param from start date (or empty)
+ * @param to end date (or empty)
+ * @returns true if any day of the sprint falls within the range
+ */
 function overlapsRange(sprint: SprintSummary, from: string, to: string): boolean {
     const sprintEnd = sprint.endDate ?? "9999-12-31";
     if (from && sprintEnd < from) {
@@ -43,8 +51,11 @@ function overlapsRange(sprint: SprintSummary, from: string, to: string): boolean
     return true;
 }
 
-// "/export": pick sprints (by date range and/or manually) and which story/
-// subtask fields to include, then download a markdown file.
+/**
+ * export page ("/export")
+ *
+ * pick sprints and fields, then download a markdown file
+ */
 export function ExportPage(): React.ReactElement {
     const [sprints, setSprints] = useState<SprintSummary[]>([]);
     const [selectedSprintIds, setSelectedSprintIds] = useState<Set<number>>(new Set());

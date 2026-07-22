@@ -31,7 +31,15 @@ function branchUrl(subtask: Subtask) {
     return `${match[1]}/tree/${encodedBranch}`;
 }
 
-// show info about a subtask
+/**
+ * displays a subtask row with status badge, complexity rating, and editable fields
+ *
+ * @param subtask the subtask to display
+ * @param flow status flow configuration
+ * @param onChanged callback when subtask is updated
+ * @param disableNavigation if true, prevents click navigation to detail page
+ * @param sprintLocked if true, disables all editing controls
+ */
 export function SubtaskRow({ subtask, flow, onChanged, disableNavigation, sprintLocked }: SubtaskRowProps): React.ReactElement {
     const [pendingStatus, setPendingStatus] = useState<SubtaskStatus | null>(null);
     const [pendingFieldValues, setPendingFieldValues] = useState<Record<string, string>>({});

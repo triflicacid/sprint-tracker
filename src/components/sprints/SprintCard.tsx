@@ -8,7 +8,11 @@ interface SprintCardProps {
     sprint: SprintSummary;
 }
 
-// one sprint's summary tile, linking to its detail page.
+/**
+ * sprint summary tile linking to its detail page
+ *
+ * @param sprint the sprint to display
+ */
 export function SprintCard({ sprint }: SprintCardProps): React.ReactElement {
     const dateRange: string = sprint.endDate
         ? `${formatDisplayDate(sprint.startDate)} to ${formatDisplayDate(sprint.endDate)}`
