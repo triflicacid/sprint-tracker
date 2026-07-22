@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { extractRepoName, extractJiraKey } from "./githubUrl.js";
 
-describe("extractRepoName", () => {
+describe("extract repo name", () => {
     it("extracts the repo name from a github pull request url", () => {
         expect(extractRepoName("https://github.com/nebula-labs/payments-service/pull/214")).toBe(
             "payments-service"
@@ -17,7 +17,7 @@ describe("extractRepoName", () => {
     });
 });
 
-describe("extractJiraKey", () => {
+describe("extract jira key", () => {
     it("extracts a jira issue key from a browse url", () => {
         expect(extractJiraKey("https://nebula.atlassian.net/browse/NEB-1001")).toBe("NEB-1001");
     });

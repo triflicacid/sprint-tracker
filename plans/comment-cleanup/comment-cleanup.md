@@ -1,6 +1,6 @@
 # Plan: comment and test-name cleanup
 
-Status: **not started**. Plan only, no code changes yet.
+Status: **in progress**.
 
 Goal:
 1. Review comments across the codebase and keep only short, useful, non-obvious ones.
@@ -15,11 +15,13 @@ Goal:
 - Non-TSDoc comments should use single-line `//` comments, not block comments.
 - Simple single-line comments should not end with a full stop.
 - Test names should be concise, behavior-focused, and all-lowercase.
+- In route-style test titles, keep HTTP methods uppercase (for example `GET`, `POST`, `PATCH`, `DELETE`).
+- Keep standard protocol/format acronyms uppercase where clearer (for example `JSON`, `URL`, `API`).
 - Function TSDoc should use nicely formatted multi-line blocks.
 - Function TSDoc should include:
   - a short summary
   - `@param` entries for each parameter
-  - `@returns` for non-void return values
+  - `@returns` for non-void return values only
 - Keep context where helpful, but avoid over-explaining.
 
 ## Exception
@@ -88,8 +90,8 @@ Goal:
 
 ## Suggested rollout order
 
-1. `shared/`
-2. `server/`
+1. ~~`shared/`~~
+2. ~~`server/`~~
 3. `src/`
 4. `electron/`
 5. `e2e/`

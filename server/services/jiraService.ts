@@ -8,9 +8,12 @@ interface JiraApiResponse {
     };
 }
 
-// fetches basic info (title and labels) for a jira issue key. requires
-// JIRA_BASE_URL, JIRA_EMAIL and JIRA_API_TOKEN to be set in the
-// environment. returns null if not configured or the issue is missing.
+/**
+ * fetches jira info for an issue key.
+ *
+ * @param issueKey - jira issue key to fetch.
+ * @returns jira info or `null` when jira is not configured or the issue is unavailable.
+ */
 export async function fetchJiraInfo(issueKey: string): Promise<JiraInfo | null> {
     const baseUrl: string | undefined = process.env.JIRA_BASE_URL;
     const email: string | undefined = process.env.JIRA_EMAIL;

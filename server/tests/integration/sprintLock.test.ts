@@ -33,7 +33,7 @@ async function buildFixture(endDate: string | null) {
 describe("mutating a locked (past end date) sprint", () => {
     it("rejects every mutating route with 409, leaving the underlying data unchanged", async () => {
         // build the fixture while the sprint is still open, then lock it -
-        // mirrors the real lifecycle of a sprint ending after it has content.
+        // mirrors the real lifecycle of a sprint ending after it has content
         const { sprintId, storyId, subtaskId, tagId } = await buildFixture(offsetFromToday(30));
         const lockResponse = await request(app)
             .patch(`/api/sprints/${sprintId}`)
@@ -68,7 +68,7 @@ describe("mutating a locked (past end date) sprint", () => {
 });
 
 describe("mutating an unlocked sprint", () => {
-    it("still allows every mutating route when endDate is null (open-ended)", async () => {
+    it("still allows every mutating route when end date is null (open-ended)", async () => {
         const { sprintId, storyId, subtaskId, tagId } = await buildFixture(null);
 
         expect((await request(app).patch(`/api/sprints/${sprintId}`).send({ comment: "still editable" })).status).toBe(
@@ -94,7 +94,7 @@ describe("mutating an unlocked sprint", () => {
         expect((await request(app).delete(`/api/stories/${storyId}/tags/${tagId}`)).status).toBe(204);
     });
 
-    it("still allows every mutating route when endDate is in the future", async () => {
+    it("still allows every mutating route when end date is in the future", async () => {
         const { sprintId, storyId, subtaskId, tagId } = await buildFixture(offsetFromToday(30));
 
         expect((await request(app).patch(`/api/sprints/${sprintId}`).send({ comment: "still editable" })).status).toBe(

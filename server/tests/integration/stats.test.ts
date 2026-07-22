@@ -6,8 +6,8 @@ const app = createApp();
 let sprintId: number;
 let storyId: number;
 
-// fixture sprint must stay unlocked (endDate in the future) so its stories/
-// subtasks remain mutable, but well before the 2030 range used below.
+// fixture sprint must stay unlocked (end date in the future) so its stories/
+// subtasks remain mutable, but well before the 2030 range used below
 function fixtureEndDate() {
     const date = new Date();
     date.setDate(date.getDate() + 180);
@@ -30,7 +30,7 @@ describe("GET /api/stats/sprint/:id", () => {
         expect(response.body).toMatchObject({ sprintId, storyCount: 1, prCount: 0 });
     });
 
-    it("includes subtaskTypeCounts in the response", async () => {
+    it("includes subtask type counts in the response", async () => {
         const response = await request(app).get(`/api/stats/sprint/${sprintId}`);
         expect(response.status).toBe(200);
         expect(Array.isArray(response.body.subtaskTypeCounts)).toBe(true);
@@ -71,7 +71,7 @@ describe("GET /api/stats/velocity/:id", () => {
         expect(response.body.map((point: { sprintId: number }) => point.sprintId)).toContain(sprintId);
     });
 
-    it("mode=lastN with n=1 returns just the given sprint", async () => {
+    it("mode=lastn with n=1 returns just the given sprint", async () => {
         const response = await request(app).get(`/api/stats/velocity/${sprintId}?mode=lastN&n=1`);
         expect(response.body).toHaveLength(1);
         expect(response.body[0].sprintId).toBe(sprintId);
@@ -84,7 +84,7 @@ describe("GET /api/stats/velocity/:id", () => {
         expect(response.body.map((point: { sprintId: number }) => point.sprintId)).not.toContain(sprintId);
     });
 
-    it("sums completed story points once a story's subtasks are DONE", async () => {
+    it("sums completed story points once a story's subtasks are done", async () => {
         await request(app).patch(`/api/stories/${storyId}`).send({ storyPoints: 5 });
         const subtask = await request(app).post(`/api/stories/${storyId}/subtasks`).send({ title: "sub" });
         const subtaskId = subtask.body.id;
@@ -127,9 +127,9 @@ describe("GET /api/stats/day-activity/:id", () => {
     });
 
     it("includes active days once a subtask starts moving", async () => {
-        // this sprint's fixed date range won't contain the real "now"
-        // timestamp a live PATCH records to status_history, so this test
-        // uses its own open-ended (ongoing) sprint that does.
+        // this sprint's fixed date range will not contain the real "now"
+        // timestamp a live patch records to status_history, so this test
+        // uses its own open-ended (ongoing) sprint that does
         const ongoing = await request(app).post("/api/sprints").send({ name: "Ongoing", startDate: "2020-01-01" });
         const story = await request(app)
             .post(`/api/sprints/${ongoing.body.id}/stories`)

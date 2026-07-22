@@ -12,7 +12,7 @@ afterEach(() => {
     vi.unstubAllGlobals();
 });
 
-describe("fetchJiraInfo", () => {
+describe("fetch jira info", () => {
     it("returns null when jira is not configured", async () => {
         vi.stubEnv("JIRA_BASE_URL", "");
         const fetchMock = vi.fn();
@@ -27,7 +27,7 @@ describe("fetchJiraInfo", () => {
         expect(await fetchJiraInfo("NEB-1")).toBeNull();
     });
 
-    it("fetches the right url with basic auth, and maps the response", async () => {
+    it("fetches the right url with basic auth and maps the response", async () => {
         const fetchMock = vi.fn().mockResolvedValue({
             ok: true,
             json: async () => ({

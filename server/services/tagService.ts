@@ -11,7 +11,13 @@ function rowToTag(row: TagRow) {
     return { id: row.id, name: row.name, tagType: row.tag_type } as Tag;
 }
 
-// finds a tag by name, creating it if it does not already exist.
+/**
+ * finds or creates a tag.
+ *
+ * @param name - tag name.
+ * @param tagType - tag type to persist for new tags.
+ * @returns the existing or created tag.
+ */
 export function findOrCreateTag(name: string, tagType: TagType) {
     const existing = db
         .prepare("SELECT * FROM tags WHERE name = ?")
@@ -25,19 +31,37 @@ export function findOrCreateTag(name: string, tagType: TagType) {
     return { id: Number(result.lastInsertRowid), name, tagType } as Tag;
 }
 
-// attaches a tag to an entity, ignoring the call if already attached.
+/**
+ * attaches a tag to an entity.
+ *
+ * @param entityType - target entity type.
+ * @param entityId - target entity id.
+ * @param tagId - tag to attach.
+ */
 export function attachTag(entityType: EntityType, entityId: number, tagId: number) {
     db.prepare(
         "INSERT OR IGNORE INTO entity_tags (entity_type, entity_id, tag_id) VALUES (?, ?, ?)"
     ).run(entityType, entityId, tagId);
 }
 
-// ensures a repo tag exists and is attached to a story.
+/**
+ * attaches a repo tag to a story.
+ *
+ * @param storyId - story to tag.
+ * @param repoName - repo name to attach.
+ */
 export function tagStoryWithRepo(storyId: number, repoName: string) {
     const tag: Tag = findOrCreateTag(repoName, "repo");
     attachTag("story", storyId, tag.id);
 }
 
+/**
+ * gets tags for an entity.
+ *
+ * @param entityType - entity type to query.
+ * @param entityId - entity id to query.
+ * @returns tags attached to the entity.
+ */
 export function getTagsForEntity(entityType: EntityType, entityId: number) {
     const rows = db
         .prepare(
@@ -50,11 +74,23 @@ export function getTagsForEntity(entityType: EntityType, entityId: number) {
     return rows.map(rowToTag);
 }
 
+/**
+ * gets all tags.
+ *
+ * @returns all tags ordered by name.
+ */
 export function getAllTags() {
     const rows = db.prepare("SELECT * FROM tags ORDER BY name").all() as TagRow[];
     return rows.map(rowToTag);
 }
 
+/**
+ * removes a tag from an entity.
+ *
+ * @param entityType - entity type to update.
+ * @param entityId - entity id to update.
+ * @param tagId - tag to detach.
+ */
 export function removeTag(entityType: EntityType, entityId: number, tagId: number) {
     db.prepare(
         "DELETE FROM entity_tags WHERE entity_type = ? AND entity_id = ? AND tag_id = ?"

@@ -64,14 +64,14 @@ function setStoryPoints(storyId: number, points: number | null) {
     db.prepare("UPDATE stories SET story_points = ? WHERE id = ?").run(points, storyId);
 }
 
-describe("getSprintStats", () => {
+describe("get sprint stats", () => {
     it("counts prs, stories, and repo distribution", () => {
         const sprintId = insertSprint("2026-01-01", "2026-01-31");
         const storyId = insertStory(sprintId);
         insertSubtask(storyId, { url: "https://github.com/org/a/pull/1", repoName: "a" });
         insertSubtask(storyId, { url: "https://github.com/org/a/pull/2", repoName: "a" });
         insertSubtask(storyId, { url: "https://github.com/org/b/pull/1", repoName: "b" });
-        insertSubtask(storyId, {}); // no pr yet, excluded from prCount/repoCounts
+        insertSubtask(storyId, {}); // no pr yet, excluded from pr count and repo counts
 
         const stats = getSprintStats(sprintId);
         expect(stats.storyCount).toBe(1);
@@ -123,7 +123,7 @@ describe("getSprintStats", () => {
     it("falls back to created_at (0 days) for a story with no subtask activity yet", () => {
         const sprintId = insertSprint("2026-01-01", "2026-01-31");
         const storyId = insertStory(sprintId);
-        insertSubtask(storyId); // NEW, no status_history beyond none inserted here
+        insertSubtask(storyId); // new, no status_history entries inserted here
 
         const stats = getSprintStats(sprintId);
         const story = stats.storyTimeDays.find((entry) => entry.storyId === storyId);
@@ -141,7 +141,7 @@ describe("getSprintStats", () => {
         expect(byId[storyWithoutKey]).toBe(`#${storyWithoutKey}`);
     });
 
-    it("returns an empty subtaskTypeCounts array when there are no subtasks", () => {
+    it("returns an empty subtask type counts array when there are no subtasks", () => {
         const sprintId = insertSprint("2026-01-01", "2026-01-31");
         insertStory(sprintId);
 
@@ -191,8 +191,8 @@ describe("getSprintStats", () => {
     });
 });
 
-describe("getComplexityTiming", () => {
-    it("plots each rated, DONE subtask's running time against its complexity rating", () => {
+describe("get complexity timing", () => {
+    it("plots each rated, done subtask's running time against its complexity rating", () => {
         const sprintId = insertSprint("2026-01-01", "2026-01-31");
         const storyId = insertStory(sprintId, "NEB-1");
         const subtaskId = insertSubtask(storyId, { status: "DONE", complexityRating: 3 });
@@ -209,7 +209,7 @@ describe("getComplexityTiming", () => {
         expect(result.storyComplexity).toEqual([{ storyId, storyLabel: "NEB-1", totalComplexity: 3 }]);
     });
 
-    it("excludes unrated subtasks from points/ratingCounts, but counts them as unrated", () => {
+    it("excludes unrated subtasks from points/rating counts, but counts them as unrated", () => {
         const sprintId = insertSprint("2026-01-01", "2026-01-31");
         const storyId = insertStory(sprintId);
         insertSubtask(storyId, { status: "DONE" }); // no complexity rating
@@ -220,7 +220,7 @@ describe("getComplexityTiming", () => {
         expect(result.storyComplexity).toEqual([]);
     });
 
-    it("excludes rated subtasks that aren't DONE yet, but counts them separately", () => {
+    it("excludes rated subtasks that aren't done yet, but counts them separately", () => {
         const sprintId = insertSprint("2026-01-01", "2026-01-31");
         const storyId = insertStory(sprintId);
         const subtaskId = insertSubtask(storyId, { status: "WIP", complexityRating: 4 });
@@ -233,7 +233,7 @@ describe("getComplexityTiming", () => {
         expect(result.storyComplexity).toEqual([]);
     });
 
-    it("sums complexity across a story's rated, DONE subtasks", () => {
+    it("sums complexity across a story's rated, done subtasks", () => {
         const sprintId = insertSprint("2026-01-01", "2026-01-31");
         const storyId = insertStory(sprintId, "NEB-2");
         const subtaskA = insertSubtask(storyId, { status: "DONE", complexityRating: 2 });
@@ -247,7 +247,7 @@ describe("getComplexityTiming", () => {
         expect(result.storyComplexity).toEqual([{ storyId, storyLabel: "NEB-2", totalComplexity: 7 }]);
     });
 
-    it("excludes a DONE, rated subtask that has no recorded status history to time it from", () => {
+    it("excludes a done, rated subtask that has no recorded status history to time it from", () => {
         const sprintId = insertSprint("2026-01-01", "2026-01-31");
         const storyId = insertStory(sprintId);
         insertSubtask(storyId, { status: "DONE", complexityRating: 3 }); // no status_history rows inserted
@@ -258,7 +258,7 @@ describe("getComplexityTiming", () => {
     });
 });
 
-describe("getStatusBreakdown", () => {
+describe("get status breakdown", () => {
     it("classifies each subtask by the status it held as of each day", () => {
         const sprintId = insertSprint("2026-01-01", "2026-01-05");
         const storyId = insertStory(sprintId);
@@ -289,7 +289,7 @@ describe("getStatusBreakdown", () => {
         expect(getStatusBreakdown(999999, "subtask")).toEqual([]);
     });
 
-    it("deduces the current status for a subtask with no history at all, rather than assuming NEW", () => {
+    it("deduces the current status for a subtask with no history at all, rather than assuming new", () => {
         const sprintId = insertSprint("2026-01-01", "2026-01-05");
         const storyId = insertStory(sprintId);
         insertSubtask(storyId, { status: "DONE" }); // no status_history rows inserted
@@ -302,7 +302,7 @@ describe("getStatusBreakdown", () => {
     });
 });
 
-describe("getDayActivity", () => {
+describe("get day activity", () => {
     it("backfills every active day, not just transition days", () => {
         const sprintId = insertSprint("2026-01-01", "2026-01-10");
         const storyId = insertStory(sprintId, "NEB-1");
@@ -312,7 +312,7 @@ describe("getDayActivity", () => {
         insertHistory(subtaskId, "DONE", "2026-01-05 09:00:00");
 
         const activity = getDayActivity(sprintId);
-        // active from the day it left NEW (01-02) through the day it reached DONE (01-05)
+        // active from the day it left new (01-02) through the day it reached done (01-05)
         for (const date of ["2026-01-02", "2026-01-03", "2026-01-04", "2026-01-05"]) {
             expect(activity[date]).toBeDefined();
             expect(activity[date][0]).toMatchObject({ storyLabel: "NEB-1", branchName: "feature/x" });
@@ -322,7 +322,7 @@ describe("getDayActivity", () => {
         expect(activity["2026-01-05"][0].status).toBe("DONE");
     });
 
-    it("excludes days still in NEW and days after DONE", () => {
+    it("excludes days still in new and days after done", () => {
         const sprintId = insertSprint("2026-01-01", "2026-01-10");
         const storyId = insertStory(sprintId);
         const subtaskId = insertSubtask(storyId);
@@ -335,7 +335,7 @@ describe("getDayActivity", () => {
         expect(activity["2026-01-06"]).toBeUndefined();
     });
 
-    it("contributes nothing for a subtask that never left NEW", () => {
+    it("contributes nothing for a subtask that never left new", () => {
         const sprintId = insertSprint("2026-01-01", "2026-01-10");
         const storyId = insertStory(sprintId);
         const subtaskId = insertSubtask(storyId);
@@ -356,7 +356,7 @@ describe("getDayActivity", () => {
         expect(activity["2026-01-02"][0].prUrl).toBe("https://github.com/org/repo/pull/9");
     });
 
-    it("uses the LAST transition of a day when several happen on the same day", () => {
+    it("uses the last transition of a day when several happen on the same day", () => {
         const sprintId = insertSprint("2026-01-01", "2026-01-10");
         const storyId = insertStory(sprintId);
         const subtaskId = insertSubtask(storyId);
@@ -370,7 +370,7 @@ describe("getDayActivity", () => {
         expect(activity["2026-01-05"][0].status).toBe("CUT_RELEASE");
     });
 
-    it("deduces the current status for a subtask with no history at all, rather than assuming NEW", () => {
+    it("deduces the current status for a subtask with no history at all, rather than assuming new", () => {
         const sprintId = insertSprint("2026-01-01", "2026-01-10");
         const storyId = insertStory(sprintId, "NEB-1");
         insertSubtask(storyId, { branchName: "feature/x", status: "WIP" }); // no status_history rows inserted
@@ -382,22 +382,22 @@ describe("getDayActivity", () => {
         }
     });
 
-    it("still contributes nothing for a subtask with no history at all that is still in NEW", () => {
+    it("still contributes nothing for a subtask with no history at all that is still in new", () => {
         const sprintId = insertSprint("2026-01-01", "2026-01-10");
         const storyId = insertStory(sprintId);
-        insertSubtask(storyId); // status defaults to NEW, no status_history rows inserted
+        insertSubtask(storyId); // status defaults to new, no status_history rows inserted
 
         const activity = getDayActivity(sprintId);
         expect(Object.keys(activity)).toHaveLength(0);
     });
 });
 
-describe("getAllDayActivity", () => {
+describe("get all day activity", () => {
     it("combines activity across multiple sprints, not just one", () => {
         const sprintA = insertSprint("2026-01-01", "2026-01-10");
         const sprintB = insertSprint("2026-03-01", "2026-03-10");
-        // subtaskA reaches DONE so its active range doesn't run through
-        // "today" and bleed into subtaskB's window below.
+        // subtask a reaches done so its active range does not run through
+        // "today" and bleed into subtask b's window below
         const subtaskA = insertSubtask(insertStory(sprintA, "NEB-1"), { branchName: "feature/a" });
         insertHistory(subtaskA, "NEW", "2026-01-01 09:00:00");
         insertHistory(subtaskA, "WIP", "2026-01-02 09:00:00");
@@ -412,7 +412,7 @@ describe("getAllDayActivity", () => {
         expect(activity["2026-03-02"][0]).toMatchObject({ storyLabel: "NEB-2", branchName: "feature/b" });
     });
 
-    it("excludes days still in NEW and days after DONE", () => {
+    it("excludes days still in new and days after done", () => {
         const sprintId = insertSprint("2026-01-01", "2026-01-10");
         const subtaskId = insertSubtask(insertStory(sprintId));
         insertHistory(subtaskId, "NEW", "2026-01-01 09:00:00");
@@ -424,7 +424,7 @@ describe("getAllDayActivity", () => {
         expect(activity["2026-01-06"]).toBeUndefined();
     });
 
-    it("contributes nothing for a subtask that never left NEW", () => {
+    it("contributes nothing for a subtask that never left new", () => {
         const sprintId = insertSprint("2026-01-01", "2026-01-10");
         const subtaskId = insertSubtask(insertStory(sprintId));
         insertHistory(subtaskId, "NEW", "2026-01-01 09:00:00");
@@ -434,9 +434,8 @@ describe("getAllDayActivity", () => {
     });
 
     it("falls back to the subtask's own sprint start date for an implied-active subtask with no history at all", () => {
-        // a fixed, well-in-the-past start date so this stays correct
-        // regardless of when the test actually runs (no DONE entry means
-        // the active range is capped at "today", not the sprint's end).
+        // use a fixed past start date so this remains stable across run dates
+        // with no done entry, the active range is capped at "today"
         const sprintId = insertSprint("2020-01-01", "2020-01-10");
         const storyId = insertStory(sprintId, "NEB-1");
         insertSubtask(storyId, { branchName: "feature/x", status: "WIP" }); // no status_history rows
@@ -447,7 +446,7 @@ describe("getAllDayActivity", () => {
     });
 });
 
-describe("getCalendarEntries", () => {
+describe("get calendar entries", () => {
     it("lists every sprint with its touched repos and tags", () => {
         const sprintId = insertSprint("2026-01-01", "2026-01-31");
         const storyId = insertStory(sprintId);
@@ -468,7 +467,7 @@ describe("getCalendarEntries", () => {
         expect(entries.map((e) => e.sprintId)).toEqual([sprintA]);
     });
 
-    it("filters by storyId", () => {
+    it("filters by story id", () => {
         const sprintA = insertSprint("2026-01-01");
         const sprintB = insertSprint("2026-02-01");
         const storyA = insertStory(sprintA);
@@ -479,8 +478,8 @@ describe("getCalendarEntries", () => {
     });
 });
 
-describe("getVelocityHistory", () => {
-    it("sums story points over DONE stories, excluding unpointed ones from the sum but counting them", () => {
+describe("get velocity history", () => {
+    it("sums story points over done stories, excluding unpointed ones from the sum but counting them", () => {
         const sprintId = insertSprint("2026-01-01", "2026-01-31");
         const pointedDone = insertStory(sprintId);
         insertSubtask(pointedDone, { status: "DONE" });
@@ -497,7 +496,7 @@ describe("getVelocityHistory", () => {
         expect(point.completedStoryCount).toBe(2);
     });
 
-    it("counts DONE subtasks across the whole sprint, not just DONE stories", () => {
+    it("counts done subtasks across the whole sprint, not just done stories", () => {
         const sprintId = insertSprint("2026-01-01", "2026-01-31");
         const storyId = insertStory(sprintId);
         insertSubtask(storyId, { status: "DONE" });
@@ -508,7 +507,7 @@ describe("getVelocityHistory", () => {
         expect(point.completedStoryCount).toBe(0);
     });
 
-    it("a story with no subtasks (JIRA_ONLY) is never counted as DONE", () => {
+    it("a story with no subtasks (jira only) is never counted as done", () => {
         const sprintId = insertSprint("2026-01-01", "2026-01-31");
         const storyId = insertStory(sprintId);
         setStoryPoints(storyId, 3);
@@ -535,7 +534,7 @@ describe("getVelocityHistory", () => {
         expect(points.map((point) => point.sprintId)).toEqual([sprintA, sprintB]);
     });
 
-    it("mode 'lastN' returns the anchor sprint plus its n-1 most recent predecessors, chronological", () => {
+    it("mode 'lastn' returns the anchor sprint plus its n-1 most recent predecessors, chronological", () => {
         insertSprint("2026-01-01", "2026-01-31");
         const sprintB = insertSprint("2026-02-01", "2026-02-28");
         const sprintC = insertSprint("2026-03-01", "2026-03-31");
@@ -545,7 +544,7 @@ describe("getVelocityHistory", () => {
         expect(points.map((point) => point.sprintId)).toEqual([sprintB, sprintC]);
     });
 
-    it("mode 'lastN' returns an empty list when the anchor sprint doesn't exist", () => {
+    it("mode 'lastn' returns an empty list when the anchor sprint doesn't exist", () => {
         expect(getVelocityHistory(999999, { mode: "lastN", n: 5 })).toEqual([]);
     });
 });

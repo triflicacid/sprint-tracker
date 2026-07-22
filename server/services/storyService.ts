@@ -26,10 +26,13 @@ interface CreateStoryInput {
     isBug?: boolean;
 }
 
-// - No subtasks -> JIRA_ONLY.
-// - awaitingMoreSubtasks checked, or no subtask has started yet -> WORK_REMAINING.
-// - Otherwise, the lowest-rank status among its subtasks (so one lagging
-//   subtask holds the whole story back, all the way up to DONE).
+/**
+ * computes the aggregate status for a story.
+ *
+ * @param subtaskStatuses - statuses of the story's subtasks.
+ * @param awaitingMoreSubtasks - whether more subtasks are still expected.
+ * @returns the derived story status.
+ */
 export function computeStoryStatus(subtaskStatuses: SubtaskStatus[], awaitingMoreSubtasks: boolean): StoryStatus {
     if (subtaskStatuses.length === 0) {
         return "JIRA_ONLY";
@@ -41,6 +44,12 @@ export function computeStoryStatus(subtaskStatuses: SubtaskStatus[], awaitingMor
     return subtaskStatuses.reduce((lowest, status) => (rankOf(status) < rankOf(lowest) ? status : lowest));
 }
 
+/**
+ * maps a story row to a story summary.
+ *
+ * @param row - database story row.
+ * @returns mapped story summary.
+ */
 function rowToSummary(row: StoryRow) {
     const subtaskStatuses = db
         .prepare("SELECT status FROM subtasks WHERE story_id = ?")
@@ -70,6 +79,12 @@ function rowToSummary(row: StoryRow) {
     } as StorySummary;
 }
 
+/**
+ * gets the end date of a story's parent sprint.
+ *
+ * @param storyId - story to query.
+ * @returns sprint end date, or `undefined` when the story is missing.
+ */
 function getSprintEndDateForStory(storyId: number) {
     const row = db
         .prepare(
@@ -82,6 +97,11 @@ function getSprintEndDateForStory(storyId: number) {
     return row?.end_date;
 }
 
+/**
+ * throws when a sprint is locked.
+ *
+ * @param sprintId - sprint to validate.
+ */
 function assertSprintUnlocked(sprintId: number): void {
     const sprint = db.prepare("SELECT end_date FROM sprints WHERE id = ?").get(sprintId) as
         | { end_date: string | null }
@@ -91,6 +111,11 @@ function assertSprintUnlocked(sprintId: number): void {
     }
 }
 
+/**
+ * throws when the story's sprint is locked.
+ *
+ * @param storyId - story to validate.
+ */
 function assertStorySprintUnlocked(storyId: number): void {
     const endDate = getSprintEndDateForStory(storyId);
     if (endDate !== undefined && isSprintLocked({ endDate })) {
@@ -98,6 +123,12 @@ function assertStorySprintUnlocked(storyId: number): void {
     }
 }
 
+/**
+ * gets story summaries for a sprint.
+ *
+ * @param sprintId - sprint to query.
+ * @returns story summaries for the sprint.
+ */
 export function getStorySummariesForSprint(sprintId: number) {
     const rows = db
         .prepare("SELECT * FROM stories WHERE sprint_id = ? ORDER BY id")
@@ -105,6 +136,12 @@ export function getStorySummariesForSprint(sprintId: number) {
     return rows.map(rowToSummary);
 }
 
+/**
+ * gets story detail.
+ *
+ * @param storyId - story to load.
+ * @returns story detail or `null` when the story is missing.
+ */
 export function getStoryDetail(storyId: number) {
     const row = db
         .prepare("SELECT * FROM stories WHERE id = ?")
@@ -123,6 +160,13 @@ export function getStoryDetail(storyId: number) {
     } as StoryDetail;
 }
 
+/**
+ * creates a story.
+ *
+ * @param sprintId - parent sprint id.
+ * @param input - story fields to persist.
+ * @returns the created story summary.
+ */
 export function createStory(sprintId: number, input: CreateStoryInput) {
     assertSprintUnlocked(sprintId);
     const jiraKey = extractJiraKey(input.jiraUrl);
@@ -138,7 +182,13 @@ export function createStory(sprintId: number, input: CreateStoryInput) {
     return rowToSummary(created);
 }
 
-// stores basic jira info fetched from the jira api
+/**
+ * stores jira info on a story.
+ *
+ * @param storyId - story to update.
+ * @param title - jira title to store.
+ * @param labels - jira labels to store.
+ */
 export function updateStoryJiraInfo(storyId: number, title: string, labels: string[]) {
     db.prepare("UPDATE stories SET jira_title = ?, jira_labels = ? WHERE id = ?").run(
         title,
@@ -147,6 +197,13 @@ export function updateStoryJiraInfo(storyId: number, title: string, labels: stri
     );
 }
 
+/**
+ * updates the awaiting-more-subtasks flag.
+ *
+ * @param storyId - story to update.
+ * @param awaitingMoreSubtasks - new flag value.
+ * @returns the updated story summary or `null` when the story is missing.
+ */
 export function updateStoryAwaitingMoreSubtasks(storyId: number, awaitingMoreSubtasks: boolean) {
     assertStorySprintUnlocked(storyId);
     db.prepare("UPDATE stories SET awaiting_more_subtasks = ? WHERE id = ?").run(awaitingMoreSubtasks ? 1 : 0, storyId);
@@ -156,6 +213,13 @@ export function updateStoryAwaitingMoreSubtasks(storyId: number, awaitingMoreSub
     return row ? rowToSummary(row) : null;
 }
 
+/**
+ * updates story points.
+ *
+ * @param storyId - story to update.
+ * @param storyPoints - new story points value.
+ * @returns the updated story summary or `null` when the story is missing.
+ */
 export function updateStoryPoints(storyId: number, storyPoints: number | null) {
     assertStorySprintUnlocked(storyId);
     db.prepare("UPDATE stories SET story_points = ? WHERE id = ?").run(storyPoints, storyId);
@@ -165,6 +229,14 @@ export function updateStoryPoints(storyId: number, storyPoints: number | null) {
     return row ? rowToSummary(row) : null;
 }
 
+/**
+ * adds a tag to a story.
+ *
+ * @param storyId - story to tag.
+ * @param name - tag name.
+ * @param tagType - tag type.
+ * @returns the attached tag.
+ */
 export function addTagToStory(storyId: number, name: string, tagType: TagType): Tag {
     assertStorySprintUnlocked(storyId);
     const tag = findOrCreateTag(name, tagType);
@@ -172,6 +244,12 @@ export function addTagToStory(storyId: number, name: string, tagType: TagType): 
     return tag;
 }
 
+/**
+ * removes a tag from a story.
+ *
+ * @param storyId - story to update.
+ * @param tagId - tag to detach.
+ */
 export function removeTagFromStory(storyId: number, tagId: number): void {
     assertStorySprintUnlocked(storyId);
     removeTag("story", storyId, tagId);

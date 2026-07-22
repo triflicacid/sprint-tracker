@@ -33,8 +33,8 @@ function insertSubtaskInLockedSprint(): number {
     return Number(subtask.lastInsertRowid);
 }
 
-describe("createSubtask", () => {
-    it("creates a subtask in NEW status and records it in history", () => {
+describe("create subtask", () => {
+    it("creates a subtask in new status and records it in history", () => {
         const subtask = createSubtask(storyId, { title: "add endpoint" });
         expect(subtask.status).toBe("NEW");
         expect(subtask.storyId).toBe(storyId);
@@ -65,7 +65,7 @@ describe("createSubtask", () => {
         expect(subtask.type).toBe("tech-debt");
     });
 
-    it("throws SubtaskUpdateError for an unrecognised type", () => {
+    it("throws subtask update error for an unrecognised type", () => {
         expect(() => createSubtask(storyId, { title: "x", type: "not-a-type" })).toThrow(SubtaskUpdateError);
         expect(() => createSubtask(storyId, { title: "x", type: "not-a-type" })).toThrow(/invalid subtask type/i);
     });
@@ -75,13 +75,13 @@ describe("createSubtask", () => {
         expect(getSubtasksForStory(storyId)).toHaveLength(0);
     });
 
-    it("throws SprintLockedError when the story's sprint has ended", () => {
+    it("throws sprint locked error when the story's sprint has ended", () => {
         const lockedStoryId = insertStoryInLockedSprint();
         expect(() => createSubtask(lockedStoryId, { title: "too late" })).toThrow(SprintLockedError);
     });
 });
 
-describe("getSubtaskById / getSubtasksForStory", () => {
+describe("get subtask by id / get subtasks for story", () => {
     it("fetches a subtask by id", () => {
         const created = createSubtask(storyId, { title: "x" });
         expect(getSubtaskById(created.id)).toEqual(created);
@@ -98,7 +98,7 @@ describe("getSubtaskById / getSubtasksForStory", () => {
     });
 });
 
-describe("updateSubtask - plain field updates", () => {
+describe("update subtask - plain field updates", () => {
     it("updates title without touching status or history", () => {
         const subtask = createSubtask(storyId, { title: "old" });
         const updated = updateSubtask(subtask.id, { title: "new" });
@@ -142,7 +142,7 @@ describe("updateSubtask - plain field updates", () => {
         expect(() => updateSubtask(999999, { title: "x" })).toThrow(SubtaskUpdateError);
     });
 
-    it("throws SprintLockedError when the subtask's sprint has ended", () => {
+    it("throws sprint locked error when the subtask's sprint has ended", () => {
         const subtaskId = insertSubtaskInLockedSprint();
         expect(() => updateSubtask(subtaskId, { title: "too late" })).toThrow(SprintLockedError);
     });
@@ -154,7 +154,7 @@ describe("updateSubtask - plain field updates", () => {
     });
 });
 
-describe("updateSubtask - status transitions", () => {
+describe("update subtask - status transitions", () => {
     it("rejects a transition without its required field", () => {
         const subtask = createSubtask(storyId, { title: "x" });
         expect(() => updateSubtask(subtask.id, { status: "WIP" })).toThrow(/branch name is required/i);
@@ -189,7 +189,7 @@ describe("updateSubtask - status transitions", () => {
         expect(storyTags.map((tag) => tag.name)).toContain("payments-service");
     });
 
-    it("records the release version on the history entry when leaving CUT_RELEASE", () => {
+    it("records the release version on the history entry when leaving cut release", () => {
         const subtask = createSubtask(storyId, { title: "x" });
         updateSubtask(subtask.id, { status: "WIP", branchName: "feature/x" });
         updateSubtask(subtask.id, { status: "IN_REVIEW", prUrl: "https://github.com/org/repo/pull/1" });
@@ -201,7 +201,7 @@ describe("updateSubtask - status transitions", () => {
         expect(testingEntry?.releaseVersion).toBe("v1.2.0");
     });
 
-    it("rejects leaving CUT_RELEASE without a release version", () => {
+    it("rejects leaving cut release without a release version", () => {
         const subtask = createSubtask(storyId, { title: "x" });
         updateSubtask(subtask.id, { status: "WIP", branchName: "feature/x" });
         updateSubtask(subtask.id, { status: "IN_REVIEW", prUrl: "https://github.com/org/repo/pull/1" });
@@ -216,7 +216,7 @@ describe("updateSubtask - status transitions", () => {
     });
 });
 
-describe("updateSubtask - complexity locking", () => {
+describe("update subtask - complexity locking", () => {
     function moveToCutRelease(): number {
         const subtask = createSubtask(storyId, { title: "x" });
         updateSubtask(subtask.id, { status: "WIP", branchName: "feature/x" });

@@ -8,7 +8,7 @@ import {
     locksComplexityRating,
 } from "./statusFlowService.js";
 
-describe("getStatusFlow", () => {
+describe("get status flow", () => {
     it("returns every state with a color, label and description", () => {
         const flow = getStatusFlow();
         expect(flow.states.length).toBeGreaterThan(0);
@@ -20,7 +20,7 @@ describe("getStatusFlow", () => {
     });
 });
 
-describe("getAllowedNextStates", () => {
+describe("get allowed next states", () => {
     it("lists every allowed destination from a branching state", () => {
         expect(getAllowedNextStates("IN_REVIEW")).toEqual(
             expect.arrayContaining(["PR_COMMENTS", "CUT_RELEASE", "IN_PR"])
@@ -32,7 +32,7 @@ describe("getAllowedNextStates", () => {
     });
 });
 
-describe("getRequiredFields", () => {
+describe("get required fields", () => {
     it("returns the required field for a transition that needs one", () => {
         const fields = getRequiredFields("NEW", "WIP");
         expect(fields).toHaveLength(1);
@@ -48,7 +48,7 @@ describe("getRequiredFields", () => {
     });
 });
 
-describe("isTransitionAllowed", () => {
+describe("is transition allowed", () => {
     it("allows a same-state no-op transition", () => {
         expect(isTransitionAllowed("WIP", "WIP")).toBe(true);
     });
@@ -68,8 +68,8 @@ describe("isTransitionAllowed", () => {
     });
 });
 
-describe("rankOf", () => {
-    it("orders states from NEW to DONE", () => {
+describe("rank of", () => {
+    it("orders states from new to done", () => {
         expect(rankOf("NEW")).toBe(0);
         expect(rankOf("DONE")).toBeGreaterThan(rankOf("TESTING"));
         expect(rankOf("TESTING")).toBeGreaterThan(rankOf("WIP"));
@@ -80,7 +80,7 @@ describe("rankOf", () => {
     });
 });
 
-describe("locksComplexityRating", () => {
+describe("locks complexity rating", () => {
     it("is unlocked for every state up to and including in review / pr comments", () => {
         for (const status of ["NEW", "WIP", "IN_PR", "IN_REVIEW", "PR_COMMENTS"] as const) {
             expect(locksComplexityRating(status)).toBe(false);

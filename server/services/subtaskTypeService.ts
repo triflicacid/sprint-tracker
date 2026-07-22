@@ -11,10 +11,21 @@ const types = JSON.parse(
 
 const validShortNames = new Set(types.map((t) => t.shortName));
 
+/**
+ * returns configured subtask types.
+ *
+ * @returns subtask type entries from the static config.
+ */
 export function getSubtaskTypes(): SubtaskTypeEntry[] {
     return types;
 }
 
+/**
+ * returns whether a subtask type is valid.
+ *
+ * @param type - subtask type short name.
+ * @returns `true` when the type is allowed.
+ */
 export function isValidSubtaskType(type: string): boolean {
     return type === "unknown" || validShortNames.has(type);
 }

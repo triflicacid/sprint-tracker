@@ -10,6 +10,12 @@ interface StatusHistoryRow {
     changed_at: string;
 }
 
+/**
+ * maps a status history row to a shared history entry.
+ *
+ * @param row - database status history row.
+ * @returns mapped history entry.
+ */
 function rowToEntry(row: StatusHistoryRow): StatusHistoryEntry {
     return {
         id: row.id,
@@ -21,6 +27,14 @@ function rowToEntry(row: StatusHistoryRow): StatusHistoryEntry {
     };
 }
 
+/**
+ * records a status change.
+ *
+ * @param entityType - entity type being updated.
+ * @param entityId - entity id being updated.
+ * @param status - new status.
+ * @param releaseVersion - release version captured for the change.
+ */
 export function recordStatusChange(
     entityType: EntityType,
     entityId: number,
@@ -32,6 +46,13 @@ export function recordStatusChange(
     ).run(entityType, entityId, status, releaseVersion);
 }
 
+/**
+ * gets status history for one entity.
+ *
+ * @param entityType - entity type to query.
+ * @param entityId - entity id to query.
+ * @returns status history entries in ascending change order.
+ */
 export function getHistoryForEntity(entityType: EntityType, entityId: number) {
     const rows: StatusHistoryRow[] = db
         .prepare(
@@ -41,6 +62,12 @@ export function getHistoryForEntity(entityType: EntityType, entityId: number) {
     return rows.map(rowToEntry);
 }
 
+/**
+ * gets all subtask history for a sprint.
+ *
+ * @param sprintId - sprint to query.
+ * @returns subtask history entries for the sprint.
+ */
 export function getAllHistoryForSprint(sprintId: number) {
     const rows = db
         .prepare(

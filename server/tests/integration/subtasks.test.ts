@@ -47,7 +47,7 @@ describe("GET /api/subtasks/:id", () => {
 describe("POST /api/stories/:id/subtasks - type field", () => {
     it("defaults to 'unknown' when no type is provided", async () => {
         const { body } = await createSubtaskWithType("unknown");
-        // already tested via createSubtask, but confirm explicitly
+        // already tested via create subtask, but confirm explicitly
         const response = await request(app).post(`/api/stories/${storyId}/subtasks`).send({ title: "no type" });
         expect(response.status).toBe(201);
         expect(response.body.type).toBe("unknown");
@@ -85,7 +85,7 @@ describe("POST /api/stories/:id/subtasks - type field", () => {
 });
 
 describe("GET /api/subtasks/:id/history", () => {
-    it("starts with a single NEW entry on creation", async () => {
+    it("starts with a single new entry on creation", async () => {
         const subtask = await createSubtask();
         const response = await request(app).get(`/api/subtasks/${subtask.id}/history`);
         expect(response.status).toBe(200);
@@ -95,7 +95,7 @@ describe("GET /api/subtasks/:id/history", () => {
 });
 
 describe("PATCH /api/subtasks/:id - full lifecycle", () => {
-    it("walks a subtask through the whole flow to DONE, recording history at each step", async () => {
+    it("walks a subtask through the whole flow to done, recording history at each step", async () => {
         const subtask = await createSubtask();
 
         const toWip = await request(app)
@@ -174,7 +174,7 @@ describe("PATCH /api/subtasks/:id - full lifecycle", () => {
         expect(response.body.comment).toBe("");
     });
 
-    it("rejects changing complexity rating over the API once a subtask has reached cut release", async () => {
+    it("rejects changing complexity rating over the api once a subtask has reached cut release", async () => {
         const subtask = await createSubtask();
         await request(app).patch(`/api/subtasks/${subtask.id}`).send({ status: "WIP", branchName: "feature/x" });
         await request(app)
@@ -186,7 +186,7 @@ describe("PATCH /api/subtasks/:id - full lifecycle", () => {
         expect(response.status).toBe(400);
         expect(response.body.error).toMatch(/cannot change complexity/i);
 
-        // and confirm it wasn't persisted
+        // confirm it was not persisted
         const fetched = await request(app).get(`/api/subtasks/${subtask.id}`);
         expect(fetched.body.complexityRating).toBeNull();
     });

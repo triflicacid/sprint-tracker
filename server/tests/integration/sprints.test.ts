@@ -24,7 +24,7 @@ describe("POST /api/sprints", () => {
         expect(response.body).toMatchObject({ name: "Sprint 1", startDate: "2026-01-01", comment: "kickoff" });
     });
 
-    it("rejects a missing name or startDate with 400", async () => {
+    it("rejects a missing name or start date with 400", async () => {
         const response = await request(app).post("/api/sprints").send({ name: "No start date" });
         expect(response.status).toBe(400);
         expect(response.body.error).toBeTruthy();
@@ -65,7 +65,7 @@ describe("POST /api/sprints/:id/stories", () => {
         expect(response.body.sprintId).toBe(sprint.body.id);
     });
 
-    it("rejects a missing jiraUrl or description with 400", async () => {
+    it("rejects a missing jira url or description with 400", async () => {
         const sprint = await request(app).post("/api/sprints").send({ name: "Sprint 1", startDate: "2026-01-01" });
         const response = await request(app).post(`/api/sprints/${sprint.body.id}/stories`).send({});
         expect(response.status).toBe(400);
