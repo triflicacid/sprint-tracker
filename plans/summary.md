@@ -76,19 +76,14 @@ version over full focus-trap/a11y polish for a first pass.
 
 ## [bundle installer / single exe for Electron](plan-electron-installer/plan-electron-installer.md)
 
-**Status: not started — exploratory, higher uncertainty than other plans here**
+**Status: not started**
 
-**Severity: low | Urgency: low | Worth doing: low-medium** — only matters if actually distributing
-this to someone else's machine; the idea's own `[?]` in `docs/ideas.md` suggests that wasn't settled.
-Real, non-cosmetic prep work needed first regardless of packaging tool chosen.
+**Severity: low | Urgency: low | Worth doing: low-medium** - relevant when distributing outside local
+development; scoped as a practical packaging pass rather than exploratory research.
 
-No packaging tooling exists today (no electron-builder/forge, no `build` config, no app icon).
-Depends on the sibling `plan-fix-cwd-relative-paths` plan landing first (split out separately since
-it's a real bug, not just a packaging blocker). Also flags a `loadURL`-before-server-ready race in
-`electron/main.ts` with no explicit readiness handshake, and that `better-sqlite3` (the app's one
-native dependency) needs `asarUnpack` configured if packed into an asar archive. Recommends starting
-with a **portable single exe** (not an NSIS installer) to avoid install-location/permissions
-questions, explicitly skipping code signing and auto-update for a first pass. Flags the
-installed-DB-location question (`app.getPath("userData")` vs. next to the binary) as a real open
-decision — only affects new packaged installs, not the existing dev database. Notes the
-`electron-rebuild` → `@electron/rebuild` swap from the dependency-audit plan should land first.
+Adds Windows packaging with `electron-builder`, targeting a portable executable first. Keeps scope to
+core delivery concerns: packaging config (`files`, `portable` target, icon, and `asar`/`asarUnpack` for
+`better-sqlite3`), build pipeline updates so `dist/electron` is included, explicit server-ready
+handshake before `loadURL`, and runtime verification from a non-repo launch location. Leaves code
+signing and auto-update out of scope for the first pass, and keeps packaged DB location
+(`app.getPath("userData")` vs executable-adjacent) as an explicit product decision.
