@@ -55,6 +55,18 @@ Flags that no popover/modal infrastructure exists anywhere in the app yet, so sh
 click, Escape, positioning) is the main real driver of this plan's size — recommends a minimal
 version over full focus-trap/a11y polish for a first pass.
 
+## [manual lock toggle for stories and subtasks](plan-manual-lock-toggle/plan-manual-lock-toggle.md)
+
+**Status: not started**
+
+**Severity: low | Urgency: low | Worth doing: medium** - useful workflow control for freezing work
+before sprint end, with clear separation from date-based sprint locks.
+
+Adds reversible manual lock flags for `stories` and `subtasks`, with story-to-subtask cascade at
+runtime. Keeps sprint-end lock behavior unchanged and absolute. Includes dedicated lock endpoints
+(`PATCH /api/stories/:id/lock`, `PATCH /api/subtasks/:id/lock`), shared lock/error helpers,
+service-level enforcement with `409` responses, and UI lock toggles via `LockIcon`.
+
 ## [bundle installer / single exe for Electron](plan-electron-installer/plan-electron-installer.md)
 
 **Status: not started**
