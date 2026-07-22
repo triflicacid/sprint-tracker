@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { statusAsOf, type StatusHistoryLike } from "./statusHistory.js";
 
-describe("statusAsOf", () => {
-    it("returns NEW before any history entry applies", () => {
+describe("status as of", () => {
+    it("returns new before any history entry applies", () => {
         const history: StatusHistoryLike[] = [{ status: "WIP", changedAt: "2026-03-05" }];
         expect(statusAsOf(history, "2026-03-01")).toBe("NEW");
     });
@@ -16,7 +16,7 @@ describe("statusAsOf", () => {
         expect(statusAsOf(history, "2026-03-03")).toBe("WIP");
     });
 
-    it("uses the LAST transition of a day when several happen the same day", () => {
+    it("uses the last transition of a day when several happen on the same day", () => {
         const history: StatusHistoryLike[] = [
             { status: "NEW", changedAt: "2026-03-01 09:00:00" },
             { status: "WIP", changedAt: "2026-03-01 09:10:00" },
@@ -36,11 +36,11 @@ describe("statusAsOf", () => {
         expect(statusAsOf(history, "2026-03-05")).toBe("WIP");
     });
 
-    it("uses the given fallback instead of NEW when there is no history at all", () => {
+    it("uses the given fallback instead of new when there is no history", () => {
         expect(statusAsOf([], "2026-03-05", "DONE")).toBe("DONE");
     });
 
-    it("still defaults an empty history to NEW when no fallback is given", () => {
+    it("defaults an empty history to new when no fallback is given", () => {
         expect(statusAsOf([], "2026-03-05")).toBe("NEW");
     });
 

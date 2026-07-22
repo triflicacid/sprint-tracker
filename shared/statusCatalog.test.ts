@@ -11,19 +11,19 @@ const flow: StatusFlowConfig = {
     transitions: [],
 };
 
-describe("subtaskStatuses", () => {
+describe("subtask statuses", () => {
     it("returns the state ids in flow order", () => {
         expect(subtaskStatuses(flow)).toEqual(["NEW", "WIP", "DONE"]);
     });
 });
 
-describe("storyStatuses", () => {
-    it("prepends JIRA_ONLY and WORK_REMAINING to the subtask statuses", () => {
+describe("story statuses", () => {
+    it("prepends jira only and work remaining to the subtask statuses", () => {
         expect(storyStatuses(flow)).toEqual(["JIRA_ONLY", "WORK_REMAINING", "NEW", "WIP", "DONE"]);
     });
 });
 
-describe("statusColors", () => {
+describe("status colors", () => {
     it("maps each state id to its configured color", () => {
         const colors = statusColors(flow);
         expect(colors.NEW).toBe("#111111");
@@ -31,14 +31,14 @@ describe("statusColors", () => {
         expect(colors.DONE).toBe("#333333");
     });
 
-    it("includes fixed colors for the synthetic JIRA_ONLY and WORK_REMAINING statuses", () => {
+    it("includes fixed colors for the synthetic jira only and work remaining statuses", () => {
         const colors = statusColors(flow);
         expect(colors.JIRA_ONLY).toBe("#6b7280");
         expect(colors.WORK_REMAINING).toBe("#8b7355");
     });
 });
 
-describe("statusLabels", () => {
+describe("status labels", () => {
     it("maps each state id to its configured label", () => {
         const labels = statusLabels(flow);
         expect(labels.NEW).toBe("new");
@@ -46,15 +46,15 @@ describe("statusLabels", () => {
         expect(labels.DONE).toBe("done");
     });
 
-    it("includes fixed labels for the synthetic JIRA_ONLY and WORK_REMAINING statuses", () => {
+    it("includes fixed labels for the synthetic jira only and work remaining statuses", () => {
         const labels = statusLabels(flow);
         expect(labels.JIRA_ONLY).toBe("jira only");
         expect(labels.WORK_REMAINING).toBe("work remaining");
     });
 });
 
-describe("burndownMilestones", () => {
-    it("returns only the state ids flagged burndownMilestone, in rank order", () => {
+describe("burndown milestones", () => {
+    it("returns only state ids flagged as burndown milestones, in rank order", () => {
         expect(burndownMilestones(flow)).toEqual(["NEW", "DONE"]);
     });
 

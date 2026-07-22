@@ -5,11 +5,14 @@ export interface StatusHistoryLike {
     changedAt: string;
 }
 
-// the status a subtask was in as of the end of the given date (YYYY-MM-DD),
-// given its full history sorted ascending by changedAt.
-// If multiple transitions happened on the same day, return the LAST one
-// that day.
-// If there is no history at all, fallbackStatus is used instead of assuming NEW.
+/**
+ * returns the status active at the end of the given day.
+ *
+ * @param sortedHistory - full status history sorted by `changedAt` ascending.
+ * @param dateString - date in `yyyy-mm-dd` format.
+ * @param fallbackStatus - status to use when there is no history.
+ * @returns the last status reached on or before the given date.
+ */
 export function statusAsOf(
     sortedHistory: StatusHistoryLike[],
     dateString: string,

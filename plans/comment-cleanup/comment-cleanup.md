@@ -7,11 +7,13 @@ Goal:
 2. Standardize test names to concise, all-lowercase wording.
 3. Add or expand TSDoc for functions that need it, using well-formatted multi-line blocks.
 
-## Preferences to apply
+## Documentation rules
 
 - Comments should be short, concise, and all-lowercase.
 - Comments should explain non-obvious intent, constraints, or edge cases only.
 - Remove comments that simply restate the code.
+- Non-TSDoc comments should use single-line `//` comments, not block comments.
+- Simple single-line comments should not end with a full stop.
 - Test names should be concise, behavior-focused, and all-lowercase.
 - Function TSDoc should use nicely formatted multi-line blocks.
 - Function TSDoc should include:
