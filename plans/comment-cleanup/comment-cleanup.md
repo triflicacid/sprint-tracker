@@ -17,6 +17,7 @@ Goal:
 - Test names should be concise, behavior-focused, and all-lowercase.
 - In route-style test titles, keep HTTP methods uppercase (for example `GET`, `POST`, `PATCH`, `DELETE`).
 - Keep standard protocol/format acronyms uppercase where clearer (for example `JSON`, `URL`, `API`).
+- When a test name references a named object (variable, function, type, field, etc.), preserve its original casing (for example `sprintLock`, `BrowserWindow`, `DB_PATH`).
 - Function TSDoc should use nicely formatted multi-line blocks.
 - Function TSDoc should include:
   - a short summary
@@ -94,7 +95,7 @@ Goal:
 2. ~~`server/`~~
 3. `src/`
 4. ~~`electron/`~~
-5. `e2e/`
+5. ~~`e2e/`~~
 
 ## Risks and guardrails
 

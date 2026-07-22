@@ -1,14 +1,14 @@
 import { test, expect } from "@playwright/test";
 import { seedSprint, seedStory } from "./seed.js";
 
-// Custom tags are scoped per-story, unlike auto-derived repo tags
-// (range-calendar.spec.ts's filter test), which have no "x" button.
+// custom tags are scoped per-story, unlike auto-derived repo tags
+// (range-calendar.spec.ts's filter test), which have no "x" button
 test("adding and removing a custom tag on a story updates its tag list", async ({ page, request }) => {
     // bounded around "today" rather than the seed default's open-ended
     // 2026-01-01 start - an ongoing sprint stretches through "today" in the
     // range calendar, which (as real time passes) can start overlapping
     // fixed 2026 date ranges other e2e specs assert on in that same shared
-    // db (see timesheet.spec.ts's "sprints mode" tests).
+    // db (see timesheet.spec.ts's "sprints mode" tests)
     const startDate = new Date().toISOString().slice(0, 10);
     const endDate = new Date();
     endDate.setDate(endDate.getDate() + 14);
@@ -31,7 +31,7 @@ test("adding and removing a custom tag on a story updates its tag list", async (
     await expect(tagChip).toHaveClass(/tag-custom/);
 
     // a second story on the same sprint shouldn't see a tag scoped to the
-    // first - tags are per-story, not sprint-wide.
+    // first - tags are per-story, not sprint-wide
     const otherStory = await seedStory(request, sprint.id, {
         description: "e2e untagged story",
         jiraUrl: "https://example.atlassian.net/browse/E2E-2",

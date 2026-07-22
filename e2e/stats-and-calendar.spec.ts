@@ -29,7 +29,7 @@ test("stats page shows tiles and a read-only calendar, subtask detail calendar l
 
     // the subtask's own activity calendar has no weekend muting, so its
     // most recent (today's) active day reliably shows the pr link
-    // regardless of which day of the week the suite runs on.
+    // regardless of which day of the week the suite runs on
     await page.goto(`/subtasks/${subtask.id}`);
     const prLink = page.locator(".activity-calendar .calendar-day-link").last();
     const [popup] = await Promise.all([page.waitForEvent("popup"), prLink.click()]);

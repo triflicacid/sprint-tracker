@@ -1,12 +1,18 @@
 import { test, expect, Page } from "@playwright/test";
 import { seedSprint } from "./seed.js";
 
-// Holidays are added/removed exclusively via the sprint detail page's
-// HolidayPickerPopover; the stats page's calendar is read-only. Each test
+// holidays are added/removed exclusively via the sprint detail page's
+// HolidayPickerPopover; the stats page's calendar is read-only. each test
 // uses its own fixed, non-overlapping mon-fri range: the range-calendar page
 // renders every sprint in the shared, serial-run db at once, so overlapping
 // ranges across these tests would inflate lane counts and break
-// range-calendar.spec's assertions.
+// range-calendar.spec's assertions
+/**
+ * resolves a day cell locator for an iso date in a rendered calendar month
+ * @param page playwright page
+ * @param isoDate target date in yyyy-mm-dd format
+ * @returns locator for the matching calendar day cell
+ */
 function calendarCellFor(page: Page, isoDate: string) {
     const [year, month, day] = isoDate.split("-").map(Number);
     const monthLabel = new Date(Date.UTC(year, month - 1, 1)).toLocaleString("en-US", {
@@ -20,16 +26,29 @@ function calendarCellFor(page: Page, isoDate: string) {
     });
 }
 
+/**
+ * reads the holidays stat tile value from the stats page
+ * @param page playwright page
+ * @returns holidays count text value
+ */
 async function holidaysStatValue(page: Page): Promise<string> {
     const label = page.getByText("holidays", { exact: true });
     return (await label.locator("xpath=preceding-sibling::span[1]").textContent()) ?? "";
 }
 
+/**
+ * opens the holidays popover from sprint detail
+ * @param page playwright page
+ */
 async function openHolidayPopover(page: Page) {
     await page.getByRole("button", { name: "edit holidays" }).click();
 }
 
-// the holiday-chip pill displays iso dates as dd/mm/yyyy.
+/**
+ * converts an iso date to the holiday chip display format
+ * @param isoDate date in yyyy-mm-dd format
+ * @returns date in dd/mm/yyyy format
+ */
 function toDisplayDate(isoDate: string): string {
     const [year, month, day] = isoDate.split("-");
     return `${day}/${month}/${year}`;
@@ -98,7 +117,7 @@ test.describe("holiday days", () => {
         await openHolidayPopover(page);
 
         // 2026-10-10 is a saturday inside the sprint's own month block - muted
-        // for being a weekend, not for falling outside the sprint range.
+        // for being a weekend, not for falling outside the sprint range
         const weekendCell = calendarCellFor(page, "2026-10-10");
         await expect(weekendCell).toHaveClass(/calendar-day-muted/);
         await weekendCell.click({ force: true });

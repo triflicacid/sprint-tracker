@@ -2,6 +2,11 @@ import fs from "fs";
 import { test, expect } from "@playwright/test";
 import { seedSprint, seedStory, seedSubtask, transitionSubtask } from "./seed.js";
 
+/**
+ * extracts a page count from a downloaded pdf
+ * @param path local path to the downloaded pdf
+ * @returns parsed page count from the first /Count entry
+ */
 function pdfPageCount(path: string): number {
     const raw = fs.readFileSync(path).toString("latin1");
     const match = raw.match(/\/Count (\d+)/);
@@ -36,7 +41,7 @@ test("exporting a story downloads one pdf page for the summary plus one per subt
 
     expect(download.suggestedFilename()).toMatch(/^PDF-2-export-\d{4}-\d{2}-\d{2}\.pdf$/);
     // one page for the story summary, one for subtask category breakdown + one per subtask (2 subtasks seeded),
-    // no flow-diagram page per subtask.
+    // no flow-diagram page per subtask
     const savedPath = await download.path();
     expect(pdfPageCount(savedPath)).toBe(4);
 
