@@ -33,23 +33,17 @@ second fetch, since `SubtaskDetailPage` doesn't currently load the parent story 
 
 ## [past sprints are locked and cannot be edited](plan-lock-past-sprints/plan-lock-past-sprints.md)
 
-**Status: not started**
+**Status: implemented**
 
-**Severity: low | Urgency: low | Worth doing: medium-high** — real data-integrity value (stops
-accidental edits to historical sprints), and needs no schema change at all since "locked" is derived
-from `end_date` having passed rather than a new column.
+**Severity: low | Urgency: low | Worth doing: delivered** — historical sprint data is now protected
+by date-based lock checks with matching UI behavior.
 
-Derives "locked" from the sprint's existing `end_date` (non-null and in the past) instead of adding a
-`status`/`locked` column — avoids the one-off manual `ALTER TABLE` + real-db-edit dance this project's
-schema changes normally require, and every historic sprint is correctly locked the instant it ships,
-with zero backfill. Enforces at the service layer (`sprintService.updateSprint`,
-`storyService.createStory`/`updateStory`/tag add-remove, `subtaskService.createSubtask`/
-`updateSubtask`, each resolving the sprint via its existing FK chain) via a new `SprintLockedError`
-mapped to a `409`, plus client-side disabling of the same controls once loaded data shows the parent
-sprint is locked. Explicitly excludes holidays (global, not sprint-scoped — its own separate idea).
-Flags two open calls: whether there's an unlock/override escape hatch (recommends no, for now) and
-whether the sprint's one editable field today (comment) should be locked too (recommends yes, for
-consistency).
+Locking is derived from existing `end_date` using `shared/sprintLock.ts` (`isSprintLocked` and
+`SprintLockedError`). Service-layer checks block sprint, story, and subtask mutations for locked
+sprints and return `409` through `server/app.ts`. Client pages disable edit/transition controls and
+show lock indicators on detail pages. Holidays remain global in the data model, so holiday lock
+behavior is UI-level only. Manual override is tracked separately in
+`plan-manual-lock-toggle/plan-manual-lock-toggle.md`.
 
 ## [popup calendar for holiday selection + export date range](plan-holiday-popup-calendar/plan-holiday-popup-calendar.md)
 
