@@ -255,7 +255,7 @@ INSERT INTO subtasks (story_id, title, branch_name, status, type) VALUES
 -- ============================================================
 -- status_history: every subtask's full transition path from NEW up to its
 -- current status, dated within its sprint and following
--- static/statusFlow.json (some steps skipped where the flow allows it,
+-- static/status_flow.json (some steps skipped where the flow allows it,
 -- several oscillate back and forth before moving on).
 -- ============================================================
 

@@ -248,11 +248,11 @@ paths:
       summary: Update a subtask, including moving it through the status flow
       description: >
         Plain field updates (title/comment/branchName/complexityRating) don't need `status`.
-        Changing `status` is validated against `static/statusFlow.json`: the destination must be a
+        Changing `status` is validated against `static/status_flow.json`: the destination must be a
         reachable next state, and any fields its transition `requires` must be present in the body.
         Supplying `prUrl` also derives/stores the repo name and tags the parent story with it.
         `complexityRating` cannot be changed once the subtask's (post-update) status is a state
-        flagged `locksComplexity` in `static/statusFlow.json`.
+        flagged `locksComplexity` in `static/status_flow.json`.
       requestBody:
         required: true
         content:
@@ -447,7 +447,7 @@ paths:
     get:
       tags: [Status flow]
       summary: The full subtask status flow document
-      description: Verbatim `static/statusFlow.json` - the single source of truth for subtask states, transitions, and their required fields.
+      description: Verbatim `static/status_flow.json` - the single source of truth for subtask states, transitions, and their required fields.
       responses:
         "200":
           description: OK

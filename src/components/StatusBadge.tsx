@@ -1,7 +1,7 @@
 import React from "react";
 import type { StatusFlowConfig, StoryStatus } from "@shared/types";
 import { statusColors, statusLabels, storyStatuses, subtaskStatuses, burndownMilestones } from "@shared/statusCatalog";
-import rawStatusFlow from "../../static/statusFlow.json";
+import rawStatusFlow from "../../static/status_flow.json";
 import "./StatusBadge.css";
 
 const statusFlow = rawStatusFlow as StatusFlowConfig;

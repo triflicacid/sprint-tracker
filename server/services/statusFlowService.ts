@@ -7,7 +7,7 @@ const currentDir = path.dirname(fileURLToPath(import.meta.url));
 
 // only read the static flow file once on startup
 const config = JSON.parse(
-    fs.readFileSync(path.join(currentDir, "..", "..", "static", "statusFlow.json"), "utf-8")
+    fs.readFileSync(path.join(currentDir, "..", "..", "static", "status_flow.json"), "utf-8")
 ) as StatusFlowConfig;
 
 export function getStatusFlow() {

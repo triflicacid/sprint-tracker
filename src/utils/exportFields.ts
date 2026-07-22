@@ -1,5 +1,5 @@
 import type { MarkdownExportFields } from "@shared/types";
-import rawDefaultExportFields from "../../static/exportFields.json";
+import rawDefaultExportFields from "../../static/export_fields.json";
 
 const STORAGE_KEY = "sprint-tracker:export-fields";
 

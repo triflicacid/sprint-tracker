@@ -48,7 +48,7 @@ export interface FlowState {
   burndownMilestone?: boolean;
 }
 
-// statusFlow.json
+// status_flow.json
 export interface StatusFlowConfig {
   states: FlowState[];
   transitions: FlowTransition[];
@@ -73,7 +73,7 @@ export interface StatusHistoryEntry {
   changedAt: string;
 }
 
-// one entry from static/subtask-types.json
+// one entry from static/subtask_types.json
 export interface SubtaskTypeEntry {
   shortName: string;
   fullName: string;

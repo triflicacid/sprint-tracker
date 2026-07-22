@@ -6,7 +6,7 @@ import type { SubtaskTypeEntry } from "../../shared/types.js";
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 
 const types = JSON.parse(
-    fs.readFileSync(path.join(currentDir, "..", "..", "static", "subtask-types.json"), "utf-8")
+    fs.readFileSync(path.join(currentDir, "..", "..", "static", "subtask_types.json"), "utf-8")
 ) as SubtaskTypeEntry[];
 
 const validShortNames = new Set(types.map((t) => t.shortName));

@@ -50,7 +50,7 @@
 - Subtask status flow is data, not code: `NEW → WIP → IN_PR → IN_REVIEW →
   PR_COMMENTS → CUT_RELEASE → TESTING → UAT → DONE`, with branching
   (`IN_REVIEW` → `PR_COMMENTS` / `CUT_RELEASE` / back to `IN_PR`). Single
-  source of truth is `static/statusFlow.json` - states, colors, labels,
+  source of truth is `static/status_flow.json` - states, colors, labels,
   descriptions, allowed transitions, and required fields per transition -
   served verbatim at `GET /status-flow`. Read by both
   `statusFlowService.ts` (server-side transition validation) and
@@ -103,10 +103,10 @@
 - One generic `FlowDiagram` (nodes + `{from,to,title}` edges → arrows), two
   callers with different edge sources: `SubtaskFlowDiagram` (one subtask's
   real history, unreached states dimmed) and `TransitionsInfoPage` (every
-  transition `statusFlow.json` allows, as reference). Drawing logic is
+  transition `status_flow.json` allows, as reference). Drawing logic is
   identical; only the data feeding it differs.
 - `StatusBadge.tsx` derives `STATUS_COLORS` / `STATUS_LABELS` from
-  `static/statusFlow.json` at import time - not a second hardcoded table.
+  `static/status_flow.json` at import time - not a second hardcoded table.
 
 ## Testing
 

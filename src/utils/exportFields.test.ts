@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import type { MarkdownExportFields } from "@shared/types";
-import rawExportFieldsJson from "../../static/exportFields.json";
+import rawExportFieldsJson from "../../static/export_fields.json";
 import { defaultExportFields, loadExportFields, saveExportFields } from "./exportFields";
 
 const staticDefaults = rawExportFieldsJson as MarkdownExportFields;
@@ -10,7 +10,7 @@ beforeEach(() => {
 });
 
 describe("defaultExportFields", () => {
-    it("matches static/exportFields.json - the single source of truth for defaults", () => {
+    it("matches static/export_fields.json - the single source of truth for defaults", () => {
         expect(defaultExportFields()).toEqual(staticDefaults);
     });
 

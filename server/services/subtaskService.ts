@@ -107,7 +107,7 @@ export function createSubtask(storyId: number, input: CreateSubtaskInput): Subta
 }
 
 // Plain field updates need no validation. A status change is checked
-// against static/statusFlow.json: destination must be an allowed next
+// against static/status_flow.json: destination must be an allowed next
 // state, and any field that transition requires must be present.
 export function updateSubtask(subtaskId: number, input: UpdateSubtaskInput): Subtask {
     const existing: SubtaskRow | undefined = db

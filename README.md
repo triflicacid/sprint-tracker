@@ -181,4 +181,4 @@ Top-level directories:
   - `utils/` - shared client-side helpers (e.g. calendar grid/date math)
   - `testUtils/` - shared setup for the client's own unit/integration tests
   - `tests/integration/` - React Testing Library integration tests per page
-- `static/` - static resources served by the app, including `statusFlow.json` (the status flow document, see Features above) and the icon
+- `static/` - static resources served by the app, including `status_flow.json` (the status flow document, see Features above) and the icon

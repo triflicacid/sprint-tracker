@@ -6,7 +6,7 @@ interface LockIconProps {
 }
 
 // padlock shown next to a sprint/story/subtask's title once its sprint has
-// ended; color matches the "done" status lozenge (see static/statusFlow.json).
+// ended; color matches the "done" status lozenge (see static/status_flow.json).
 export function LockIcon({ title = "this sprint has ended" }: LockIconProps): React.ReactElement {
     return (
         <svg

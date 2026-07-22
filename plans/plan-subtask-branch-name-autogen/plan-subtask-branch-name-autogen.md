@@ -10,7 +10,7 @@ Goal: auto-fill subtask branch name as `<category>/<jiraKey>-<slug>`, for exampl
 - `branchName` is not set when a subtask is created in `server/services/subtaskService.ts`.
 - `branch_name` defaults to `'(unknown)'` in `data/schema.sql`.
 - Branch name is collected later during the `NEW -> WIP` transition, based on the `requires`
-  config in `static/statusFlow.json`.
+  config in `static/status_flow.json`.
 - Required transition fields are rendered in `src/components/SubtaskRow.tsx` from `pendingFields`.
   All fields are currently rendered the same way, with no branch-name-specific prefill.
 
