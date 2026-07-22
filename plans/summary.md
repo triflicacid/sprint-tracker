@@ -31,19 +31,6 @@ without it for now, adding the prefix once that plan lands. Sources the story's 
 `Subtask` itself via a server-side join (new `storyJiraKey` field) rather than prop-drilling or a
 second fetch, since `SubtaskDetailPage` doesn't currently load the parent story at all.
 
-## [past sprints are locked and cannot be edited](plan-lock-past-sprints/plan-lock-past-sprints.md)
-
-**Status: implemented**
-
-**Severity: low | Urgency: low | Worth doing: delivered** — historical sprint data is now protected
-by date-based lock checks with matching UI behavior.
-
-Locking is derived from existing `end_date` using `shared/sprintLock.ts` (`isSprintLocked` and
-`SprintLockedError`). Service-layer checks block sprint, story, and subtask mutations for locked
-sprints and return `409` through `server/app.ts`. Client pages disable edit/transition controls and
-show lock indicators on detail pages. Holidays remain global in the data model, so holiday lock
-behavior is UI-level only. Manual override is tracked separately in
-`plan-manual-lock-toggle/plan-manual-lock-toggle.md`.
 
 ## [popup calendar for holiday selection + export date range](plan-holiday-popup-calendar/plan-holiday-popup-calendar.md)
 
