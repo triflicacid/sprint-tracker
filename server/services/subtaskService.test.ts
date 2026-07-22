@@ -10,7 +10,7 @@ let storyId: number;
 beforeEach(() => {
     const sprint = db.prepare("INSERT INTO sprints (name, start_date) VALUES ('S', '2026-01-01')").run();
     const story = db
-        .prepare("INSERT INTO stories (sprint_id, jira_url, description) VALUES (?, 'https://x', 'story')")
+        .prepare("INSERT INTO stories (sprint_id, jira_url, jira_key, description) VALUES (?, 'https://x', 'NEB-1', 'story')")
         .run(Number(sprint.lastInsertRowid));
     storyId = Number(story.lastInsertRowid);
 });
@@ -20,7 +20,7 @@ function insertStoryInLockedSprint(): number {
         .prepare("INSERT INTO sprints (name, start_date, end_date) VALUES ('Past sprint', '2020-01-01', '2020-01-10')")
         .run();
     const story = db
-        .prepare("INSERT INTO stories (sprint_id, jira_url, description) VALUES (?, 'https://x', 'story')")
+        .prepare("INSERT INTO stories (sprint_id, jira_url, jira_key, description) VALUES (?, 'https://x', 'NEB-2', 'story')")
         .run(Number(sprint.lastInsertRowid));
     return Number(story.lastInsertRowid);
 }
@@ -38,6 +38,7 @@ describe("create subtask", () => {
         const subtask = createSubtask(storyId, { title: "add endpoint" });
         expect(subtask.status).toBe("NEW");
         expect(subtask.storyId).toBe(storyId);
+        expect(subtask.storyJiraKey).toBe("NEB-1");
         expect(subtask.url).toBeNull();
     });
 

@@ -33,6 +33,7 @@ const flow: StatusFlowConfig = {
 const subtask: Subtask = {
     id: 5,
     storyId: 1,
+    storyJiraKey: "NEB-1",
     title: "add saved card list endpoint",
     comment: null,
     branchName: "feature/x",

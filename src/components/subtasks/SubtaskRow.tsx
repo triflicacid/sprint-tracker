@@ -6,6 +6,7 @@ import { RatingSelect } from "../RatingSelect";
 import { SubtaskTypeIcon } from "./SubtaskTypeIcon";
 import { api } from "../../api/client";
 import { useToast } from "../Toast";
+import { generateBranchName } from "../../utils/branchName";
 import "./SubtaskRow.css";
 
 const COMPLEXITY_OPTIONS = [1, 2, 3, 4, 5];
@@ -52,8 +53,13 @@ export function SubtaskRow({ subtask, flow, onChanged, disableNavigation, sprint
     }
 
     function startTransition(nextStatus: SubtaskStatus): void {
+        const fields = requiredFields(subtask.status, nextStatus);
+        const nextFieldValues: Record<string, string> = {};
+        if (fields.some((field) => field.field === "branchName")) {
+            nextFieldValues.branchName = generateBranchName(subtask.type, subtask.storyJiraKey, subtask.title);
+        }
         setPendingStatus(nextStatus);
-        setPendingFieldValues({});
+        setPendingFieldValues(nextFieldValues);
     }
 
     async function submitPendingTransition() {
@@ -148,6 +154,8 @@ export function SubtaskRow({ subtask, flow, onChanged, disableNavigation, sprint
                             type={field.type}
                             placeholder={field.label}
                             value={pendingFieldValues[field.field] ?? ""}
+                            autoFocus={field.field === "branchName"}
+                            onFocus={field.field === "branchName" ? (event) => event.target.select() : undefined}
                             onChange={(event) =>
                                 setPendingFieldValues((values) => ({
                                     ...values,

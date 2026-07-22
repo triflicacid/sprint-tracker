@@ -67,6 +67,7 @@ beforeEach(() => {
 function subtask(overrides: Partial<Subtask> & { id: number; title: string }): Subtask {
     return {
         storyId: 1,
+        storyJiraKey: "NEB-1",
         comment: null,
         branchName: "(unknown)",
         status: "NEW",
@@ -165,6 +166,7 @@ describe("story detail page", () => {
                 {
                     id: 5,
                     storyId: 1,
+                    storyJiraKey: "NEB-1",
                     title: "add endpoint",
                     comment: null,
                     branchName: "(unknown)",
@@ -187,6 +189,7 @@ describe("story detail page", () => {
         vi.mocked(api.createSubtask).mockResolvedValue({
             id: 1,
             storyId: 1,
+            storyJiraKey: "NEB-1",
             title: "new subtask",
             comment: null,
             branchName: "(unknown)",

@@ -1,6 +1,6 @@
 # Plan: auto-generate subtask branch name
 
-Status: **not started**. Plan only, no code changes yet.
+Status: **implemented**.
 
 Goal: auto-fill subtask branch name as `<category>/<jiraKey>-<slug>`, for example
 `feature/NEB-1234-new-cash-payment-option`.

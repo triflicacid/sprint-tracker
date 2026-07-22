@@ -32,6 +32,7 @@ const flow: StatusFlowConfig = {
 const baseSubtask: Subtask = {
     id: 1,
     storyId: 10,
+    storyJiraKey: "NEB-1234",
     title: "add endpoint",
     comment: null,
     branchName: "(unknown)",
@@ -130,17 +131,45 @@ describe("SubtaskRow - rendering", () => {
 });
 
 describe("SubtaskRow - status transitions", () => {
+    it("prefills branchName from the type, jira key, and title", async () => {
+        renderRow({ ...baseSubtask, type: "feature" });
+
+        await userEvent.click(screen.getByText("wip"));
+
+        expect(screen.getByPlaceholderText("Branch name")).toHaveValue("feature/NEB-1234-add-endpoint");
+    });
+
     it("prompts for the required field and submits the transition", async () => {
-        vi.mocked(api.updateSubtask).mockResolvedValue({ ...baseSubtask, status: "WIP", branchName: "feature/x" });
+        vi.mocked(api.updateSubtask).mockResolvedValue({
+            ...baseSubtask,
+            status: "WIP",
+            branchName: "feature/NEB-1234-add-endpoint",
+            type: "feature",
+        });
         const { onChanged } = renderRow(baseSubtask);
 
         await userEvent.click(screen.getByText("wip"));
-        const input = screen.getByPlaceholderText("Branch name");
-        await userEvent.type(input, "feature/x");
         await userEvent.click(screen.getByText("confirm"));
 
-        expect(api.updateSubtask).toHaveBeenCalledWith(1, { status: "WIP", branchName: "feature/x" });
+        expect(api.updateSubtask).toHaveBeenCalledWith(1, { status: "WIP", branchName: "unknown/NEB-1234-add-endpoint" });
         expect(onChanged).toHaveBeenCalledOnce();
+    });
+
+    it("lets the user replace the generated branch name normally", async () => {
+        vi.mocked(api.updateSubtask).mockResolvedValue({ ...baseSubtask, status: "WIP", branchName: "feature/custom-name" });
+        renderRow({ ...baseSubtask, type: "feature" });
+
+        await userEvent.click(screen.getByText("wip"));
+        const input = screen.getByPlaceholderText("Branch name");
+
+        expect(input).toHaveFocus();
+        expect((input as HTMLInputElement).selectionStart).toBe(0);
+        expect((input as HTMLInputElement).selectionEnd).toBe("feature/NEB-1234-add-endpoint".length);
+
+        await userEvent.type(input, "feature/custom-name");
+        await userEvent.click(screen.getByText("confirm"));
+
+        expect(api.updateSubtask).toHaveBeenCalledWith(1, { status: "WIP", branchName: "feature/custom-name" });
     });
 
     it("shows a toast and does not call onChanged when the update fails", async () => {
@@ -148,7 +177,6 @@ describe("SubtaskRow - status transitions", () => {
         const { onChanged } = renderRow(baseSubtask);
 
         await userEvent.click(screen.getByText("wip"));
-        await userEvent.type(screen.getByPlaceholderText("Branch name"), "feature/x");
         await userEvent.click(screen.getByText("confirm"));
 
         expect(await screen.findByText("cannot move from NEW to WIP")).toBeInTheDocument();

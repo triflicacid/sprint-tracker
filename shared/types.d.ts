@@ -83,6 +83,7 @@ export interface SubtaskTypeEntry {
 export interface Subtask {
   id: number;
   storyId: number;
+  storyJiraKey: string | null;
   title: string;
   comment: string | null;
   branchName: string;

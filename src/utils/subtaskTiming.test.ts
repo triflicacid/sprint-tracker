@@ -19,6 +19,7 @@ function subtask(overrides: Partial<Subtask> = {}): Subtask {
     return {
         id: 1,
         storyId: 1,
+        storyJiraKey: "NEB-1",
         title: "add endpoint",
         comment: null,
         branchName: "(unknown)",
