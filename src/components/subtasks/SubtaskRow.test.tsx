@@ -80,14 +80,19 @@ afterEach(() => {
 });
 
 describe("SubtaskRow - rendering", () => {
-    it("hides the branch name when the current state has noBranch set", () => {
+    it("shows a no-branch placeholder when the subtask has no branch yet", () => {
         renderRow(baseSubtask); // baseSubtask is NEW, which has noBranch: true
-        expect(screen.queryByText("(unknown)")).not.toBeInTheDocument();
+        expect(screen.getByText("(no branch yet)")).toBeInTheDocument();
     });
 
     it("shows the branch name once the subtask is in a state where a branch exists", () => {
         renderRow({ ...baseSubtask, status: "WIP", branchName: "feature/NEB-1234-add-endpoint" });
         expect(screen.getByText("feature/NEB-1234-add-endpoint")).toBeInTheDocument();
+    });
+
+    it("shows the no-branch placeholder even in later states when branchName is still missing", () => {
+        renderRow({ ...baseSubtask, status: "WIP" });
+        expect(screen.getByText("(no branch yet)")).toBeInTheDocument();
     });
 
     it("does not show the comment, even when one is set", () => {

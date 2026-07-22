@@ -107,19 +107,23 @@ export function SubtaskRow({ subtask, flow, onChanged, disableNavigation, sprint
             </div>
             <div className="subtask-header">
                 <div className="subtask-branch-pr">
-                    {branchApplicable && (githubBranchUrl ? (
-                        <a
-                            href={githubBranchUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="branch-name"
-                            onClick={(event) => event.stopPropagation()}
-                        >
-                            {subtask.branchName}
-                        </a>
+                    {subtask.branchName ? (
+                        githubBranchUrl ? (
+                            <a
+                                href={githubBranchUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="branch-name"
+                                onClick={(event) => event.stopPropagation()}
+                            >
+                                {subtask.branchName}
+                            </a>
+                        ) : (
+                            <span className="branch-name">{subtask.branchName}</span>
+                        )
                     ) : (
-                        <span className="branch-name">{subtask.branchName}</span>
-                    ))}
+                        <span className="branch-placeholder">(no branch yet)</span>
+                    )}
                     {subtask.url && (
                         <a
                             href={subtask.url}
