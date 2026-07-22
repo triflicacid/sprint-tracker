@@ -2,6 +2,9 @@ import type { ComplexityTimingPoint } from "@shared/types";
 
 export const COMPLEXITY_RATINGS = [1, 2, 3, 4, 5];
 
+/**
+ * average running time for a complexity rating
+ */
 export interface ComplexityAveragePoint {
     complexityRating: number;
     runningTimeDays: number;
@@ -9,7 +12,12 @@ export interface ComplexityAveragePoint {
     isAverage: true;
 }
 
-// calculate the average running time for each rated complexity
+/**
+ * calculates average running time for each complexity rating
+ *
+ * @param points complexity timing points
+ * @returns array of average points
+ */
 export function averageRunningTimeByComplexity(points: ComplexityTimingPoint[]): ComplexityAveragePoint[] {
     const totals = new Map<number, { sum: number; count: number }>();
     for (const point of points) {
@@ -28,7 +36,12 @@ export function averageRunningTimeByComplexity(points: ComplexityTimingPoint[]):
         .sort((a, b) => a.complexityRating - b.complexityRating);
 }
 
-// groups the complexity/running-time points by story
+/**
+ * groups complexity/running-time points by story
+ *
+ * @param points complexity timing points
+ * @returns array of grouped story points
+ */
 export function groupPointsByStory(points: ComplexityTimingPoint[]) {
     const byStory = new Map<number, { storyId: number; storyLabel: string; points: ComplexityTimingPoint[] }>();
     for (const point of points) {

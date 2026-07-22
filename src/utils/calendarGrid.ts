@@ -1,20 +1,44 @@
+/**
+ * parses an ISO date string to UTC Date
+ *
+ * @param dateString ISO date string (YYYY-MM-DD)
+ * @returns Date object in UTC
+ */
 export function parseIsoDate(dateString: string): Date {
     const [year, month, day] = dateString.split("-").map(Number);
     return new Date(Date.UTC(year, month - 1, day));
 }
 
+/**
+ * formats a Date as ISO date string
+ *
+ * @param date Date object
+ * @returns ISO date string (YYYY-MM-DD)
+ */
 export function formatIsoDate(date: Date): string {
     return date.toISOString().slice(0, 10);
 }
 
-// formats an iso date string (yyyy-mm-dd) for display as dd/mm/yyyy.
+/**
+ * formats an ISO date string for display as dd/mm/yyyy
+ *
+ * @param dateString ISO date string (YYYY-MM-DD)
+ * @returns display date string (DD/MM/YYYY)
+ */
 export function formatDisplayDate(dateString: string): string {
     const [year, month, day] = dateString.split("-");
     return `${day}/${month}/${year}`;
 }
 
-// monday-first grid of a single calendar month, padded with nulls so
-// every row has 7 cells.
+/**
+ * builds a Monday-first grid of a single calendar month
+ *
+ * padded with nulls so every row has 7 cells
+ *
+ * @param year year
+ * @param month month (0-11)
+ * @returns 2D array of weeks, each with 7 cells (Date or null)
+ */
 export function buildMonthGrid(year: number, month: number): (Date | null)[][] {
     const firstDay: Date = new Date(Date.UTC(year, month, 1));
     const daysInMonth: number = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
@@ -38,10 +62,15 @@ export function buildMonthGrid(year: number, month: number): (Date | null)[][] {
     return weeks;
 }
 
-// monday-first grid of a single calendar month, like buildMonthGrid, but
-// padding cells hold the real adjacent-month date instead of null - needed
-// when content (e.g. a range-line) must be positioned by real date even in
-// the leading/trailing days of a week that belong to the next/previous month.
+/**
+ * builds a Monday-first grid with real adjacent-month dates for padding cells
+ * 
+ * needed when content must be positioned by real date even in leading/trailing days
+ * 
+ * @param year year
+ * @param month month (0-11)
+ * @returns 2D array of weeks, each with 7 Date cells
+ */
 export function buildMonthGridDates(year: number, month: number): Date[][] {
     const firstDay: Date = new Date(Date.UTC(year, month, 1));
     const daysInMonth: number = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
@@ -60,13 +89,26 @@ export function buildMonthGridDates(year: number, month: number): Date[][] {
     return weeks;
 }
 
+/**
+ * checks if a Date falls in the specified UTC month
+ * 
+ * @param date Date to check
+ * @param year year
+ * @param month month (0-11)
+ * @returns true if date is in the specified month
+ */
 export function isSameUtcMonth(date: Date, year: number, month: number): boolean {
     return date.getUTCFullYear() === year && date.getUTCMonth() === month;
 }
 
-// groups iso date strings into consecutive-day ranges, e.g.
-// ["2026-07-12", "2026-07-13", "2026-07-14"] -> [{ start: "2026-07-12", end: "2026-07-14" }].
-// input need not be pre-sorted.
+/**
+ * groups ISO date strings into consecutive-day ranges
+ * 
+ * input need not be pre-sorted
+ * 
+ * @param dates array of ISO date strings
+ * @returns array of {start, end} ranges
+ */
 export function groupConsecutiveDates(dates: string[]): { start: string; end: string }[] {
     const oneDayMs = 24 * 60 * 60 * 1000;
     const sorted: string[] = [...dates].sort();
@@ -84,7 +126,13 @@ export function groupConsecutiveDates(dates: string[]): { start: string; end: st
     return groups;
 }
 
-// every {year, month} spanned between two iso date strings, inclusive.
+/**
+ * every {year, month} spanned between two ISO date strings, inclusive
+ * 
+ * @param startDate ISO start date
+ * @param endDate ISO end date
+ * @returns array of {year, month} objects
+ */
 export function monthsBetween(startDate: string, endDate: string): { year: number; month: number }[] {
     const start: Date = parseIsoDate(startDate);
     const end: Date = parseIsoDate(endDate);

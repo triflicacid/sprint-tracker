@@ -12,7 +12,7 @@ describe("GET /api/subtask-types", () => {
         expect(response.body.length).toBeGreaterThan(0);
     });
 
-    it("each entry has shortName, fullName, and description fields", async () => {
+    it("each entry has shortname, fullname, and description fields", async () => {
         const response = await request(app).get("/api/subtask-types");
         for (const entry of response.body) {
             expect(typeof entry.shortName).toBe("string");

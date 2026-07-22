@@ -25,7 +25,7 @@ function renderPage() {
     );
 }
 
-describe("SprintListPage", () => {
+describe("sprint list page", () => {
     it("lists sprints returned by the api", async () => {
         vi.mocked(api.listSprints).mockResolvedValue([
             { id: 1, name: "Sprint 1", startDate: "2026-01-01", endDate: null, comment: null, storyCount: 2, prCount: 3 },

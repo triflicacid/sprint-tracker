@@ -17,7 +17,11 @@ import { ExportButton } from "../components/ExportButton";
 import "../components/sprints/SprintCard.css";
 import "./SprintDetailPage.css";
 
-// a sprint ("/sprints/:id"): its stories, holiday management, and comment.
+/**
+ * sprint detail page ("/sprints/:id")
+ * 
+ * displays stories, holiday management, and comment
+ */
 export function SprintDetailPage(): React.ReactElement {
     const { id } = useParams<{ id: string }>();
     const sprintId: number = Number(id);
@@ -41,9 +45,7 @@ export function SprintDetailPage(): React.ReactElement {
     }
 
     async function loadHolidays(startDate: string, endDate: string | null) {
-        // an ongoing sprint (no endDate yet) can still have holidays marked
-        // beyond today - "9999-12-31" is this codebase's existing convention
-        // for "unbounded" (see ExportPage's overlapsRange), not "today".
+        // ongoing sprints use "9999-12-31" for unbounded date range
         const dates: string[] = await api.listHolidays(startDate, endDate ?? "9999-12-31");
         setHolidays(dates);
     }

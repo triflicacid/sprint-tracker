@@ -3,22 +3,26 @@ import { STATUS_LABELS, STATUS_COLORS, SUBTASK_STATUSES } from "../components/St
 import type { PdfSection, PdfTable } from "./pdfExport";
 import { hexToRgb } from "./colourUtils";
 
+/**
+ * timing breakdown for a subtask
+ */
 export interface SubtaskTiming {
-    // total days from the first history entry to the last
+    /** total days from the first history entry to the last */
     totalDays: number;
-    // written report lines: a dated list of transitions, then a "total time
-    // in each phase" summary
+    /** written report lines: a dated list of transitions, then a summary */
     lines: string[];
 }
 
-// one row of a subtask's transition history, sorted ascending. `changedAt` is
-// kept as the full timestamp (not truncated to a date) so duration math
-// stays precise even when several rows land on the same calendar day.
+/**
+ * one row of a subtask's transition history, sorted ascending
+ *
+ * keeps full timestamp (not truncated to date) for precise duration math
+ */
 export interface TransitionRow {
     id: number;
     changedAt: string;
     status: SubtaskStatus;
-    // days spent in the PREVIOUS row's status before this transition
+    // days spent in the previous status before this transition
     daysInPrevious: number | null;
     // same duration as daysInPrevious, but exact milliseconds
     msInPrevious: number | null;
@@ -33,12 +37,15 @@ function formatDays(days: number) {
     return `${days} day${days === 1 ? "" : "s"}`;
 }
 
-// "YYYY-MM-DD HH:MM", read directly off the stored string rather than via
-// `new Date(...).getHours()` - changedAt has no timezone component (sqlite
-// stores it as a naive "YYYY-MM-DD HH:MM:SS" wall-clock string), and a
-// same-format/no-offset string is parsed as LOCAL time by `Date`, which would
-// silently shift the displayed hour depending on the runtime's timezone.
-// Reading the digits straight out of the string sidesteps that entirely.
+/**
+ * formats a timestamp as "YYYY-MM-DD HH:MM"
+ *
+ * reads directly from the string to avoid timezone shifts - sqlite stores
+ * naive wall-clock timestamps that would be silently offset if parsed via Date
+ *
+ * @param changedAt ISO-like timestamp string
+ * @returns formatted string in "YYYY-MM-DD HH:MM" format
+ */
 export function formatDateTime(changedAt: string) {
     const match = changedAt.match(/^(\d{4}-\d{2}-\d{2})[ T](\d{2}):(\d{2})/);
     if (match) {
@@ -51,8 +58,14 @@ const MINUTE_MS = 60 * 1000;
 const HOUR_MS = 60 * MINUTE_MS;
 const DAY_MS = 24 * HOUR_MS;
 
-// formats a duration as "Xd Yh Zm" - always all three units, even when zero,
-// so every row in the transitions table lines up in the same shape.
+/**
+ * formats a duration as "Xd Yh Zm"
+ *
+ * always includes all three units (even when zero) for consistent table alignment
+ *
+ * @param ms duration in milliseconds
+ * @returns formatted string like "2d 3h 15m"
+ */
 export function formatDurationDHM(ms: number): string {
     const total = Math.max(0, Math.round(ms / MINUTE_MS)) * MINUTE_MS;
     const days = Math.floor(total / DAY_MS);
@@ -61,9 +74,12 @@ export function formatDurationDHM(ms: number): string {
     return `${days}d ${hours}h ${minutes}m`;
 }
 
-// sorts a subtask's raw history and pairs each entry with how long the
-// previous status lasted - the one piece of date math the pdf export and the
-// on-page transitions table both build on top of.
+/**
+ * sorts a subtask's raw history and pairs each entry with how long the previous status lasted
+ *
+ * @param history unsorted status history entries
+ * @returns sorted rows with duration calculations
+ */
 export function buildTransitionRows(history: StatusHistoryEntry[]): TransitionRow[] {
     const sorted = [...history].sort((a, b) => new Date(a.changedAt).getTime() - new Date(b.changedAt).getTime());
     return sorted.map((entry, i) => {
@@ -83,13 +99,17 @@ export function buildTransitionRows(history: StatusHistoryEntry[]): TransitionRo
 
 interface PhaseTotals {
     totalDays: number;
-    // ["Total time in each phase:", "<comma-joined per-status totals>"] - or
-    // [] when there's no history at all to summarize.
+    // summary lines, or empty array when there's no history
     lines: string[];
 }
 
-// the "total time per phase" summary shared by computeSubtaskTiming's
-// flat-text report and the pdf table's post-table summary line.
+/**
+ * computes total time spent in each phase
+ *
+ * @param rows sorted transition rows
+ * @param now current time for ongoing status calculation
+ * @returns total days and summary lines
+ */
 function computePhaseTotals(rows: TransitionRow[], now: Date): PhaseTotals {
     if (rows.length === 0) {
         return { totalDays: 0, lines: [] };
@@ -119,8 +139,13 @@ function computePhaseTotals(rows: TransitionRow[], now: Date): PhaseTotals {
     };
 }
 
-// builds the "transitions + total time per phase" report for one subtask's
-// status history, as flat text lines.
+/**
+ * builds transitions and phase totals report for one subtask's status history
+ *
+ * @param history status history entries
+ * @param now current time (defaults to now)
+ * @returns timing breakdown with flat text lines
+ */
 export function computeSubtaskTiming(history: StatusHistoryEntry[], now: Date = new Date()) {
     const rows = buildTransitionRows(history);
     if (rows.length === 0) {
@@ -146,9 +171,14 @@ export function computeSubtaskTiming(history: StatusHistoryEntry[], now: Date = 
 }
 
 
-// the transitions table, drawn as real pdf text (not a screenshot) with the
-// state column colored to match the on-screen status badge - mirrors
-// SubtaskTransitionsTable.tsx exactly, one row per real transition.
+/**
+ * builds the transitions table for PDF export
+ * 
+ * mirrors SubtaskTransitionsTable.tsx with colored state column
+ * 
+ * @param history status history entries
+ * @returns PDF table structure with one row per transition
+ */
 export function buildTransitionsPdfTable(history: StatusHistoryEntry[]): PdfTable {
     const rows = buildTransitionRows(history);
     return {
@@ -165,12 +195,24 @@ export function buildTransitionsPdfTable(history: StatusHistoryEntry[]): PdfTabl
     };
 }
 
-// the "total time per phase" summary
+/**
+ * builds phase totals summary lines
+ * 
+ * @param history status history entries
+ * @param now current time (defaults to now)
+ * @returns summary lines
+ */
 export function buildPhaseTotalsLines(history: StatusHistoryEntry[], now: Date = new Date()): string[] {
     return computePhaseTotals(buildTransitionRows(history), now).lines;
 }
 
-// one subtask's export page
+/**
+ * builds one subtask's PDF export section
+ * 
+ * @param subtask the subtask to export
+ * @param history status history entries
+ * @returns PDF section with transitions table and summary
+ */
 export function buildSubtaskPdfSection(subtask: Subtask, history: StatusHistoryEntry[]): PdfSection {
     return {
         title: subtask.branchName === "(unknown)" ? subtask.title : `${subtask.title} (${subtask.branchName})`,

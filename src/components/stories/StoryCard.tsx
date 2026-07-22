@@ -10,7 +10,11 @@ interface StoryCardProps {
     story: StorySummary;
 }
 
-// one story's summary tile, linking to its detail page.
+/**
+ * story summary tile linking to its detail page
+ *
+ * @param story the story to display
+ */
 export function StoryCard({ story }: StoryCardProps): React.ReactElement {
     return (
         <div className="story-card">

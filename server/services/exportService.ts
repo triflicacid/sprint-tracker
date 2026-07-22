@@ -4,10 +4,23 @@ import { getStoryDetail } from "./storyService.js";
 import { getStatusFlow } from "./statusFlowService.js";
 import { statusLabels } from "../../shared/statusCatalog.js";
 
+/**
+ * returns the display label for a story status.
+ *
+ * @param status - status to label.
+ * @returns display label for the status.
+ */
 function labelOf(status: StoryStatus): string {
     return statusLabels(getStatusFlow())[status];
 }
 
+/**
+ * formats one subtask as markdown.
+ *
+ * @param subtask - subtask to format.
+ * @param fields - enabled subtask export fields.
+ * @returns markdown lines for the subtask.
+ */
 function formatSubtask(subtask: Subtask, fields: MarkdownExportFields["subtask"]) {
     const identity = fields.title ? subtask.title : `Subtask ${subtask.id}`;
     let heading = `- ${identity}`;
@@ -15,7 +28,7 @@ function formatSubtask(subtask: Subtask, fields: MarkdownExportFields["subtask"]
         heading += ` [${labelOf(subtask.status)}]`;
     }
 
-    // branch and PR link share one sub-bullet ("branch @ pr link")
+    // branch and pr share one detail line when both are shown
     const detailLines: string[] = [];
     if (fields.branchName) {
         const branch = fields.prUrl && subtask.url ? `${subtask.branchName} @ ${subtask.url}` : subtask.branchName;
@@ -43,6 +56,13 @@ function formatSubtask(subtask: Subtask, fields: MarkdownExportFields["subtask"]
     return lines.join("\n");
 }
 
+/**
+ * formats one story and its subtasks as markdown.
+ *
+ * @param story - story to format.
+ * @param fields - enabled story and subtask export fields.
+ * @returns markdown block for the story.
+ */
 function formatStory(story: StoryDetail, fields: MarkdownExportFields) {
     const identityParts: string[] = [];
     if (fields.story.jiraKey) {
@@ -70,7 +90,13 @@ function formatStory(story: StoryDetail, fields: MarkdownExportFields) {
     return [...lines, "", ...subtaskLines].join("\n");
 }
 
-// builds one markdown document covering every given sprint in the order given
+/**
+ * builds a markdown export for the given sprints.
+ *
+ * @param sprintIds - sprint ids to export in order.
+ * @param fields - story and subtask fields to include.
+ * @returns the generated markdown document.
+ */
 export function buildMarkdownExport(sprintIds: number[], fields: MarkdownExportFields) {
     const sections: string[] = [];
     for (const sprintId of sprintIds) {

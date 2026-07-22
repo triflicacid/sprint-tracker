@@ -31,8 +31,8 @@ function renderPage() {
     );
 }
 
-describe("TransitionsInfoPage", () => {
-    it("shows loading, then the flow diagram and every state's description", async () => {
+describe("transitions info page", () => {
+    it("shows loading, then the flow diagram and state descriptions", async () => {
         vi.mocked(api.getStatusFlow).mockResolvedValue(flow);
         renderPage();
         expect(screen.getByText("loading...")).toBeInTheDocument();

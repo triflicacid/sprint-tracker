@@ -160,6 +160,8 @@ still works fine using the description and Jira link you entered manually.
 
 See the API schema at [`docs/api.yaml`](docs/api.yaml).
 
+For code style and documentation conventions, see [`docs/comment-guidelines.md`](docs/comment-guidelines.md).
+
 Top-level directories:
 
 - `data/` - database schema, sql datasets, and every db management script

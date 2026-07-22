@@ -35,6 +35,12 @@ interface StoryTimeRow {
     last_activity: string | null;
 }
 
+/**
+ * returns sprint-level stats.
+ *
+ * @param sprintId - sprint to summarize.
+ * @returns computed sprint stats.
+ */
 export function getSprintStats(sprintId: number) {
     const prCount = (
         db
@@ -127,9 +133,12 @@ interface ComplexitySubtaskRow {
     last_activity: string | null;
 }
 
-// complexity-vs-running-time data for the sprint stats.
-// running time is only meaningful for DONE subtasks, so subtasks
-// that aren't DONE yet (or with no rating at all) are counted but excluded
+/**
+ * returns complexity timing stats for a sprint.
+ *
+ * @param sprintId - sprint to summarize.
+ * @returns complexity timing data and related counts.
+ */
 export function getComplexityTiming(sprintId: number) {
     const rows = db
         .prepare(
@@ -192,8 +201,13 @@ export function getComplexityTiming(sprintId: number) {
     return { points, ratingCounts, unratedCount, inProgressRatedCount, storyComplexity } as ComplexityStats;
 }
 
-// per-day status tally: for each day in the sprint, count subtasks/stories
-// by the status they held as of that day.
+/**
+ * returns day-by-day status counts.
+ *
+ * @param sprintId - sprint to summarize.
+ * @param granularity - whether to count by subtask or story status.
+ * @returns daily status breakdown points.
+ */
 export function getStatusBreakdown(sprintId: number, granularity: StatusBreakdownGranularity) {
     const sprint = db.prepare("SELECT start_date, end_date FROM sprints WHERE id = ?").get(sprintId) as
         | { start_date: string; end_date: string | null }
@@ -276,9 +290,12 @@ export function getStatusBreakdown(sprintId: number, granularity: StatusBreakdow
     return points as StatusBreakdownPoint[];
 }
 
-// per-day activity for the calendar view: backfills every day a subtask
-// was active with the status held that day.
-// subtasks still in NEW contribute nothing.
+/**
+ * returns day activity for one sprint.
+ *
+ * @param sprintId - sprint to summarize.
+ * @returns date-keyed activity entries.
+ */
 export function getDayActivity(sprintId: number): DayActivityMap {
     const sprint = db.prepare("SELECT start_date, end_date FROM sprints WHERE id = ?").get(sprintId) as
         | { start_date: string; end_date: string | null }
@@ -318,7 +335,7 @@ export function getDayActivity(sprintId: number): DayActivityMap {
             .all(subtask.id) as { status: SubtaskStatus; changed_at: string }[];
 
         const firstActiveEntry = entries.find((entry) => entry.status !== "NEW");
-        // if no history but non-NEW, imply active to not render as NEW
+        // if there is no history but status is non-new, treat it as active
         const impliedActive = entries.length === 0 && subtask.status !== "NEW";
         if (!firstActiveEntry && !impliedActive) {
             continue;
@@ -356,12 +373,11 @@ export function getDayActivity(sprintId: number): DayActivityMap {
     return result;
 }
 
-// per-day activity across every sprint, for the timesheet page - same
-// backfill logic as getDayActivity, just with no single sprint's bounds to
-// clamp to. an in-progress subtask (no DONE entry yet) still can't show
-// activity beyond today; a subtask with an implied-active status but no
-// history at all falls back to its own sprint's start date, exactly as
-// getDayActivity would if called for that subtask's sprint.
+/**
+ * returns day activity across all sprints.
+ *
+ * @returns date-keyed activity entries across every sprint.
+ */
 export function getAllDayActivity(): DayActivityMap {
     const subtaskRows = db
         .prepare(
@@ -435,8 +451,12 @@ interface CalendarFilter {
     tag?: string;
 }
 
-// builds calendar entries, one per sprint, listing the repos and tags
-// touched during that sprint. filters narrow which sprints are returned.
+/**
+ * returns sprint calendar entries with filters.
+ *
+ * @param filter - optional repo, story, and tag filters.
+ * @returns filtered calendar entries.
+ */
 export function getCalendarEntries(filter: CalendarFilter) {
     const sprints = db.prepare("SELECT id, name, start_date, end_date FROM sprints ORDER BY start_date ASC").all() as {
         id: number;
@@ -503,6 +523,13 @@ interface VelocitySprintRow {
     end_date: string | null;
 }
 
+/**
+ * returns velocity history for a sprint context.
+ *
+ * @param sprintId - anchor sprint id.
+ * @param selection - history selection mode.
+ * @returns velocity points ordered by sprint start date.
+ */
 export function getVelocityHistory(sprintId: number, selection: VelocitySelection): VelocityPoint[] {
     let sprintRows: VelocitySprintRow[];
 

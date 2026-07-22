@@ -87,8 +87,8 @@ function renderPage() {
     );
 }
 
-describe("SubtaskDetailPage", () => {
-    it("shows loading then the subtask's title, row, flow diagram and calendar", async () => {
+describe("subtask detail page", () => {
+    it("shows loading, then the subtask's title, row, flow diagram and calendar", async () => {
         vi.mocked(api.getSubtask).mockResolvedValue(subtask);
         renderPage();
         expect(screen.getByText("loading...")).toBeInTheDocument();
@@ -160,7 +160,7 @@ describe("SubtaskDetailPage", () => {
         expect(await screen.findByText("waiting on infra team")).toBeInTheDocument();
     });
 
-    it("turns into a textarea on click and saves the edit on blur", async () => {
+    it("turns the comment into a textarea on click and saves the edit on blur", async () => {
         vi.mocked(api.getSubtask).mockResolvedValue({ ...subtask, comment: "old note" });
         vi.mocked(api.updateSubtask).mockResolvedValue({ ...subtask, comment: "old noteupdated" });
         renderPage();
@@ -254,12 +254,12 @@ describe("SubtaskDetailPage", () => {
         expect(sections[0].lines).toEqual(
             expect.arrayContaining([{ text: "Pull request: https://github.com/org/repo/pull/1", url: "https://github.com/org/repo/pull/1" }])
         );
-        // subtask 5 sits second in the story's subtask list (NEB-1's jira
-        // key, not either internal id, drives the filename).
+        // subtask 5 sits second in the story's subtask list (NEB-1's JIRA
+        // key, not either internal id, drives the filename)
         expect(filename).toMatch(/^NEB-1-subtask-2-export-\d{4}-\d{2}-\d{2}\.pdf$/);
     });
 
-    it("disables the export button until the parent story (needed for its jira key) has loaded", async () => {
+    it("disables the export button until the parent story has loaded", async () => {
         vi.mocked(api.getSubtask).mockResolvedValue(subtask);
         let resolveStory!: (value: StoryDetail) => void;
         vi.mocked(api.getStory).mockReturnValue(new Promise((resolve) => (resolveStory = resolve)));

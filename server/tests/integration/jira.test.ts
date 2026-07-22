@@ -28,7 +28,7 @@ describe("GET /api/jira/:key", () => {
         expect(response.body).toEqual({ key: "NEB-1", title: "A story", labels: ["payments"] });
     });
 
-    it("caches the result onto the story when storyId is given", async () => {
+    it("caches the result onto the story when story id is given", async () => {
         vi.mocked(fetchJiraInfo).mockResolvedValue({ key: "NEB-1", title: "A story", labels: ["payments"] });
         const sprint = await request(app).post("/api/sprints").send({ name: "Sprint 1", startDate: "2026-01-01" });
         const story = await request(app)

@@ -3,6 +3,11 @@ import rawDefaultExportFields from "../../static/export_fields.json";
 
 const STORAGE_KEY = "sprint-tracker:export-fields";
 
+/**
+ * returns default export field configuration
+ *
+ * @returns default export fields
+ */
 export function defaultExportFields() {
     const defaults = rawDefaultExportFields as MarkdownExportFields;
     return {
@@ -11,6 +16,11 @@ export function defaultExportFields() {
     } as MarkdownExportFields;
 }
 
+/**
+ * loads export fields from localStorage, falling back to defaults
+ *
+ * @returns export fields configuration
+ */
 export function loadExportFields() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) {
@@ -27,6 +37,11 @@ export function loadExportFields() {
     }
 }
 
+/**
+ * saves export fields to localStorage
+ *
+ * @param fields export fields configuration to save
+ */
 export function saveExportFields(fields: MarkdownExportFields) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(fields));
 }

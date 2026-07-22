@@ -57,7 +57,7 @@ function insertStory(
     return Number(result.lastInsertRowid);
 }
 
-describe("buildMarkdownExport", () => {
+describe("build markdown export", () => {
     it("renders the sprint heading with its date range", () => {
         const sprintId = insertSprint("Sprint A", "2026-01-01", "2026-01-14");
         const markdown = buildMarkdownExport([sprintId], allFields());
@@ -77,14 +77,14 @@ describe("buildMarkdownExport", () => {
         expect(markdown).toContain("## EXP-1: story text [jira only]");
     });
 
-    it("falls back to jiraUrl when jiraKey is unset but jiraKey field is selected", () => {
+    it("falls back to jira url when jira key is unset but jira key is selected", () => {
         const sprintId = insertSprint("Sprint D", "2026-01-01");
         insertStory(sprintId, { jiraKey: null, jiraUrl: "https://x/browse/NOKEY", description: "no key story" });
         const markdown = buildMarkdownExport([sprintId], allFields());
         expect(markdown).toContain("## https://x/browse/NOKEY: no key story");
     });
 
-    it("prefers jiraTitle over description when both are present", () => {
+    it("prefers jira title over description when both are present", () => {
         const sprintId = insertSprint("Sprint E", "2026-01-01");
         insertStory(sprintId, { description: "raw description", jiraTitle: "cached jira title" });
         const markdown = buildMarkdownExport([sprintId], allFields());
@@ -92,7 +92,7 @@ describe("buildMarkdownExport", () => {
         expect(markdown).not.toContain("raw description");
     });
 
-    it("falls back to 'Story {id}' when neither jiraKey nor title is selected", () => {
+    it("falls back to 'story {id}' when neither jira key nor title is selected", () => {
         const sprintId = insertSprint("Sprint F", "2026-01-01");
         const storyId = insertStory(sprintId);
         const markdown = buildMarkdownExport([sprintId], allFields({ story: { jiraKey: false, title: false } }));
@@ -132,7 +132,7 @@ describe("buildMarkdownExport", () => {
         expect(markdown).not.toContain("awaiting more subtasks");
     });
 
-    it("falls back to 'Subtask {id}' when title is deselected", () => {
+    it("falls back to 'subtask {id}' when title is deselected", () => {
         const sprintId = insertSprint("Sprint K", "2026-01-01");
         const storyId = insertStory(sprintId);
         const subtask = createSubtask(storyId, { title: "real title" });
@@ -141,7 +141,7 @@ describe("buildMarkdownExport", () => {
         expect(markdown).not.toContain("real title");
     });
 
-    it("includes branch/PR/repo/complexity/release details only when selected and present", () => {
+    it("includes branch/pr/repo/complexity/release details only when selected and present", () => {
         const sprintId = insertSprint("Sprint L", "2026-01-01");
         const storyId = insertStory(sprintId);
         const subtask = createSubtask(storyId, { title: "add endpoint" });
@@ -180,7 +180,7 @@ describe("buildMarkdownExport", () => {
         expect(minimal).not.toContain("created:");
     });
 
-    it("shows the PR link on its own sub-bullet when branch name is deselected", () => {
+    it("shows the pr link on its own sub-bullet when branch name is deselected", () => {
         const sprintId = insertSprint("Sprint L2", "2026-01-01");
         const storyId = insertStory(sprintId);
         const subtask = createSubtask(storyId, { title: "add endpoint" });

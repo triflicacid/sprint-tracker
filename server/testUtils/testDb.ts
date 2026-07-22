@@ -6,6 +6,9 @@ import { db } from "../db/connection.js";
 const currentDir: string = path.dirname(fileURLToPath(import.meta.url));
 const schemaPath: string = path.join(currentDir, "..", "..", "data", "schema.sql");
 
+/**
+ * resets the test database to the current schema.
+ */
 export function resetDatabase() {
     const tables: string[] = db
         .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'")

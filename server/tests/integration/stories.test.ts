@@ -32,21 +32,21 @@ describe("GET /api/stories/:id", () => {
 });
 
 describe("PATCH /api/stories/:id", () => {
-    it("updates awaitingMoreSubtasks", async () => {
+    it("updates awaiting more subtasks", async () => {
         const story = await createStory();
         const response = await request(app).patch(`/api/stories/${story.id}`).send({ awaitingMoreSubtasks: true });
         expect(response.status).toBe(200);
         expect(response.body.awaitingMoreSubtasks).toBe(true);
     });
 
-    it("updates storyPoints", async () => {
+    it("updates story points", async () => {
         const story = await createStory();
         const response = await request(app).patch(`/api/stories/${story.id}`).send({ storyPoints: 8 });
         expect(response.status).toBe(200);
         expect(response.body.storyPoints).toBe(8);
     });
 
-    it("updates awaitingMoreSubtasks and storyPoints independently, leaving the other field untouched", async () => {
+    it("updates awaiting more subtasks and story points independently, leaving the other field untouched", async () => {
         const story = await createStory();
         await request(app).patch(`/api/stories/${story.id}`).send({ storyPoints: 5 });
         const response = await request(app).patch(`/api/stories/${story.id}`).send({ awaitingMoreSubtasks: true });

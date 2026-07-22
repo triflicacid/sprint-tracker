@@ -9,9 +9,7 @@ export type SubtaskStatus =
   | "UAT"
   | "DONE";
 
-// aggregate status of a story, derived from its subtasks: no subtasks yet
-// (JIRA_ONLY), awaiting more subtasks or none started yet (WORK_REMAINING),
-// or otherwise the lowest-rank status among its subtasks.
+// aggregate story status derived from its subtasks
 export type StoryStatus =
   | "JIRA_ONLY"
   | "WORK_REMAINING"
@@ -19,8 +17,7 @@ export type StoryStatus =
 
 export type FlowFieldType = "text" | "number" | "date" | "select";
 
-// describes one piece of additional data a transition requires, and which
-// db column it should be written to.
+// one required transition field and its target column
 export interface FlowField {
   field: string;
   label: string;
@@ -29,7 +26,7 @@ export interface FlowField {
   column: string;
 }
 
-// allowed destinations from one state, plus data required to leave it.
+// allowed destinations from one state
 export interface FlowTransition {
   from: SubtaskStatus;
   to: SubtaskStatus[];
@@ -42,13 +39,13 @@ export interface FlowState {
   rank: number;
   color: string;
   description: string;
-  // once a subtask reaches this state, its complexity rating is frozen
+  // once reached, the subtask complexity rating is frozen
   locksComplexity?: boolean;
-  // included as a checkpoint line in the advanced burndown chart
+  // includes this state as a burndown checkpoint
   burndownMilestone?: boolean;
 }
 
-// status_flow.json
+// status flow config loaded from `status_flow.json`
 export interface StatusFlowConfig {
   states: FlowState[];
   transitions: FlowTransition[];
@@ -73,7 +70,7 @@ export interface StatusHistoryEntry {
   changedAt: string;
 }
 
-// one entry from static/subtask_types.json
+// one entry from `static/subtask_types.json`
 export interface SubtaskTypeEntry {
   shortName: string;
   fullName: string;
@@ -82,9 +79,7 @@ export interface SubtaskTypeEntry {
   tier?: "basic" | "advanced";
 }
 
-// a subtask has a branch and a PR. `title` is set on creation; `comment` is
-// an optional freeform note, editable afterwards, shown only on the
-// subtask's own detail page (not in the tile/row view).
+// subtask data returned by the api
 export interface Subtask {
   id: number;
   storyId: number;
@@ -118,8 +113,7 @@ export interface StorySummary {
 
 export interface StoryDetail extends StorySummary {
   subtasks: Subtask[];
-  // the parent sprint's end date, so the client can derive lock state
-  // without an extra fetch (see shared/sprintLock.ts).
+  // parent sprint end date used to derive lock state without another fetch
   sprintEndDate: string | null;
 }
 
@@ -147,13 +141,13 @@ export interface SprintStats {
   subtaskTypeCounts: { type: string; count: number }[];
 }
 
-// which sprints to include in a velocity history query.
+// sprint selection for velocity history queries
 export type VelocitySelection =
   | { mode: "all" }
   | { mode: "range"; from: string; to: string }
   | { mode: "lastN"; n: number };
 
-// one sprint's completed-work tally for the velocity chart.
+// one sprint's completed-work totals for the velocity chart
 export interface VelocityPoint {
   sprintId: number;
   sprintName: string;
@@ -165,7 +159,7 @@ export interface VelocityPoint {
   completedSubtaskCount: number;
 }
 
-// one rated, DONE subtask, plotted as complexity vs. running time
+// one rated done subtask for the complexity timing chart
 export interface ComplexityTimingPoint {
   subtaskId: number;
   storyId: number;
@@ -180,7 +174,7 @@ export interface StoryComplexity {
   totalComplexity: number;
 }
 
-// complexity-vs-running-time data for a sprint's stats
+// complexity timing data for sprint stats
 export interface ComplexityStats {
   points: ComplexityTimingPoint[];
   ratingCounts: Record<number, number>;
@@ -189,8 +183,7 @@ export interface ComplexityStats {
   storyComplexity: StoryComplexity[];
 }
 
-// one day's status tally: `counts` is keyed by SubtaskStatus or
-// StoryStatus depending on the requested granularity.
+// one day's status tally
 export interface StatusBreakdownPoint {
   date: string;
   counts: Record<string, number>;
@@ -198,7 +191,7 @@ export interface StatusBreakdownPoint {
 
 export type StatusBreakdownGranularity = "subtask" | "story";
 
-// one subtask's activity on one day.
+// one subtask activity entry for a day
 export interface DayActivityEntry {
   storyId: number;
   storyLabel: string;
@@ -207,7 +200,7 @@ export interface DayActivityEntry {
   prUrl: string | null;
 }
 
-// date => activity
+// maps a date to its activity entries
 export type DayActivityMap = Record<string, DayActivityEntry[]>;
 
 export interface CalendarEntry {
@@ -225,7 +218,7 @@ export interface JiraInfo {
   labels: string[];
 }
 
-// which story/subtask properties to include in a markdown export
+// story fields that can be included in a markdown export
 export interface MarkdownExportStoryFields {
   jiraKey: boolean;
   title: boolean;

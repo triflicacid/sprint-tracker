@@ -7,36 +7,42 @@ const MARGIN_MM = 14;
 const CONTENT_WIDTH_MM = PAGE_WIDTH_MM - MARGIN_MM * 2;
 const LINE_HEIGHT_MM = 5.5;
 
-// a plain line of text, or a clickable hyperlink rendered as one.
+/**
+ * a plain line of text, or a clickable hyperlink
+ */
 export type PdfLine = string | { text: string; url: string };
 
-// one cell of a PdfTable row - plain black text, or colored text (an rgb
-// triple, e.g. to match a status pill's color) when `color` is given.
+/**
+ * one cell of a PDF table row
+ *
+ * plain black text by default, or colored text (rgb triple) when color is given
+ */
 export interface PdfTableCell {
     text: string;
     color?: [number, number, number];
 }
 
-// a real, drawn pdf table (not a screenshot) - a header row plus data rows,
-// each cell independently colorable. `columnWidths` (mm) default to an equal
-// split of the page's content width if omitted.
+/**
+ * a drawn PDF table (not a screenshot)
+ *
+ * header row plus data rows, each cell independently colorable
+ * columnWidths (mm) default to equal split of page width if omitted
+ */
 export interface PdfTable {
     headers: string[];
     rows: PdfTableCell[][];
     columnWidths?: number[];
 }
 
-// one page of the report: a heading, an optional chart/calendar screenshot,
-// an optional drawn table, and optional written-out stats rendered as real
-// pdf text below it (not part of the screenshot) - so the numbers are
-// selectable/searchable text, not just pixels in an image.
+/**
+ * one page of the PDF report
+ *
+ * includes a heading, optional chart/calendar screenshot, optional drawn table,
+ * and optional written stats as selectable text
+ */
 export interface PdfSection {
     title: string;
-    // a small icon rasterized and drawn immediately before the title, e.g.
-    // the story/bug type icon - pass the element wrapping the actual
-    // rendered icon so the pdf shows the same glyph as the page, not a
-    // redrawn approximation of it. Must be an HTMLElement wrapper, not a raw
-    // <svg> root - html2canvas can't reliably capture an svg root directly.
+    /** small icon rasterized before the title (must be HTMLElement wrapper, not raw SVG) */
     titleIcon?: HTMLElement;
     element?: HTMLElement;
     table?: PdfTable;
@@ -44,8 +50,12 @@ export interface PdfSection {
 }
 
 
-// waits until every recharts surface inside `element` has been measured and
-// painted by recharts (viewBox width > 0)
+/**
+ * waits until every recharts surface has been measured and painted
+ *
+ * @param element container element
+ * @param timeoutMs timeout in milliseconds (default 3000)
+ */
 async function waitForChartsReady(element: HTMLElement, timeoutMs = 3000): Promise<void> {
     const surfaces = Array.from(element.querySelectorAll<SVGElement>(".recharts-surface"));
     if (surfaces.length === 0) return;
@@ -72,16 +82,25 @@ async function captureElement(element: HTMLElement): Promise<HTMLCanvasElement> 
     return html2canvas(element, { backgroundColor, scale: 2 });
 }
 
-// like captureElement, but with a transparent background - for small
-// decorative marks (e.g. the title icon) that should blend into the page
-// rather than sit inside a themed rectangle.
+/**
+ * captures an element with transparent background for decorative marks
+ *
+ * @param element element to capture
+ * @returns canvas with the rendered element
+ */
 async function captureIconElement(element: HTMLElement): Promise<HTMLCanvasElement> {
     return html2canvas(element, { backgroundColor: null, scale: 4 });
 }
 
-// draws the chart/calendar screenshot scaled to fill the content width (and
-// shrunk further if that would overflow the space left for it), returns the
-// y position immediately below it.
+/**
+ * draws the chart/calendar screenshot scaled to fill content width
+ *
+ * @param pdf the PDF document
+ * @param canvas the canvas to draw
+ * @param y current y position
+ * @param maxHeightMm maximum height in mm
+ * @returns y position immediately below the image
+ */
 function drawImage(pdf: jsPDF, canvas: HTMLCanvasElement, y: number, maxHeightMm: number): number {
     const pxToMm = CONTENT_WIDTH_MM / canvas.width;
     const widthMm = canvas.width * pxToMm;
@@ -94,9 +113,14 @@ function drawImage(pdf: jsPDF, canvas: HTMLCanvasElement, y: number, maxHeightMm
     return y + finalHeightMm + 8;
 }
 
-// draws a header row (dim gray, matching the on-page table's <th>) then each
-// data row, positioning cells at fixed column offsets and coloring each
-// cell's text independently. Returns the y position below the table.
+/**
+ * draws a table with header row and data rows, coloring cells independently
+ *
+ * @param pdf the PDF document
+ * @param table the table to draw
+ * @param y current y position
+ * @returns y position below the table
+ */
 function drawTable(pdf: jsPDF, table: PdfTable, y: number): number {
     const columnWidths = table.columnWidths ?? table.headers.map(() => CONTENT_WIDTH_MM / table.headers.length);
     let cursor = y;
@@ -125,9 +149,14 @@ function drawTable(pdf: jsPDF, table: PdfTable, y: number): number {
     return cursor + 4;
 }
 
-// writes each line as real (wrapped) pdf text - link lines are drawn in the
-// app's accent color as an actual clickable pdf annotation, not just text
-// that happens to look like a url. Returns the y position below the last line.
+/**
+ * writes each line as wrapped PDF text, with link lines as clickable annotations
+ *
+ * @param pdf the PDF document
+ * @param lines lines to write
+ * @param y current y position
+ * @returns y position below the last line
+ */
 function drawLines(pdf: jsPDF, lines: PdfLine[], y: number): number {
     pdf.setFontSize(11);
     let cursor = y;
@@ -181,9 +210,15 @@ async function renderSection(pdf: jsPDF, section: PdfSection, isFirstPage: boole
     }
 }
 
-// renders each section onto its own page (screenshotting section.element,
-// where given, drawing section.table, then writing section.lines as real
-// text underneath) into a single pdf with one page per section.
+/**
+ * renders each section onto its own PDF page
+ * 
+ * screenshots section.element (where given), draws section.table, then writes
+ * section.lines as selectable text
+ * 
+ * @param sections array of sections to export
+ * @param filename output filename
+ */
 export async function exportSectionsAsPdf(sections: PdfSection[], filename: string): Promise<void> {
     const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
     for (let i = 0; i < sections.length; i += 1) {

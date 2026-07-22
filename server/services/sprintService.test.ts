@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { listSprintSummaries, createSprint, getSprintDetail, updateSprint } from "./sprintService.js";
 import { SprintLockedError } from "../../shared/sprintLock.js";
 
-describe("createSprint", () => {
+describe("create sprint", () => {
     it("creates a sprint with the given fields", () => {
         const sprint = createSprint({ name: "Sprint 1", startDate: "2026-01-01", comment: "kickoff" });
         expect(sprint).toMatchObject({
@@ -31,7 +31,7 @@ describe("createSprint", () => {
     });
 });
 
-describe("listSprintSummaries", () => {
+describe("list sprint summaries", () => {
     it("orders sprints newest start date first", () => {
         createSprint({ name: "Older", startDate: "2026-01-01" });
         createSprint({ name: "Newer", startDate: "2026-02-01" });
@@ -39,7 +39,7 @@ describe("listSprintSummaries", () => {
     });
 });
 
-describe("getSprintDetail", () => {
+describe("get sprint detail", () => {
     it("includes story summaries for the sprint", () => {
         const sprint = createSprint({ name: "Sprint 1", startDate: "2026-01-01" });
         const detail = getSprintDetail(sprint.id);
@@ -51,7 +51,7 @@ describe("getSprintDetail", () => {
     });
 });
 
-describe("updateSprint", () => {
+describe("update sprint", () => {
     it("updates only the provided fields, keeping the rest", () => {
         const sprint = createSprint({ name: "Sprint 1", startDate: "2026-01-01", comment: "original" });
         updateSprint(sprint.id, { comment: "updated" });
@@ -65,7 +65,7 @@ describe("updateSprint", () => {
         expect(() => updateSprint(999999, { comment: "x" })).not.toThrow();
     });
 
-    it("throws SprintLockedError once the sprint has ended", () => {
+    it("throws sprint locked error once the sprint has ended", () => {
         const sprint = createSprint({ name: "Sprint 1", startDate: "2020-01-01", endDate: "2020-01-10" });
         expect(() => updateSprint(sprint.id, { comment: "too late" })).toThrow(SprintLockedError);
     });

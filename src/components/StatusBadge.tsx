@@ -22,7 +22,13 @@ interface StatusBadgeProps {
     onClick?: () => void;
 }
 
-// coloured pill for one subtask/story status.
+/**
+ * colored pill displaying a subtask or story status
+ *
+ * @param status the status to display
+ * @param muted if true, renders with reduced opacity
+ * @param onClick optional click handler
+ */
 export function StatusBadge({ status, muted, onClick }: StatusBadgeProps) {
     const color = STATUS_COLORS[status];
     const label = STATUS_LABELS[status];

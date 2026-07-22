@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { listHolidaysInRange, addHoliday, removeHoliday } from "./holidayService.js";
 
-describe("addHoliday / listHolidaysInRange", () => {
+describe("add holiday / list holidays in range", () => {
     it("adds a holiday and lists it back within range", () => {
         addHoliday("2026-03-06");
         expect(listHolidaysInRange("2026-03-01", "2026-03-31")).toEqual(["2026-03-06"]);
@@ -26,7 +26,7 @@ describe("addHoliday / listHolidaysInRange", () => {
     });
 });
 
-describe("removeHoliday", () => {
+describe("remove holiday", () => {
     it("removes a previously added holiday", () => {
         addHoliday("2026-03-06");
         removeHoliday("2026-03-06");

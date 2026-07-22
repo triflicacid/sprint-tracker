@@ -14,6 +14,11 @@ import { holidaysRouter } from "./routes/holidays.js";
 import { exportRouter } from "./routes/export.js";
 import { SprintLockedError } from "../shared/sprintLock.js";
 
+/**
+ * creates the express application.
+ *
+ * @returns the configured express app.
+ */
 export function createApp() {
     const app = express();
     app.use(cors());
@@ -45,7 +50,7 @@ export function createApp() {
         });
     });
 
-    // hacky way of handling errors, but oh well
+    // express only treats four-arg handlers as error middleware
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     app.use((error: Error, _req: Request, res: Response, _next: NextFunction) => {
         if (error instanceof SprintLockedError) {

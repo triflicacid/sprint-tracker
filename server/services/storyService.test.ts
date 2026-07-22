@@ -28,9 +28,9 @@ function insertLockedSprint() {
     return Number(result.lastInsertRowid);
 }
 
-// a story cannot be created (via createStory) under an already-locked
+// a story cannot be created (via create story) under an already-locked
 // sprint, so build one directly for tests that need an existing story
-// whose sprint has since ended.
+// whose sprint has since ended
 function insertStoryInLockedSprint(): number {
     const sprintId = insertLockedSprint();
     const result = db
@@ -39,12 +39,12 @@ function insertStoryInLockedSprint(): number {
     return Number(result.lastInsertRowid);
 }
 
-describe("computeStoryStatus", () => {
-    it("is JIRA_ONLY when there are no subtasks yet", () => {
+describe("compute story status", () => {
+    it("is jira only when there are no subtasks yet", () => {
         expect(computeStoryStatus([], false)).toBe("JIRA_ONLY");
     });
 
-    it("is WORK_REMAINING when every subtask is still NEW", () => {
+    it("is work remaining when every subtask is still new", () => {
         expect(computeStoryStatus(["NEW", "NEW"], false)).toBe("WORK_REMAINING");
     });
 
@@ -56,11 +56,11 @@ describe("computeStoryStatus", () => {
         expect(computeStoryStatus(["WIP", "DONE"], false)).toBe("WIP");
     });
 
-    it("is DONE when every subtask is done and no more subtasks are expected", () => {
+    it("is done when every subtask is done and no more subtasks are expected", () => {
         expect(computeStoryStatus(["DONE", "DONE"], false)).toBe("DONE");
     });
 
-    it("is WORK_REMAINING when every subtask is done but more subtasks are expected", () => {
+    it("is work remaining when every subtask is done but more subtasks are expected", () => {
         expect(computeStoryStatus(["DONE", "DONE"], true)).toBe("WORK_REMAINING");
     });
 
@@ -70,7 +70,7 @@ describe("computeStoryStatus", () => {
     });
 });
 
-describe("createStory / getStoryDetail", () => {
+describe("create story / get story detail", () => {
     let sprintId: number;
 
     beforeEach(() => {
@@ -90,7 +90,7 @@ describe("createStory / getStoryDetail", () => {
         expect(story.isBug).toBe(false);
     });
 
-    it("marks a story as a bug when isBug is passed", () => {
+    it("marks a story as a bug when is bug is passed", () => {
         const story = createStory(sprintId, {
             jiraUrl: "https://nebula.atlassian.net/browse/NEB-1002",
             description: "crash on save",
@@ -99,7 +99,7 @@ describe("createStory / getStoryDetail", () => {
         expect(story.isBug).toBe(true);
     });
 
-    it("leaves jiraKey null when the url has no browse segment", () => {
+    it("leaves jira key null when the url has no browse segment", () => {
         const story = createStory(sprintId, { jiraUrl: "https://example.com/x", description: "misc" });
         expect(story.jiraKey).toBeNull();
     });
@@ -123,7 +123,7 @@ describe("createStory / getStoryDetail", () => {
         expect(getStoryDetail(999999)).toBeNull();
     });
 
-    it("throws SprintLockedError when the sprint has ended", () => {
+    it("throws sprint locked error when the sprint has ended", () => {
         const lockedSprintId = insertLockedSprint();
         expect(() => createStory(lockedSprintId, { jiraUrl: "https://x/browse/NEB-1", description: "d" })).toThrow(
             SprintLockedError
@@ -131,7 +131,7 @@ describe("createStory / getStoryDetail", () => {
     });
 });
 
-describe("getStorySummariesForSprint", () => {
+describe("get story summaries for sprint", () => {
     it("lists only stories belonging to the given sprint", () => {
         const sprintA = insertSprint();
         const sprintB = insertSprint();
@@ -142,7 +142,7 @@ describe("getStorySummariesForSprint", () => {
     });
 });
 
-describe("updateStoryJiraInfo", () => {
+describe("update story jira info", () => {
     it("caches the jira title and labels onto the story", () => {
         const sprintId = insertSprint();
         const story = createStory(sprintId, { jiraUrl: "https://x/browse/NEB-1", description: "d" });
@@ -153,7 +153,7 @@ describe("updateStoryJiraInfo", () => {
     });
 });
 
-describe("updateStoryAwaitingMoreSubtasks", () => {
+describe("update story awaiting more subtasks", () => {
     it("flips the flag and reflects it in computed status", () => {
         const sprintId = insertSprint();
         const story = createStory(sprintId, { jiraUrl: "https://x/browse/NEB-1", description: "d" });
@@ -165,13 +165,13 @@ describe("updateStoryAwaitingMoreSubtasks", () => {
         expect(updateStoryAwaitingMoreSubtasks(999999, true)).toBeNull();
     });
 
-    it("throws SprintLockedError when the story's sprint has ended", () => {
+    it("throws sprint locked error when the story's sprint has ended", () => {
         const storyId = insertStoryInLockedSprint();
         expect(() => updateStoryAwaitingMoreSubtasks(storyId, true)).toThrow(SprintLockedError);
     });
 });
 
-describe("updateStoryPoints", () => {
+describe("update story points", () => {
     it("sets story points", () => {
         const sprintId = insertSprint();
         const story = createStory(sprintId, { jiraUrl: "https://x/browse/NEB-1", description: "d" });
@@ -191,13 +191,13 @@ describe("updateStoryPoints", () => {
         expect(updateStoryPoints(999999, 3)).toBeNull();
     });
 
-    it("throws SprintLockedError when the story's sprint has ended", () => {
+    it("throws sprint locked error when the story's sprint has ended", () => {
         const storyId = insertStoryInLockedSprint();
         expect(() => updateStoryPoints(storyId, 3)).toThrow(SprintLockedError);
     });
 });
 
-describe("addTagToStory / removeTagFromStory", () => {
+describe("add tag to story / remove tag from story", () => {
     it("attaches a tag to the story", () => {
         const sprintId = insertSprint();
         const story = createStory(sprintId, { jiraUrl: "https://x/browse/NEB-1", description: "d" });
@@ -216,12 +216,12 @@ describe("addTagToStory / removeTagFromStory", () => {
         expect(reloaded?.tags).toEqual([]);
     });
 
-    it("throws SprintLockedError when adding a tag to a story in an ended sprint", () => {
+    it("throws sprint locked error when adding a tag to a story in an ended sprint", () => {
         const storyId = insertStoryInLockedSprint();
         expect(() => addTagToStory(storyId, "urgent", "custom")).toThrow(SprintLockedError);
     });
 
-    it("throws SprintLockedError when removing a tag from a story in an ended sprint", () => {
+    it("throws sprint locked error when removing a tag from a story in an ended sprint", () => {
         const storyId = insertStoryInLockedSprint();
         expect(() => removeTagFromStory(storyId, 1)).toThrow(SprintLockedError);
     });

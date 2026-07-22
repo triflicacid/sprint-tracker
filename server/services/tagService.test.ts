@@ -8,7 +8,7 @@ import {
     removeTag,
 } from "./tagService.js";
 
-describe("findOrCreateTag", () => {
+describe("find or create tag", () => {
     it("creates a new tag when none exists", () => {
         const tag = findOrCreateTag("checkout-web", "repo");
         expect(tag.name).toBe("checkout-web");
@@ -24,7 +24,7 @@ describe("findOrCreateTag", () => {
     });
 });
 
-describe("attachTag / getTagsForEntity", () => {
+describe("attach tag / get tags for entity", () => {
     it("attaches a tag to an entity and lists it back", () => {
         const tag = findOrCreateTag("payments", "custom");
         attachTag("story", 1, tag.id);
@@ -46,7 +46,7 @@ describe("attachTag / getTagsForEntity", () => {
     });
 });
 
-describe("tagStoryWithRepo", () => {
+describe("tag story with repo", () => {
     it("finds-or-creates a repo tag and attaches it to the story", () => {
         tagStoryWithRepo(5, "checkout-web");
         const tags = getTagsForEntity("story", 5);
@@ -55,7 +55,7 @@ describe("tagStoryWithRepo", () => {
     });
 });
 
-describe("removeTag", () => {
+describe("remove tag", () => {
     it("detaches a tag from an entity without deleting the tag itself", () => {
         const tag = findOrCreateTag("payments", "custom");
         attachTag("story", 1, tag.id);
@@ -65,7 +65,7 @@ describe("removeTag", () => {
     });
 });
 
-describe("getAllTags", () => {
+describe("get all tags", () => {
     it("lists every tag alphabetically", () => {
         findOrCreateTag("zeta", "custom");
         findOrCreateTag("alpha", "repo");

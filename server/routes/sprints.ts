@@ -34,7 +34,7 @@ sprintsRouter.patch("/:id", (req: Request, res: Response) => {
     res.json(sprint);
 });
 
-// creating a story is nested under its parent sprint.
+// create stories through the parent sprint route
 sprintsRouter.post("/:id/stories", (req: Request, res: Response) => {
     const sprintId = Number(req.params.id);
     const { jiraUrl, description, isBug } = req.body;

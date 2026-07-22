@@ -1,12 +1,12 @@
 import { Router, Request, Response } from "express";
 import { fetchJiraInfo } from "../services/jiraService.js";
 import { updateStoryJiraInfo } from "../services/storyService.js";
-import {getFirst} from "../utils/payload.js";
+import { getFirst } from "../utils/payload.js";
 
 export const jiraRouter: Router = Router();
 
-// fetches jira info for an issue key. if a storyId query param is given
-// the result is cached on that story so it does not need refetching.
+// fetches jira info for an issue key
+// if a storyid query param is given, cache the result on that story
 jiraRouter.get("/:key", async (req: Request, res: Response) => {
     const issueKey = getFirst(req.params.key);
     const info = await fetchJiraInfo(issueKey);

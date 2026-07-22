@@ -7,7 +7,7 @@ import { api } from "../../api/client";
 import { exportSectionsAsPdf } from "../../utils/pdfExport";
 
 // StatsPage itself only owns cross-cutting state (which sprint is selected,
-// granularity/burndown-mode, the pdf-export wiring) and fetches data to hand
+// granularity/burndown-mode, the PDF-export wiring) and fetches data to hand
 // down to the section components under src/components/stats/. Rendering
 // details for each section (complexity chart markers, velocity mode
 // switching, ...) are covered by that section's own colocated *.test.tsx -
@@ -107,7 +107,7 @@ function renderPage(initialPath: string = "/stats") {
     );
 }
 
-describe("StatsPage", () => {
+describe("stats page", () => {
     it("loads stats once a sprint is selected", async () => {
         renderPage();
         await userEvent.selectOptions(await screen.findByRole("combobox"), "1");
@@ -118,7 +118,7 @@ describe("StatsPage", () => {
         expect(api.getDayActivity).toHaveBeenCalledWith(1);
     });
 
-    it("wires fetched sprint stats and complexity data into their respective sections", async () => {
+    it("wires fetched sprint stats and complexity data into sections", async () => {
         renderPage();
         await userEvent.selectOptions(await screen.findByRole("combobox"), "1");
         await screen.findByText("pull requests");
@@ -138,7 +138,7 @@ describe("StatsPage", () => {
         expect(api.getVelocityHistory).toHaveBeenCalledWith(1, { mode: "lastN", n: 5 });
     });
 
-    it("hides the velocity section once a sprint is selected, showing a numeric velocity tile in the summary instead", async () => {
+    it("hides the velocity section once a sprint is selected, showing the summary tile instead", async () => {
         renderPage();
         await screen.findByText("Velocity");
 
@@ -171,7 +171,7 @@ describe("StatsPage", () => {
         expect(await screen.findByText("March 2026")).toBeInTheDocument();
     });
 
-    it("exports a single section as a pdf with real written stats when its own export button is clicked", async () => {
+    it("exports a single section as PDF with written stats when clicked", async () => {
         renderPage();
         await userEvent.selectOptions(await screen.findByRole("combobox"), "1");
         await screen.findByText("pull requests");
@@ -206,7 +206,7 @@ describe("StatsPage", () => {
         expect(sections[0].title).toBe("Burndown");
 
         // the exported element is the off-screen container with both charts,
-        // independent of which one the on-screen toggle is currently showing.
+        // independent of which one the on-screen toggle is currently showing
         const exportContainer = within(screen.getByTestId("burndown-chart-export"));
         expect(sections[0].element).toBe(screen.getByTestId("burndown-chart-export").firstElementChild);
         expect(exportContainer.getByText("Basic")).toBeInTheDocument();
@@ -215,7 +215,7 @@ describe("StatsPage", () => {
         expect(filename).toMatch(/^sprint-stats-burndown-\d{4}-\d{2}-\d{2}\.pdf$/);
     });
 
-    it("exports every section as one multi-page pdf via the header button, with charts and written stats", async () => {
+    it("exports all sections as one multi-page PDF via the header button", async () => {
         renderPage();
         await userEvent.selectOptions(await screen.findByRole("combobox"), "1");
         await screen.findByText("pull requests");
@@ -227,7 +227,7 @@ describe("StatsPage", () => {
         expect(sections).toHaveLength(9);
 
         // summary is text-only; the rest pair a chart/calendar screenshot with
-        // written stats underneath.
+        // written stats underneath
         expect(sections[0].element).toBeUndefined();
         sections.slice(1).forEach((section) => expect(section.element).toBeInstanceOf(HTMLElement));
 

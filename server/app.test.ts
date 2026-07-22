@@ -28,7 +28,7 @@ afterEach(() => {
 });
 
 describe("static client serving", () => {
-    it("serves index.html from CLIENT_DIST_PATH when it is set", async () => {
+    it("serves index.html from client_dist_path when it is set", async () => {
         const dir = makeStubClientDir("stub-from-CLIENT_DIST_PATH");
         tempDirs.push(dir);
         process.env.CLIENT_DIST_PATH = dir;
@@ -39,7 +39,7 @@ describe("static client serving", () => {
         expect(response.text).toBe("stub-from-CLIENT_DIST_PATH");
     });
 
-    it("falls back to <cwd>/dist/client when CLIENT_DIST_PATH is unset", async () => {
+    it("falls back to <cwd>/dist/client when client_dist_path is unset", async () => {
         delete process.env.CLIENT_DIST_PATH;
         const cwdStandIn = fs.mkdtempSync(path.join(os.tmpdir(), "sprint-tracker-cwd-"));
         tempDirs.push(cwdStandIn);

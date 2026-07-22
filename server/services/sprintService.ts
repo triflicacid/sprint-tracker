@@ -18,6 +18,12 @@ interface CreateSprintInput {
     comment?: string | null;
 }
 
+/**
+ * maps a sprint row to a sprint summary.
+ *
+ * @param row - database sprint row.
+ * @returns mapped sprint summary.
+ */
 function rowToSummary(row: SprintRow) {
     const counts = db
         .prepare(
@@ -40,7 +46,11 @@ function rowToSummary(row: SprintRow) {
     } as SprintSummary;
 }
 
-// lists sprint summaries, newest first
+/**
+ * lists sprint summaries.
+ *
+ * @returns sprint summaries ordered by newest start date first.
+ */
 export function listSprintSummaries() {
     const rows = db
         .prepare("SELECT * FROM sprints ORDER BY start_date DESC")
@@ -48,8 +58,12 @@ export function listSprintSummaries() {
     return rows.map(rowToSummary) as SprintSummary[];
 }
 
-// creates a new sprint. if the most recently created sprint has no end
-// date, it is automatically filled in with this sprint's start date.
+/**
+ * creates a sprint.
+ *
+ * @param input - sprint fields to persist.
+ * @returns the created sprint summary.
+ */
 export function createSprint(input: CreateSprintInput) {
     const previous = db
         .prepare("SELECT * FROM sprints ORDER BY id DESC LIMIT 1")
@@ -74,7 +88,12 @@ export function createSprint(input: CreateSprintInput) {
     return rowToSummary(created);
 }
 
-// fetches a single sprint along with story summaries.
+/**
+ * gets sprint detail.
+ *
+ * @param sprintId - sprint to load.
+ * @returns sprint detail or `null` when the sprint is missing.
+ */
 export function getSprintDetail(sprintId: number) {
     const row = db
         .prepare("SELECT * FROM sprints WHERE id = ?")
@@ -89,6 +108,12 @@ export function getSprintDetail(sprintId: number) {
     } as SprintDetail;
 }
 
+/**
+ * updates a sprint.
+ *
+ * @param sprintId - sprint to update.
+ * @param input - partial sprint fields to apply.
+ */
 export function updateSprint(sprintId: number, input: Partial<CreateSprintInput>) {
     const existing = db
         .prepare("SELECT * FROM sprints WHERE id = ?")

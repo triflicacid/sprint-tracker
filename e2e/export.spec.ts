@@ -25,6 +25,11 @@ test("export page selects sprints by date range, the field picker changes the do
     await expect(page.getByText(otherSprintName)).toBeVisible();
 
     // date range covering only the first sprint
+    /**
+     * sets one export page date input through the popover calendar
+     * @param label date field label on the export page
+     * @param isoDate target date in yyyy-mm-dd format
+     */
     async function pickDate(label: "from" | "to", isoDate: string) {
         const [year, month, day] = isoDate.split("-").map(Number);
         await page.locator(".export-date-field", { hasText: label }).getByRole("button").click();
@@ -94,7 +99,7 @@ test("the per-sprint quick-export button on SprintDetailPage uses the fields sav
     await page.locator(".export-field-item", { hasText: "Branch name" }).click();
 
     // ...then use the quick-export shortcut on the sprint page, which has
-    // no picker of its own and should just pick up what was saved above.
+    // no picker of its own and should just pick up what was saved above
     await page.goto(`/sprints/${sprint.id}`);
     await expect(page.getByText(`e2e story ${suffix}`)).toBeVisible();
     const [download] = await Promise.all([

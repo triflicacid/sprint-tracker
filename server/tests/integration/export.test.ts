@@ -47,13 +47,13 @@ describe("POST /api/export/markdown", () => {
         expect(response.text).toContain("export subtask");
     });
 
-    it("rejects a missing sprintIds with 400", async () => {
+    it("rejects missing sprintids with 400", async () => {
         const response = await request(app).post("/api/export/markdown").send({ fields });
         expect(response.status).toBe(400);
         expect(response.body.error).toMatch(/sprintIds is required/i);
     });
 
-    it("rejects an empty sprintIds array with 400", async () => {
+    it("rejects an empty sprintids array with 400", async () => {
         const response = await request(app).post("/api/export/markdown").send({ sprintIds: [], fields });
         expect(response.status).toBe(400);
     });

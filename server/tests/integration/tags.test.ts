@@ -4,7 +4,7 @@ import { createApp } from "../../app.js";
 
 const app = createApp();
 
-describe("GET /api/tags", () => {
+describe("get /api/tags", () => {
     it("lists every tag across all entities", async () => {
         const sprint = await request(app).post("/api/sprints").send({ name: "Sprint 1", startDate: "2026-01-01" });
         const story = await request(app)

@@ -39,8 +39,12 @@ interface UpdateSubtaskInput {
 
 export class SubtaskUpdateError extends Error {}
 
-// looks up the end date of the sprint a story belongs to; undefined if the
-// story does not exist.
+/**
+ * gets the end date of a story's parent sprint.
+ *
+ * @param storyId - story to query.
+ * @returns sprint end date, or `undefined` when the story is missing.
+ */
 function getSprintEndDateForStory(storyId: number): string | null | undefined {
     const row = db
         .prepare(
@@ -53,6 +57,11 @@ function getSprintEndDateForStory(storyId: number): string | null | undefined {
     return row?.end_date;
 }
 
+/**
+ * throws when the parent sprint is locked.
+ *
+ * @param storyId - story to validate.
+ */
 function assertStorySprintUnlocked(storyId: number): void {
     const endDate = getSprintEndDateForStory(storyId);
     if (endDate !== undefined && isSprintLocked({ endDate })) {
@@ -60,6 +69,12 @@ function assertStorySprintUnlocked(storyId: number): void {
     }
 }
 
+/**
+ * maps a subtask row to a subtask payload.
+ *
+ * @param row - database subtask row.
+ * @returns mapped subtask.
+ */
 function rowToSubtask(row: SubtaskRow): Subtask {
     return {
         id: row.id,
@@ -77,13 +92,25 @@ function rowToSubtask(row: SubtaskRow): Subtask {
     };
 }
 
+/**
+ * gets subtasks for a story.
+ *
+ * @param storyId - story to query.
+ * @returns subtasks for the story in creation order.
+ */
 export function getSubtasksForStory(storyId: number): Subtask[] {
     const rows: SubtaskRow[] = db
-        .prepare("SELECT * FROM subtasks WHERE story_id = ? ORDER BY id ASC")
+        .prepare("SELECT * FROM subtasks WHERE story_id = ? ORDER BY id")
         .all(storyId) as SubtaskRow[];
     return rows.map(rowToSubtask);
 }
 
+/**
+ * gets one subtask by id.
+ *
+ * @param id - subtask to load.
+ * @returns the subtask or `undefined` when it is missing.
+ */
 export function getSubtaskById(id: number): Subtask | undefined {
     const row: SubtaskRow | undefined = db.prepare("SELECT * FROM subtasks WHERE id = ?").get(id) as
         | SubtaskRow
@@ -91,6 +118,13 @@ export function getSubtaskById(id: number): Subtask | undefined {
     return row ? rowToSubtask(row) : undefined;
 }
 
+/**
+ * creates a subtask.
+ *
+ * @param storyId - parent story id.
+ * @param input - subtask fields to persist.
+ * @returns the created subtask.
+ */
 export function createSubtask(storyId: number, input: CreateSubtaskInput): Subtask {
     assertStorySprintUnlocked(storyId);
     if (input.type !== undefined && !isValidSubtaskType(input.type)) {
@@ -106,9 +140,13 @@ export function createSubtask(storyId: number, input: CreateSubtaskInput): Subta
     return rowToSubtask(created);
 }
 
-// Plain field updates need no validation. A status change is checked
-// against static/status_flow.json: destination must be an allowed next
-// state, and any field that transition requires must be present.
+/**
+ * updates a subtask.
+ *
+ * @param subtaskId - subtask to update.
+ * @param input - partial subtask fields to apply.
+ * @returns the updated subtask.
+ */
 export function updateSubtask(subtaskId: number, input: UpdateSubtaskInput): Subtask {
     const existing: SubtaskRow | undefined = db
         .prepare("SELECT * FROM subtasks WHERE id = ?")

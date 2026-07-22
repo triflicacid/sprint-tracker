@@ -7,20 +7,20 @@ function offsetFromToday(days: number): string {
     return date.toISOString().slice(0, 10);
 }
 
-describe("isSprintLocked", () => {
-    it("is not locked when endDate is null", () => {
+describe("is sprint locked", () => {
+    it("is not locked when end date is null", () => {
         expect(isSprintLocked({ endDate: null })).toBe(false);
     });
 
-    it("is locked when endDate is in the past", () => {
+    it("is locked when end date is in the past", () => {
         expect(isSprintLocked({ endDate: offsetFromToday(-1) })).toBe(true);
     });
 
-    it("is not locked when endDate is today", () => {
+    it("is not locked when end date is today", () => {
         expect(isSprintLocked({ endDate: offsetFromToday(0) })).toBe(false);
     });
 
-    it("is not locked when endDate is in the future", () => {
+    it("is not locked when end date is in the future", () => {
         expect(isSprintLocked({ endDate: offsetFromToday(1) })).toBe(false);
     });
 });

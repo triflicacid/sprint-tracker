@@ -9,7 +9,7 @@ test("subtask flow to done, including the pr comments detour, drives its story t
     // 2026-01-01 start - an ongoing sprint stretches through "today" in the
     // range calendar, which (as real time passes) can start overlapping
     // fixed 2026 date ranges other e2e specs assert on in that same shared
-    // db (see timesheet.spec.ts's "sprints mode" tests).
+    // db (see timesheet.spec.ts's "sprints mode" tests)
     const startDate = new Date().toISOString().slice(0, 10);
     const endDate = new Date();
     endDate.setDate(endDate.getDate() + 14);
@@ -39,11 +39,11 @@ test("subtask flow to done, including the pr comments detour, drives its story t
     await page.click("text=confirm");
     await expect(page.locator(".subtask-row .status-badge").first()).toHaveText("in review");
 
-    // the complexity selector only appears once a pr url exists.
+    // the complexity selector only appears once a pr url exists
     await page.selectOption(".complexity-select", "3");
     await expect(page.locator(".complexity-select")).toHaveValue("3");
 
-    // Confirm is required even for transitions with no field to fill in
+    // confirm is required even for transitions with no field to fill in
     await page.click(".subtask-row .status-flow >> text=pr comments");
     await page.click("text=confirm");
     await expect(page.locator(".subtask-row .status-badge").first()).toHaveText("pr comments");
@@ -57,7 +57,7 @@ test("subtask flow to done, including the pr comments detour, drives its story t
     await expect(page.locator(".subtask-row .status-badge").first()).toHaveText("cut release");
 
     // releaseVersion is required leaving CUT_RELEASE (not entering it), so
-    // the field appears on this transition, not the previous one.
+    // the field appears on this transition, not the previous one
     await page.click(".subtask-row .status-flow >> text=testing");
     await page.fill('input[placeholder="Release version"]', "v1.2.3");
     await page.click("text=confirm");
@@ -69,7 +69,7 @@ test("subtask flow to done, including the pr comments detour, drives its story t
     await expect(page.locator(".subtask-row .status-badge").first()).toHaveText("uat");
 
     // story stays at work-remaining while "awaiting more subtasks" is
-    // checked, even though its only subtask has already reached done.
+    // checked, even though its only subtask has already reached done
     await page.click('.awaiting-more-subtasks input[type="checkbox"]');
     await page.click(".subtask-row .status-flow >> text=done");
     await page.click("text=confirm");
@@ -79,7 +79,7 @@ test("subtask flow to done, including the pr comments detour, drives its story t
     await page.click('.awaiting-more-subtasks input[type="checkbox"]');
     await expect(page.locator(".page-header .status-badge")).toHaveText("done");
 
-    // done is a terminal state - no further transitions are offered.
+    // done is a terminal state - no further transitions are offered
     await expect(page.locator(".subtask-row .status-flow-arrow")).toHaveCount(0);
 
     await page.click(".subtask-title");

@@ -19,7 +19,7 @@ vi.mock("../../api/client", () => ({
 import { api } from "../../api/client";
 
 // "today" pinned to 2026-03-10 (tuesday) so past/future/weekend assertions
-// below stay correct regardless of when the suite actually runs.
+// below stay correct regardless of when the suite actually runs
 const TODAY = "2026-03-10T12:00:00Z";
 
 beforeEach(() => {
@@ -47,7 +47,7 @@ function renderPage() {
     );
 }
 
-describe("TimesheetPage", () => {
+describe("timesheet page", () => {
     it("opens in stories mode by default", async () => {
         renderPage();
         expect(await screen.findByText("March 2026")).toBeInTheDocument();
@@ -93,7 +93,6 @@ describe("TimesheetPage", () => {
 
         it("hides activity chips on a weekend day even if work was recorded", async () => {
             const dayActivity: DayActivityMap = {
-                // 2026-03-07 is a saturday.
                 "2026-03-07": [
                     { storyId: 7, storyLabel: "NEB-1", branchName: "feature/x", status: "WIP", prUrl: null },
                 ],
@@ -120,7 +119,6 @@ describe("TimesheetPage", () => {
             renderPage();
             await screen.findByText("March 2026");
 
-            // 2026-03-11 is a wednesday, after "today" (2026-03-10).
             await userEvent.click(screen.getByText("11", { selector: ".calendar-day-number" }));
 
             expect(api.addHoliday).toHaveBeenCalledWith("2026-03-11");
@@ -131,7 +129,6 @@ describe("TimesheetPage", () => {
             renderPage();
             await screen.findByText("March 2026");
 
-            // 2026-03-09 is a monday, before "today" (2026-03-10).
             const day = screen
                 .getByText("9", { selector: ".calendar-day-number" })
                 .closest(".calendar-day") as HTMLElement;
@@ -147,7 +144,6 @@ describe("TimesheetPage", () => {
             renderPage();
             await screen.findByText("March 2026");
 
-            // 2026-03-14 is a saturday, in the future.
             const day = screen
                 .getByText("14", { selector: ".calendar-day-number" })
                 .closest(".calendar-day") as HTMLElement;
@@ -271,7 +267,7 @@ describe("TimesheetPage", () => {
             await userEvent.click(screen.getByRole("button", { name: "next month" }));
             expect(await screen.findByText("April 2026")).toBeInTheDocument();
             expect(api.listHolidays).toHaveBeenCalledWith("2026-04-01", "2026-04-30");
-            // the sprint's range no longer touches april, so no bars render.
+            // the sprint's range no longer touches april, so no bars render
             expect(screen.queryByText("Sprint 1")).not.toBeInTheDocument();
         });
 
@@ -293,7 +289,6 @@ describe("TimesheetPage", () => {
             await switchToSprintsMode();
             await screen.findAllByText("Sprint 1");
 
-            // 2026-03-11 is a wednesday, after "today" (2026-03-10).
             const day = await screen.findByText("11", { selector: ".range-day-number" });
             await userEvent.click(day);
             expect(api.addHoliday).toHaveBeenCalledWith("2026-03-11");
@@ -318,7 +313,6 @@ describe("TimesheetPage", () => {
             await switchToSprintsMode();
             await screen.findAllByText("Sprint 1");
 
-            // 2026-03-09 is a monday, before "today" (2026-03-10).
             const day = await screen.findByText("9", { selector: ".range-day-number" });
             expect(day).not.toHaveClass("range-day-number-clickable");
             await userEvent.click(day);

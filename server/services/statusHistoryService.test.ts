@@ -15,7 +15,7 @@ function insertSprintStoryAndSubtask() {
     return { sprintId, storyId, subtaskId: Number(subtask.lastInsertRowid) };
 }
 
-describe("recordStatusChange / getHistoryForEntity", () => {
+describe("record status change / get history for entity", () => {
     it("records entries in insertion order with the given release version", () => {
         const { subtaskId } = insertSprintStoryAndSubtask();
         recordStatusChange("subtask", subtaskId, "NEW", null);
@@ -35,7 +35,7 @@ describe("recordStatusChange / getHistoryForEntity", () => {
     });
 });
 
-describe("getAllHistoryForSprint", () => {
+describe("get all history for sprint", () => {
     it("returns history for subtasks belonging to the sprint's stories only", () => {
         const { sprintId, subtaskId } = insertSprintStoryAndSubtask();
         const other = insertSprintStoryAndSubtask();

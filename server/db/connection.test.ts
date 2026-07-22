@@ -14,8 +14,8 @@ afterEach(() => {
     vi.resetModules();
 });
 
-describe("initSchema", () => {
-    it("reads schema.sql from DATA_DIR when it is set", async () => {
+describe("init schema", () => {
+    it("reads schema.sql from data_dir when it is set", async () => {
         process.env.DATA_DIR = path.join("fake", "data", "dir");
         vi.resetModules();
         const readSpy = vi.spyOn(fs, "readFileSync").mockReturnValue("CREATE TABLE probe (id INTEGER);");
@@ -26,7 +26,7 @@ describe("initSchema", () => {
         expect(readSpy).toHaveBeenCalledWith(path.join("fake", "data", "dir", "schema.sql"), "utf-8");
     });
 
-    it("falls back to <cwd>/data/schema.sql when DATA_DIR is unset", async () => {
+    it("falls back to <cwd>/data/schema.sql when data_dir is unset", async () => {
         delete process.env.DATA_DIR;
         vi.resetModules();
         const readSpy = vi.spyOn(fs, "readFileSync").mockReturnValue("CREATE TABLE probe (id INTEGER);");

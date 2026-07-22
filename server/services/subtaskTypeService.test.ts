@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { getSubtaskTypes, isValidSubtaskType } from "./subtaskTypeService.js";
 
-describe("getSubtaskTypes", () => {
+describe("get subtask types", () => {
     it("returns an array of type entries", () => {
         const types = getSubtaskTypes();
         expect(Array.isArray(types)).toBe(true);
@@ -27,7 +27,7 @@ describe("getSubtaskTypes", () => {
         expect(advancedTypes).toEqual(expect.arrayContaining(["chore", "docs", "test", "security", "perf"]));
     });
 
-    it("every entry has shortName, fullName, and description", () => {
+    it("every entry has shortname, fullname, and description", () => {
         const types = getSubtaskTypes();
         for (const type of types) {
             expect(type.shortName).toBeTruthy();
@@ -37,7 +37,7 @@ describe("getSubtaskTypes", () => {
     });
 });
 
-describe("isValidSubtaskType", () => {
+describe("is valid subtask type", () => {
     it("returns true for 'unknown'", () => {
         expect(isValidSubtaskType("unknown")).toBe(true);
     });

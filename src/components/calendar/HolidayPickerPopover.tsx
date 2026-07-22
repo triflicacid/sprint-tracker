@@ -13,14 +13,19 @@ interface HolidayPickerPopoverProps {
     locked?: boolean;
 }
 
-// sprint detail page's holiday editor: a popover showing one month at a
-// time, with '<'/'>' chevrons to navigate - clicking a day toggles it as a
-// holiday. stays open across clicks so multiple days can be toggled in one
-// sitting. navigation is clamped to the months spanned by the sprint's own
-// date range (days outside it aren't toggleable, so there's nothing to
-// browse to beyond that); weekends aren't toggleable either. hidden
-// entirely on a locked sprint - no editing affordance at all, matching the
-// read-only chip list next to it.
+/**
+ * holiday editor popover for sprint detail page
+ *
+ * shows one month at a time with navigation, clicking a day toggles it as a holiday,
+ * stays open for multiple toggles, navigation clamped to sprint date range, weekends
+ * not toggleable, hidden entirely when sprint is locked
+ *
+ * @param startDate sprint start date
+ * @param endDate sprint end date
+ * @param holidays set of holiday date strings
+ * @param onToggleHoliday callback when a day is toggled
+ * @param locked if true, hides the component entirely
+ */
 export function HolidayPickerPopover({
     startDate,
     endDate,

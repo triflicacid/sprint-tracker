@@ -1,11 +1,17 @@
 import type { StatusBreakdownPoint, SubtaskStatus } from "@shared/types";
 
+/**
+ * one point on the basic burndown chart
+ */
 export interface BurndownPoint {
     date: string;
     actual: number;
     ideal: number;
 }
 
+/**
+ * one point on the advanced burndown chart with milestone breakdown
+ */
 export interface AdvancedBurndownPoint {
     date: string;
     ideal: number;
@@ -19,8 +25,13 @@ function computeTotal(points: StatusBreakdownPoint[]): number {
     return Object.values(points[0].counts).reduce((sum, count) => sum + count, 0);
 }
 
-// ideal remaining, rounded, one entry per point - shared by the basic and
-// advanced charts so both compare against the exact same reference line.
+/**
+ * computes ideal remaining series, shared by basic and advanced charts
+ *
+ * @param points status breakdown points
+ * @param isWorkingDay predicate to check if a date is a working day
+ * @returns array of ideal remaining values
+ */
 function computeIdealSeries(points: StatusBreakdownPoint[], isWorkingDay: (date: string) => boolean): number[] {
     const total = computeTotal(points);
     const workingDayCount = points.filter((point) => isWorkingDay(point.date)).length;
@@ -36,6 +47,13 @@ function computeIdealSeries(points: StatusBreakdownPoint[], isWorkingDay: (date:
     });
 }
 
+/**
+ * computes basic burndown chart points (actual vs ideal remaining)
+ *
+ * @param points status breakdown points
+ * @param isWorkingDay predicate to check if a date is a working day
+ * @returns array of burndown points
+ */
 export function computeBurndownPoints(points: StatusBreakdownPoint[], isWorkingDay: (date: string) => boolean) {
     if (points.length === 0) {
         return [];
@@ -50,13 +68,17 @@ export function computeBurndownPoints(points: StatusBreakdownPoint[], isWorkingD
     });
 }
 
-// for each day, and for each milestone status (e.g. NEW/TESTING/UAT/DONE), counts
-// how many items have NOT YET reached the milestone (i.e. total minus everything
-// at or beyond the milestone's position in `allStatusesOrdered` - the app's
-// existing rank order, SUBTASK_STATUSES or STORY_STATUSES depending on
-// granularity). Each milestone's line burns down toward 0 just like the basic
-// chart's actual line (which is exactly the DONE milestone), so all of them -
-// plus the shared ideal line - read on the same "remaining work" axis.
+/**
+ * computes advanced burndown chart points with milestone breakdown
+ *
+ * for each milestone, counts how many items have not yet reached it
+ *
+ * @param points status breakdown points
+ * @param allStatusesOrdered all statuses in rank order
+ * @param milestones milestone statuses to track
+ * @param isWorkingDay predicate to check if a date is a working day
+ * @returns array of advanced burndown points
+ */
 export function computeAdvancedBurndownPoints(
     points: StatusBreakdownPoint[],
     allStatusesOrdered: string[],

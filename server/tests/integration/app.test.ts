@@ -22,7 +22,7 @@ describe("error-handling middleware", () => {
         expect(response.body).toEqual({ error: "internal server error" });
     });
 
-    it("responds 409 with the error's own message for a SprintLockedError", async () => {
+    it("responds 409 with the error's own message for a sprint locked error", async () => {
         const sprint = await request(app).post("/api/sprints").send({ name: "Sprint 1", startDate: "2026-01-01" });
         const locked = await request(app)
             .patch(`/api/sprints/${sprint.body.id}`)

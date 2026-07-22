@@ -3,6 +3,12 @@ import { E2E_API_PORT } from "./testDbPath.js";
 
 const API_BASE = `http://localhost:${E2E_API_PORT}/api`;
 
+/**
+ * creates a sprint through the e2e api
+ * @param request playwright api request context
+ * @param overrides optional sprint field overrides
+ * @returns created sprint payload with id
+ */
 export async function seedSprint(
         request: APIRequestContext,
         overrides: { name?: string; startDate?: string; endDate?: string } = {}
@@ -17,6 +23,13 @@ export async function seedSprint(
     return response.json();
 }
 
+/**
+ * creates a story in a sprint through the e2e api
+ * @param request playwright api request context
+ * @param sprintId target sprint id
+ * @param overrides optional story field overrides
+ * @returns created story payload with id
+ */
 export async function seedStory(
         request: APIRequestContext,
         sprintId: number,
@@ -31,6 +44,13 @@ export async function seedStory(
     return response.json();
 }
 
+/**
+ * creates a subtask in a story through the e2e api
+ * @param request playwright api request context
+ * @param storyId target story id
+ * @param title subtask title
+ * @returns created subtask payload with id
+ */
 export async function seedSubtask(
         request: APIRequestContext,
         storyId: number,
@@ -42,6 +62,13 @@ export async function seedSubtask(
     return response.json();
 }
 
+/**
+ * applies a subtask transition payload through the e2e api
+ * @param request playwright api request context
+ * @param subtaskId target subtask id
+ * @param body patch body sent to the transition endpoint
+ * @returns parsed transition response payload
+ */
 export async function transitionSubtask(
         request: APIRequestContext,
         subtaskId: number,
