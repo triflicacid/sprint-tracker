@@ -67,17 +67,6 @@ runtime. Keeps sprint-end lock behavior unchanged and absolute. Includes dedicat
 (`PATCH /api/stories/:id/lock`, `PATCH /api/subtasks/:id/lock`), shared lock/error helpers,
 service-level enforcement with `409` responses, and UI lock toggles via `LockIcon`.
 
-## ~~[comment and test-name cleanup](../docs/comment-guidelines.md)~~
-
-**Status: complete**
-
-Standardized comments and test names across the repo to concise, all-lowercase wording. Replaced
-informal function header comments with nicely formatted multi-line TSDoc using `@param` and
-`@returns`. Long explanatory comments in `data/testing_data.sql` were kept as-is.
-
-The rules from this cleanup have been transformed into ongoing guidelines at
-[`docs/comment-guidelines.md`](../docs/comment-guidelines.md).
-
 ## [bundle installer / single exe for Electron](plan-electron-installer/plan-electron-installer.md)
 
 **Status: not started**
