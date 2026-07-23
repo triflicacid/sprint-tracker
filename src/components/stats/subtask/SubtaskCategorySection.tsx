@@ -12,13 +12,14 @@ const LABEL_RADIUS_OFFSET = 32;
 interface PieLabelProps {
     cx: number;
     cy: number;
-    midAngle: number;
+    midAngle?: number;
     outerRadius: number;
     value: number;
-    name: string;
+    name?: string;
 }
 
 function renderPieLabel({ cx, cy, midAngle, outerRadius, value, name }: PieLabelProps) {
+    if (midAngle === undefined || !name) return null;
     const RADIAN = Math.PI / 180;
     const r = outerRadius + LABEL_RADIUS_OFFSET;
     const x = cx + r * Math.cos(-midAngle * RADIAN);

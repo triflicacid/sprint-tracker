@@ -42,7 +42,8 @@ export const BugStorySection = forwardRef<HTMLDivElement, BugStorySectionProps>(
                                     dataKey="value"
                                     nameKey="name"
                                     outerRadius={100}
-                                    label={({ cx, cy, midAngle, outerRadius, name, value }: { cx: number; cy: number; midAngle: number; outerRadius: number; name: string; value: number }) => {
+                                    label={({ cx, cy, midAngle, outerRadius, name, value }: { cx: number; cy: number; midAngle?: number; outerRadius: number; name?: string; value: number }) => {
+                                        if (midAngle === undefined || !name) return null;
                                         const RADIAN = Math.PI / 180;
                                         const r = outerRadius + 30;
                                         const x = cx + r * Math.cos(-midAngle * RADIAN);

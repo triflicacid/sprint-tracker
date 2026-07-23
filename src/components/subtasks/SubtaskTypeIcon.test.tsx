@@ -95,10 +95,10 @@ describe("renderTypeIconInSvg", () => {
 
     it("positions the icon at the supplied x/y with the supplied size", () => {
         const element = renderTypeIconInSvg("feature", 10, 20, 24);
-        expect(element?.props.x).toBe(10);
-        expect(element?.props.y).toBe(20);
-        expect(element?.props.width).toBe(24);
-        expect(element?.props.height).toBe(24);
+        expect((element?.props as any)?.x).toBe(10);
+        expect((element?.props as any)?.y).toBe(20);
+        expect((element?.props as any)?.width).toBe(24);
+        expect((element?.props as any)?.height).toBe(24);
     });
 });
 
