@@ -126,6 +126,7 @@ export interface SprintSummary {
   startDate: string;
   endDate: string | null;
   comment: string | null;
+  project: string | null;
   storyCount: number;
   prCount: number;
 }

@@ -8,12 +8,14 @@ import { api } from "../../api/client";
 vi.mock("../../api/client", () => ({
     api: {
         listSprints: vi.fn(),
+        listSprintProjects: vi.fn(),
         createSprint: vi.fn(),
     },
 }));
 
 beforeEach(() => {
     vi.mocked(api.listSprints).mockReset();
+    vi.mocked(api.listSprintProjects).mockReset();
     vi.mocked(api.createSprint).mockReset();
 });
 
@@ -28,14 +30,16 @@ function renderPage() {
 describe("sprint list page", () => {
     it("lists sprints returned by the api", async () => {
         vi.mocked(api.listSprints).mockResolvedValue([
-            { id: 1, name: "Sprint 1", startDate: "2026-01-01", endDate: null, comment: null, storyCount: 2, prCount: 3 },
+            { id: 1, name: "Sprint 1", startDate: "2026-01-01", endDate: null, comment: null, project: null, storyCount: 2, prCount: 3 },
         ]);
+        vi.mocked(api.listSprintProjects).mockResolvedValue([]);
         renderPage();
         expect(await screen.findByText("Sprint 1")).toBeInTheDocument();
     });
 
     it("has links to stats, timesheet and transitions", async () => {
         vi.mocked(api.listSprints).mockResolvedValue([]);
+        vi.mocked(api.listSprintProjects).mockResolvedValue([]);
         renderPage();
         expect(await screen.findByText("stats")).toHaveAttribute("href", "/stats");
         expect(screen.getByText("timesheet")).toHaveAttribute("href", "/timesheet");
@@ -44,12 +48,14 @@ describe("sprint list page", () => {
 
     it("creates a sprint via the form and reloads the list", async () => {
         vi.mocked(api.listSprints).mockResolvedValue([]);
+        vi.mocked(api.listSprintProjects).mockResolvedValue([]);
         vi.mocked(api.createSprint).mockResolvedValue({
             id: 2,
             name: "New Sprint",
             startDate: "2026-02-01",
             endDate: null,
             comment: null,
+            project: null,
             storyCount: 0,
             prCount: 0,
         });

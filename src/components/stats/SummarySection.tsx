@@ -49,6 +49,7 @@ export const SummarySection = forwardRef<SummarySectionHandle, SummarySectionPro
                 title: `Summary - ${selectedSprint.name}`,
                 lines: [
                     `Sprint: ${selectedSprint.name} (${formatDisplayDate(selectedSprint.startDate)} to ${formatDisplayDate(sprintEndDate)})`,
+                    ...(selectedSprint.project ? [`Project: ${selectedSprint.project}`] : []),
                     `Completed: ${isCompleted ? "yes" : "ongoing"}`,
                     `Pull requests: ${stats.prCount}`,
                     `Stories: ${stats.storyCount}`,

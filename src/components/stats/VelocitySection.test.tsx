@@ -33,6 +33,7 @@ const sprints: SprintSummary[] = [
         startDate: "2026-03-02",
         endDate: "2026-03-16",
         comment: null,
+        project: null,
         storyCount: 2,
         prCount: 3,
     },

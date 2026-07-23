@@ -9,6 +9,7 @@ interface SprintRow {
     start_date: string;
     end_date: string | null;
     comment: string | null;
+    project: string | null;
 }
 
 interface CreateSprintInput {
@@ -16,6 +17,7 @@ interface CreateSprintInput {
     startDate: string;
     endDate?: string | null;
     comment?: string | null;
+    project?: string | null;
 }
 
 /**
@@ -41,6 +43,7 @@ function rowToSummary(row: SprintRow) {
         startDate: row.start_date,
         endDate: row.end_date,
         comment: row.comment,
+        project: row.project,
         storyCount: counts.story_count,
         prCount: counts.pr_count,
     } as SprintSummary;
@@ -78,9 +81,9 @@ export function createSprint(input: CreateSprintInput) {
 
     const result = db
         .prepare(
-            "INSERT INTO sprints (name, start_date, end_date, comment) VALUES (?, ?, ?, ?)"
+            "INSERT INTO sprints (name, start_date, end_date, comment, project) VALUES (?, ?, ?, ?, ?)"
         )
-        .run(input.name, input.startDate, input.endDate ?? null, input.comment ?? null);
+        .run(input.name, input.startDate, input.endDate ?? null, input.comment ?? null, input.project ?? null);
 
     const created = db
         .prepare("SELECT * FROM sprints WHERE id = ?")
@@ -125,12 +128,31 @@ export function updateSprint(sprintId: number, input: Partial<CreateSprintInput>
         throw new SprintLockedError("cannot edit a sprint that has ended");
     }
     db.prepare(
-        "UPDATE sprints SET name = ?, start_date = ?, end_date = ?, comment = ? WHERE id = ?"
+        "UPDATE sprints SET name = ?, start_date = ?, end_date = ?, comment = ?, project = ? WHERE id = ?"
     ).run(
         input.name ?? existing.name,
         input.startDate ?? existing.start_date,
         input.endDate === undefined ? existing.end_date : input.endDate,
         input.comment === undefined ? existing.comment : input.comment,
+        input.project === undefined ? existing.project : input.project,
         sprintId
     );
 }
+
+/**
+ * gets distinct project names from all sprints.
+ *
+ * @returns list of unique non-null project values ordered by most recent usage.
+ */
+export function getDistinctProjects() {
+    const rows = db
+        .prepare(
+            `SELECT project, MAX(start_date) as max_start_date FROM sprints 
+             WHERE project IS NOT NULL AND project != '' 
+             GROUP BY project
+             ORDER BY max_start_date DESC`
+        )
+        .all() as { project: string; max_start_date: string }[];
+    return rows.map(row => row.project);
+}
+

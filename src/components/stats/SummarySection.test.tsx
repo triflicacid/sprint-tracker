@@ -19,6 +19,7 @@ const sprint: SprintSummary = {
     startDate: "2026-03-02",
     endDate: "2026-03-16",
     comment: null,
+    project: null,
     storyCount: 2,
     prCount: 3,
 };
@@ -30,6 +31,7 @@ const stats: SprintStats = {
     bugCount: 1,
     repoCounts: [{ repoName: "checkout-web", count: 3, proportion: 1 }],
     storyTimeDays: [{ storyId: 1, storyLabel: "NEB-1", description: "a story", days: 4 }],
+    subtaskTypeCounts: [],
 };
 
 const velocitySummary: VelocityPoint = {
@@ -144,5 +146,26 @@ describe("SummarySection", () => {
 
         resolve();
         expect(await screen.findByRole("button", { name: "export pdf" })).toBeEnabled();
+    });
+
+    it("includes the project in the PDF export section when present", async () => {
+        const ref = createRef<SummarySectionHandle>();
+        renderSection({ ref, selectedSprint: { ...sprint, project: "Platform Hardening" } });
+        await screen.findByText(/^8$/);
+
+        const section = ref.current!.getReportSection();
+        expect(section.lines).toContain("Project: Platform Hardening");
+    });
+
+    it("does not include the project line in the PDF export section when not present", async () => {
+        const ref = createRef<SummarySectionHandle>();
+        renderSection({ ref, selectedSprint: { ...sprint, project: null } });
+        await screen.findByText(/^8$/);
+
+        const section = ref.current!.getReportSection();
+        const projectLine = section.lines?.find((line) =>
+            typeof line === 'string' && line.startsWith("Project:")
+        );
+        expect(projectLine).toBeUndefined();
     });
 });

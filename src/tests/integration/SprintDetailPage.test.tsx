@@ -36,6 +36,7 @@ const sprint = {
     // must stay unlocked (endDate in the future) for the existing tests below.
     endDate: offsetFromToday(180),
     comment: null,
+    project: null,
     storyCount: 1,
     prCount: 0,
     stories: [
@@ -230,5 +231,22 @@ describe("sprint detail page", () => {
         textarea.blur();
 
         expect(api.updateSprint).toHaveBeenCalledWith(9, { comment: "updated" });
+    });
+
+    it("shows the project tag when the sprint has a project", async () => {
+        vi.mocked(api.getSprint).mockResolvedValue({ ...sprint, project: "Platform Hardening" });
+        renderPage();
+        await screen.findByText("a story");
+
+        expect(screen.getByText("Platform Hardening")).toBeInTheDocument();
+        expect(screen.getByText("Platform Hardening")).toHaveClass("project-tag");
+    });
+
+    it("does not show the project tag when the sprint has no project", async () => {
+        vi.mocked(api.getSprint).mockResolvedValue({ ...sprint, project: null });
+        renderPage();
+        await screen.findByText("a story");
+
+        expect(document.querySelector(".project-tag")).not.toBeInTheDocument();
     });
 });

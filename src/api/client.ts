@@ -70,11 +70,14 @@ async function requestText(path: string, options?: RequestInit): Promise<string>
 export const api = {
     listSprints: (): Promise<SprintSummary[]> => request("/sprints"),
 
+    listSprintProjects: (): Promise<string[]> => request("/sprints/projects"),
+
     createSprint: (input: {
         name: string;
         startDate: string;
         endDate?: string;
         comment?: string;
+        project?: string;
     }): Promise<SprintSummary> =>
         request("/sprints", { method: "POST", body: JSON.stringify(input) }),
 
@@ -169,7 +172,7 @@ export const api = {
     updateStory: (id: number, input: { awaitingMoreSubtasks?: boolean; storyPoints?: number | null }): Promise<StorySummary> =>
         request(`/stories/${id}`, { method: "PATCH", body: JSON.stringify(input) }),
 
-    updateSprint: (id: number, input: { comment?: string }): Promise<SprintDetail> =>
+    updateSprint: (id: number, input: { comment?: string; project?: string }): Promise<SprintDetail> =>
         request(`/sprints/${id}`, { method: "PATCH", body: JSON.stringify(input) }),
 
     exportMarkdown: (sprintIds: number[], fields: MarkdownExportFields): Promise<string> =>

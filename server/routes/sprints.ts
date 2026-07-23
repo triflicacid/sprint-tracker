@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { listSprintSummaries, createSprint, getSprintDetail, updateSprint } from "../services/sprintService.js";
+import { listSprintSummaries, createSprint, getSprintDetail, updateSprint, getDistinctProjects } from "../services/sprintService.js";
 import { createStory } from "../services/storyService.js";
 
 export const sprintsRouter: Router = Router();
@@ -8,13 +8,17 @@ sprintsRouter.get("/", (_req: Request, res: Response) => {
     res.json(listSprintSummaries());
 });
 
+sprintsRouter.get("/projects", (_req: Request, res: Response) => {
+    res.json(getDistinctProjects());
+});
+
 sprintsRouter.post("/", (req: Request, res: Response) => {
-    const { name, startDate, endDate, comment } = req.body;
+    const { name, startDate, endDate, comment, project } = req.body;
     if (!name || !startDate) {
         res.status(400).json({ error: "name and startDate are required" });
         return;
     }
-    res.status(201).json(createSprint({ name, startDate, endDate, comment }));
+    res.status(201).json(createSprint({ name, startDate, endDate, comment, project }));
 });
 
 sprintsRouter.get("/:id", (req: Request, res: Response) => {

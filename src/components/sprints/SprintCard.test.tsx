@@ -14,6 +14,7 @@ describe("SprintCard", () => {
                         startDate: "2026-03-30",
                         endDate: null,
                         comment: null,
+                        project: null,
                         storyCount: 2,
                         prCount: 4,
                     }}
@@ -37,6 +38,7 @@ describe("SprintCard", () => {
                         startDate: "2026-01-01",
                         endDate: "2026-01-15",
                         comment: null,
+                        project: null,
                         storyCount: 0,
                         prCount: 0,
                     }}
@@ -56,6 +58,7 @@ describe("SprintCard", () => {
                         startDate: "2026-01-01",
                         endDate: null,
                         comment: "1-day holiday",
+                        project: null,
                         storyCount: 0,
                         prCount: 0,
                     }}
@@ -73,6 +76,7 @@ describe("SprintCard", () => {
                         startDate: "2026-01-01",
                         endDate: null,
                         comment: null,
+                        project: null,
                         storyCount: 0,
                         prCount: 0,
                     }}
@@ -80,5 +84,46 @@ describe("SprintCard", () => {
             </MemoryRouter>
         );
         expect(screen.queryByText("1-day holiday")).not.toBeInTheDocument();
+    });
+
+    it("shows the project tag when present", () => {
+        render(
+            <MemoryRouter>
+                <SprintCard
+                    sprint={{
+                        id: 5,
+                        name: "Sprint 5",
+                        startDate: "2026-05-01",
+                        endDate: null,
+                        comment: null,
+                        project: "Nebula Checkout Platform",
+                        storyCount: 3,
+                        prCount: 1,
+                    }}
+                />
+            </MemoryRouter>
+        );
+        expect(screen.getByText("Nebula Checkout Platform")).toBeInTheDocument();
+        expect(screen.getByText("Nebula Checkout Platform")).toHaveClass("project-tag");
+    });
+
+    it("does not show the project tag when not present", () => {
+        render(
+            <MemoryRouter>
+                <SprintCard
+                    sprint={{
+                        id: 6,
+                        name: "Sprint 6",
+                        startDate: "2026-06-01",
+                        endDate: null,
+                        comment: null,
+                        project: null,
+                        storyCount: 1,
+                        prCount: 0,
+                    }}
+                />
+            </MemoryRouter>
+        );
+        expect(document.querySelector(".project-tag")).not.toBeInTheDocument();
     });
 });

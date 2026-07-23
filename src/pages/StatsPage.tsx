@@ -13,10 +13,12 @@ import { StatusHistorySection, type StatusHistorySectionHandle } from "../compon
 import { CalendarSection, type CalendarSectionHandle } from "../components/stats/CalendarSection";
 import { ExportButton } from "../components/ExportButton";
 import { CollapseAllContext, ExpandAllContext } from "../components/CollapsibleSection";
-import { parseIsoDate, formatIsoDate } from "../utils/calendarGrid";
+import { parseIsoDate, formatIsoDate, formatDisplayDate } from "../utils/calendarGrid";
 import { exportSectionsAsPdf, type PdfSection } from "../utils/pdfExport";
 import { hexToRgb } from "../utils/colourUtils";
 import { SUBTASK_TYPE_COLORS } from "../components/subtasks/SubtaskTypeIcon";
+import { MetaRow } from "../components/MetaRow";
+import "../components/sprints/SprintCard.css";
 
 // counts weekdays (mon-fri) in an inclusive date range.
 function countWeekdays(start: string, end: string) {
@@ -221,6 +223,19 @@ export function StatsPage() {
                         {selectedSprint ? `back to sprint ${selectedSprint.name}` : "back to sprints"}
                     </Link>
                     <h1>Stats</h1>
+                    {selectedSprint?.name && (
+                        <MetaRow>
+                            <span className="sprint-card-dates">
+                                {selectedSprint.name} ({formatDisplayDate(selectedSprint.startDate)} to{" "}
+                                {selectedSprint.endDate ? formatDisplayDate(selectedSprint.endDate) : "present"})
+                            </span>
+                        </MetaRow>
+                    )}
+                    {selectedSprint?.project && (
+                        <MetaRow>
+                            <span className="project-tag">{selectedSprint.project}</span>
+                        </MetaRow>
+                    )}
                 </div>
                 <select
                     value={selectedSprintId}

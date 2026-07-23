@@ -136,6 +136,11 @@ export function SprintDetailPage(): React.ReactElement {
                             {sprint.endDate ? formatDisplayDate(sprint.endDate) : "present"}
                         </span>
                     </MetaRow>
+                    {sprint.project && (
+                        <MetaRow>
+                            <span className="project-tag">{sprint.project}</span>
+                        </MetaRow>
+                    )}
                     <CommentEditor
                         comment={sprint.comment}
                         displayClassName="sprint-card-comment"
