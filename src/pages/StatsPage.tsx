@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import type { SprintSummary, SprintStats } from "@shared/types";
 import { api } from "../api/client";
-import { VelocitySection } from "../components/stats/VelocitySection";
+import { SprintOverview } from "../components/stats/SprintOverview";
 import { SummarySection, type SummarySectionHandle } from "../components/stats/SummarySection";
 import { RepoDistributionSection } from "../components/stats/RepoDistributionSection";
 import { BugStorySection } from "../components/stats/BugStorySection";
@@ -272,7 +272,7 @@ export function StatsPage() {
             <CollapseAllContext.Provider value={collapseSignal}>
             <ExpandAllContext.Provider value={expandSignal}>
                 {!selectedSprintId && latestSprintId && (
-                    <VelocitySection sprints={sprints} latestSprintId={latestSprintId} />
+                    <SprintOverview sprints={sprints} latestSprintId={latestSprintId} />
                 )}
 
                 {stats && selectedSprint && sprintEndDate && (

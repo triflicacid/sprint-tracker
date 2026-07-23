@@ -133,13 +133,13 @@ describe("stats page", () => {
         expect(screen.getByText("complexity 3").previousElementSibling).toHaveTextContent("1");
     });
 
-    it("shows the velocity section anchored on the most recent sprint when no sprint is selected", async () => {
+    it("shows the sprint overview section anchored on the most recent sprint when no sprint is selected", async () => {
         renderPage();
         expect(await screen.findByText("Velocity")).toBeInTheDocument();
         expect(api.getVelocityHistory).toHaveBeenCalledWith(1, { mode: "lastN", n: 5 });
     });
 
-    it("hides the velocity section once a sprint is selected, showing the summary tile instead", async () => {
+    it("hides the sprint overview section once a sprint is selected, showing the summary tile instead", async () => {
         renderPage();
         await screen.findByText("Velocity");
 
