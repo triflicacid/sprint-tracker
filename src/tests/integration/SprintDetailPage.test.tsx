@@ -2,12 +2,12 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { SprintDetailPage } from "../../pages/SprintDetailPage";
-import { ToastProvider } from "../../components/Toast";
-import { api } from "../../api/client";
-import { downloadTextFile } from "../../utils/download";
+import { SprintDetailPage } from "#pages/SprintDetailPage";
+import { ToastProvider } from "#components/Toast";
+import { api } from "#api/client";
+import { downloadTextFile } from "#utils/download";
 
-vi.mock("../../api/client", () => ({
+vi.mock("#api/client", () => ({
     api: {
         getSprint: vi.fn(),
         listHolidays: vi.fn(),
@@ -19,7 +19,7 @@ vi.mock("../../api/client", () => ({
     },
 }));
 
-vi.mock("../../utils/download", () => ({
+vi.mock("#utils/download", () => ({
     downloadTextFile: vi.fn(),
 }));
 
@@ -36,6 +36,7 @@ const sprint = {
     // must stay unlocked (endDate in the future) for the existing tests below.
     endDate: offsetFromToday(180),
     comment: null,
+    project: null,
     storyCount: 1,
     prCount: 0,
     stories: [
@@ -230,5 +231,22 @@ describe("sprint detail page", () => {
         textarea.blur();
 
         expect(api.updateSprint).toHaveBeenCalledWith(9, { comment: "updated" });
+    });
+
+    it("shows the project tag when the sprint has a project", async () => {
+        vi.mocked(api.getSprint).mockResolvedValue({ ...sprint, project: "Platform Hardening" });
+        renderPage();
+        await screen.findByText("a story");
+
+        expect(screen.getByText("Platform Hardening")).toBeInTheDocument();
+        expect(screen.getByText("Platform Hardening")).toHaveClass("project-tag");
+    });
+
+    it("does not show the project tag when the sprint has no project", async () => {
+        vi.mocked(api.getSprint).mockResolvedValue({ ...sprint, project: null });
+        renderPage();
+        await screen.findByText("a story");
+
+        expect(document.querySelector(".project-tag")).not.toBeInTheDocument();
     });
 });

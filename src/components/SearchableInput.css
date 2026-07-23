@@ -1,0 +1,56 @@
+.searchable-input {
+    position: relative;
+    width: 100%;
+}
+
+.searchable-input-field {
+    width: 100%;
+    padding: 0.5rem;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.searchable-input-field:focus {
+    outline: none;
+    border-color: #4a90e2;
+    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+.searchable-input-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    max-height: 200px;
+    overflow-y: auto;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    background: white;
+    border: 1px solid #ccc;
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+.searchable-input-option {
+    padding: 0.5rem;
+    cursor: pointer;
+    background-color: var(--bg);
+    color: var(--text-dim);
+    transition: background-color 0.1s, color 0.1s;
+}
+
+.searchable-input-option:hover,
+.searchable-input-option.selected {
+    background-color: #f0f0f0;
+    color: var(--bg);
+}
+
+.searchable-input-option.selected {
+    background-color: #e6f2ff;
+}
+

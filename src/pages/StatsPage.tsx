@@ -2,21 +2,23 @@ import React, { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import type { SprintSummary, SprintStats } from "@shared/types";
 import { api } from "../api/client";
-import { VelocitySection } from "../components/stats/VelocitySection";
-import { SummarySection, type SummarySectionHandle } from "../components/stats/SummarySection";
-import { RepoDistributionSection } from "../components/stats/RepoDistributionSection";
-import { BugStorySection } from "../components/stats/BugStorySection";
-import { SubtaskCategorySection } from "../components/stats/SubtaskCategorySection";
-import { TimePerStorySection } from "../components/stats/TimePerStorySection";
-import { ComplexitySection, type ComplexitySectionHandle } from "../components/stats/ComplexitySection";
-import { StatusHistorySection, type StatusHistorySectionHandle } from "../components/stats/StatusHistorySection";
-import { CalendarSection, type CalendarSectionHandle } from "../components/stats/CalendarSection";
+import { SprintOverview } from "../components/stats/sprint/SprintOverview";
+import { SummarySection, type SummarySectionHandle } from "../components/stats/sprint/SummarySection";
+import { RepoDistributionSection } from "../components/stats/story/RepoDistributionSection";
+import { BugStorySection } from "../components/stats/story/BugStorySection";
+import { SubtaskCategorySection } from "../components/stats/subtask/SubtaskCategorySection";
+import { TimePerStorySection } from "../components/stats/story/TimePerStorySection";
+import { ComplexitySection, type ComplexitySectionHandle } from "../components/stats/story/ComplexitySection";
+import { StatusHistorySection, type StatusHistorySectionHandle } from "../components/stats/subtask/StatusHistorySection";
+import { CalendarSection, type CalendarSectionHandle } from "../components/stats/sprint/CalendarSection";
 import { ExportButton } from "../components/ExportButton";
 import { CollapseAllContext, ExpandAllContext } from "../components/CollapsibleSection";
-import { parseIsoDate, formatIsoDate } from "../utils/calendarGrid";
+import { parseIsoDate, formatIsoDate, formatDisplayDate } from "../utils/calendarGrid";
 import { exportSectionsAsPdf, type PdfSection } from "../utils/pdfExport";
 import { hexToRgb } from "../utils/colourUtils";
 import { SUBTASK_TYPE_COLORS } from "../components/subtasks/SubtaskTypeIcon";
+import { MetaRow } from "../components/MetaRow";
+import "../components/sprints/SprintCard.css";
 
 // counts weekdays (mon-fri) in an inclusive date range.
 function countWeekdays(start: string, end: string) {
@@ -221,6 +223,19 @@ export function StatsPage() {
                         {selectedSprint ? `back to sprint ${selectedSprint.name}` : "back to sprints"}
                     </Link>
                     <h1>Stats</h1>
+                    {selectedSprint?.name && (
+                        <MetaRow>
+                            <span className="sprint-card-dates">
+                                {selectedSprint.name} ({formatDisplayDate(selectedSprint.startDate)} to{" "}
+                                {selectedSprint.endDate ? formatDisplayDate(selectedSprint.endDate) : "present"})
+                            </span>
+                        </MetaRow>
+                    )}
+                    {selectedSprint?.project && (
+                        <MetaRow>
+                            <span className="project-tag">{selectedSprint.project}</span>
+                        </MetaRow>
+                    )}
                 </div>
                 <select
                     value={selectedSprintId}
@@ -257,7 +272,7 @@ export function StatsPage() {
             <CollapseAllContext.Provider value={collapseSignal}>
             <ExpandAllContext.Provider value={expandSignal}>
                 {!selectedSprintId && latestSprintId && (
-                    <VelocitySection sprints={sprints} latestSprintId={latestSprintId} />
+                    <SprintOverview sprints={sprints} latestSprintId={latestSprintId} />
                 )}
 
                 {stats && selectedSprint && sprintEndDate && (

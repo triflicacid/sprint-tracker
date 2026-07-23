@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS sprints (
     start_date TEXT NOT NULL,
     end_date TEXT,
     comment TEXT,
+    project TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 

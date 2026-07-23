@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { parseIsoDate } from "../../utils/calendarGrid";
+import { parseIsoDate } from "#utils/calendarGrid";
 import { CalendarGridMonth } from "./CalendarGridMonth";
 import { CalendarPopoverShell } from "./CalendarPopoverShell";
 import "./calendar.css";

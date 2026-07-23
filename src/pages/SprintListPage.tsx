@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import type { SprintSummary } from "@shared/types";
 import { api } from "../api/client";
 import { SprintCard } from "../components/sprints/SprintCard";
+import { SearchableInput } from "../components/SearchableInput";
 import "./SprintListPage.css";
 
 /**
@@ -16,26 +17,52 @@ export function SprintListPage(): React.ReactElement {
     const [name, setName] = useState<string>("");
     const [startDate, setStartDate] = useState<string>("");
     const [comment, setComment] = useState<string>("");
+    const [project, setProject] = useState<string>("");
+    const [projectSuggestions, setProjectSuggestions] = useState<string[]>([]);
 
     async function loadSprints() {
         const result: SprintSummary[] = await api.listSprints();
         setSprints(result);
     }
 
+    async function loadProjectSuggestions() {
+        const result: string[] = await api.listSprintProjects();
+        setProjectSuggestions(result);
+    }
+
     useEffect(() => {
         loadSprints();
+        loadProjectSuggestions();
     }, []);
+
+    function handleShowForm() {
+        setShowForm(!showForm);
+        // auto-populate project from most recent sprint when opening form
+        if (!showForm && sprints.length > 0) {
+            const lastSprint = sprints[0]; // sprints are ordered by newest first
+            if (lastSprint.project) {
+                setProject(lastSprint.project);
+            }
+        }
+    }
 
     async function handleCreateSprint() {
         if (!name.trim() || !startDate) {
             return;
         }
-        await api.createSprint({ name: name.trim(), startDate, comment: comment.trim() || undefined });
+        await api.createSprint({
+            name: name.trim(),
+            startDate,
+            comment: comment.trim() || undefined,
+            project: project.trim() || undefined
+        });
         setName("");
         setStartDate("");
         setComment("");
+        setProject("");
         setShowForm(false);
         loadSprints();
+        loadProjectSuggestions();
     }
 
     return (
@@ -48,7 +75,7 @@ export function SprintListPage(): React.ReactElement {
                     <Link to="/transitions">transitions</Link>
                     <Link to="/categories">categories</Link>
                     <Link to="/export">export</Link>
-                    <button onClick={() => setShowForm(!showForm)}>new sprint</button>
+                    <button onClick={handleShowForm}>new sprint</button>
                 </div>
             </div>
 
@@ -60,10 +87,18 @@ export function SprintListPage(): React.ReactElement {
                         value={name}
                         onChange={(event) => setName(event.target.value)}
                     />
+                    <span>starting</span>
                     <input
                         type="date"
                         value={startDate}
                         onChange={(event) => setStartDate(event.target.value)}
+                    />
+                    <SearchableInput
+                        //initialValue={project}
+                        onChange={setProject}
+                        onClick={setProject}
+                        suggestions={projectSuggestions}
+                        placeholder="project (optional)"
                     />
                     <input
                         type="text"

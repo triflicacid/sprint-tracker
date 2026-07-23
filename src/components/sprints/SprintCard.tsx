@@ -24,6 +24,7 @@ export function SprintCard({ sprint }: SprintCardProps): React.ReactElement {
                 <h3>{sprint.name}</h3>
                 <span className="sprint-card-dates">{dateRange}</span>
             </div>
+            {sprint.project && <span className="project-tag">{sprint.project}</span>}
             {sprint.comment && <p className="sprint-card-comment">{sprint.comment}</p>}
             <div className="sprint-card-stats">
                 <span>{sprint.storyCount} stories</span>

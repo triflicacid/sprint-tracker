@@ -44,3 +44,14 @@
     font-size: var(--font-medium);
     margin-top: 8px;
 }
+
+.project-tag {
+    font-size: var(--font-small);
+    color: var(--text-dim);
+    background: var(--surface-raised);
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-bottom: 6px;
+    display: inline-block;
+}
+

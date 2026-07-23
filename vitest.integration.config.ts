@@ -2,7 +2,15 @@ import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import path from "path";
 
-const sharedAlias = { "@shared": path.resolve(__dirname, "shared") };
+const sharedAlias = {
+    "@shared": path.resolve(__dirname, "shared"),
+    "#api": path.resolve(__dirname, "src/api"),
+    "#components": path.resolve(__dirname, "src/components"),
+    "#pages": path.resolve(__dirname, "src/pages"),
+    "#utils": path.resolve(__dirname, "src/utils"),
+    "#testUtils": path.resolve(__dirname, "src/testUtils"),
+    "#styles": path.resolve(__dirname, "src/styles"),
+};
 
 export default defineConfig({
     test: {

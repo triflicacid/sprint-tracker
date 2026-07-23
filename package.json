@@ -9,7 +9,7 @@
     "clean": "rm -r -fo dist",
     "dev:server": "tsx watch server/index.ts",
     "dev:client": "vite",
-    "copy:assets": "cp static dist/static -r",
+    "copy:assets": "cp -r -fo static dist/static",
     "build:client": "tsc -p tsconfig.json && vite build",
     "build:server": "tsc -p server/tsconfig.json && pnpm run copy:assets",
     "build": "pnpm run build:client && pnpm run build:server",

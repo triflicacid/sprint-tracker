@@ -343,12 +343,13 @@ export function StoryDetailPage(): React.ReactElement {
                                     dataKey="value"
                                     nameKey="name"
                                     outerRadius={100}
-                                    label={({ cx, cy, midAngle, outerRadius, value, name }: { cx: number; cy: number; midAngle: number; outerRadius: number; value: number; name: string }) => {
+                                    label={({ cx, cy, midAngle, outerRadius, value, name }: { cx: number; cy: number; midAngle?: number; outerRadius: number; value: number; name?: string }) => {
+                                        if (midAngle === undefined || !name) return null;
                                         const RADIAN = Math.PI / 180;
-                                        const r = (outerRadius as number) + 32;
-                                        const x = (cx as number) + r * Math.cos(-(midAngle as number) * RADIAN);
-                                        const y = (cy as number) + r * Math.sin(-(midAngle as number) * RADIAN);
-                                        const isRight = x >= (cx as number);
+                                        const r = outerRadius + 32;
+                                        const x = cx + r * Math.cos(-midAngle * RADIAN);
+                                        const y = cy + r * Math.sin(-midAngle * RADIAN);
+                                        const isRight = x >= cx;
                                         const textWidth = String(value).length * 9;
                                         const iconX = isRight ? x + textWidth + 3 : x + 3;
                                         const color = SUBTASK_TYPE_COLORS[name] ?? "#6b7280";

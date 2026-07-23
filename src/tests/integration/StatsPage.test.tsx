@@ -2,9 +2,9 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { StatsPage } from "../../pages/StatsPage";
-import { api } from "../../api/client";
-import { exportSectionsAsPdf } from "../../utils/pdfExport";
+import { StatsPage } from "#pages/StatsPage";
+import { api } from "#api/client";
+import { exportSectionsAsPdf } from "#utils/pdfExport";
 
 // StatsPage itself only owns cross-cutting state (which sprint is selected,
 // granularity/burndown-mode, the PDF-export wiring) and fetches data to hand
@@ -14,7 +14,7 @@ import { exportSectionsAsPdf } from "../../utils/pdfExport";
 // this file is for behaviour that only exists once the sections are
 // assembled together on the page.
 
-vi.mock("../../api/client", () => ({
+vi.mock("#api/client", () => ({
     api: {
         listSprints: vi.fn(),
         getSprintStats: vi.fn(),
@@ -26,7 +26,7 @@ vi.mock("../../api/client", () => ({
     },
 }));
 
-vi.mock("../../utils/pdfExport", () => ({
+vi.mock("#utils/pdfExport", () => ({
     exportSectionsAsPdf: vi.fn(),
 }));
 
@@ -36,6 +36,7 @@ const sprint = {
     startDate: "2026-03-02",
     endDate: "2026-03-16",
     comment: null,
+    project: null,
     storyCount: 2,
     prCount: 3,
 };
@@ -132,13 +133,13 @@ describe("stats page", () => {
         expect(screen.getByText("complexity 3").previousElementSibling).toHaveTextContent("1");
     });
 
-    it("shows the velocity section anchored on the most recent sprint when no sprint is selected", async () => {
+    it("shows the sprint overview section anchored on the most recent sprint when no sprint is selected", async () => {
         renderPage();
         expect(await screen.findByText("Velocity")).toBeInTheDocument();
         expect(api.getVelocityHistory).toHaveBeenCalledWith(1, { mode: "lastN", n: 5 });
     });
 
-    it("hides the velocity section once a sprint is selected, showing the summary tile instead", async () => {
+    it("hides the sprint overview section once a sprint is selected, showing the summary tile instead", async () => {
         renderPage();
         await screen.findByText("Velocity");
 
@@ -314,5 +315,49 @@ describe("stats page", () => {
         expect(prTile.previousElementSibling).toHaveTextContent("3");
         expect(api.getSprintStats).toHaveBeenCalledWith(1);
         expect(screen.getByRole("combobox")).toHaveValue("1");
+    });
+
+    it("displays the project tag when the sprint has a project", async () => {
+        vi.mocked(api.listSprints).mockResolvedValue([{ ...sprint, project: "Platform Hardening" }]);
+        renderPage("/stats/1");
+        await screen.findByText("pull requests");
+
+        expect(screen.getByText("Platform Hardening")).toBeInTheDocument();
+        expect(screen.getByText("Platform Hardening")).toHaveClass("project-tag");
+    });
+
+    it("does not display the project tag when the sprint has no project", async () => {
+        vi.mocked(api.listSprints).mockResolvedValue([{ ...sprint, project: null }]);
+        renderPage("/stats/1");
+        await screen.findByText("pull requests");
+
+        expect(document.querySelector(".project-tag")).not.toBeInTheDocument();
+    });
+
+    it("includes the project in the PDF export when present", async () => {
+        vi.mocked(api.listSprints).mockResolvedValue([{ ...sprint, project: "Nebula Checkout Platform" }]);
+        renderPage("/stats/1");
+        await screen.findByText("pull requests");
+
+        await userEvent.click(screen.getByRole("button", { name: "export all as pdf" }));
+
+        const [sections] = vi.mocked(exportSectionsAsPdf).mock.calls[0];
+        const summarySection = sections[0];
+        expect(summarySection.lines).toContain("Project: Nebula Checkout Platform");
+    });
+
+    it("does not include the project line in the PDF export when not present", async () => {
+        vi.mocked(api.listSprints).mockResolvedValue([{ ...sprint, project: null }]);
+        renderPage("/stats/1");
+        await screen.findByText("pull requests");
+
+        await userEvent.click(screen.getByRole("button", { name: "export all as pdf" }));
+
+        const [sections] = vi.mocked(exportSectionsAsPdf).mock.calls[0];
+        const summarySection = sections[0];
+        const projectLine = summarySection.lines?.find((line) =>
+            typeof line === 'string' && line.startsWith("Project:")
+        );
+        expect(projectLine).toBeUndefined();
     });
 });

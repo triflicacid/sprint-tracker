@@ -1,13 +1,13 @@
 -- NOTE this test data is AI generated
 
-INSERT INTO sprints (name, start_date, end_date, comment) VALUES
-    ('Nebula Checkout Sprint 1', '2026-03-02', '2026-03-16', NULL);
+INSERT INTO sprints (name, start_date, end_date, comment, project) VALUES
+    ('Nebula Checkout Sprint 1', '2026-03-02', '2026-03-16', NULL, 'Nebula Checkout Platform');
 
-INSERT INTO sprints (name, start_date, end_date, comment) VALUES
-    ('Nebula Checkout Sprint 2', '2026-03-16', '2026-03-30', '1-day holiday, public holiday');
+INSERT INTO sprints (name, start_date, end_date, comment, project) VALUES
+    ('Nebula Checkout Sprint 2', '2026-03-16', '2026-03-30', '1-day holiday, public holiday', 'Nebula Checkout Platform');
 
-INSERT INTO sprints (name, start_date, end_date, comment) VALUES
-    ('Nebula Checkout Sprint 4', '2026-05-05', NULL, NULL);
+INSERT INTO sprints (name, start_date, end_date, comment, project) VALUES
+    ('Nebula Checkout Sprint 4', '2026-05-05', NULL, NULL, 'Refund Management');
 
 -- a couple of holiday-block days early in sprint 1, plus the public
 -- holiday mentioned in sprint 2's comment above.
@@ -602,14 +602,14 @@ INSERT INTO entity_tags (entity_type, entity_id, tag_id) VALUES
 -- a closed sprint actually looks like once everything shipped.
 -- ============================================================
 
-INSERT INTO sprints (name, start_date, end_date, comment) VALUES
-    ('Nebula Checkout Sprint -2', '2026-01-19', '2026-02-02', NULL);
+INSERT INTO sprints (name, start_date, end_date, comment, project) VALUES
+    ('Nebula Checkout Sprint -2', '2026-01-19', '2026-02-02', NULL, 'Nebula Checkout Platform');
 
-INSERT INTO sprints (name, start_date, end_date, comment) VALUES
-    ('Nebula Checkout Sprint -1', '2026-02-02', '2026-02-16', '1-day holiday mid-sprint');
+INSERT INTO sprints (name, start_date, end_date, comment, project) VALUES
+    ('Nebula Checkout Sprint -1', '2026-02-02', '2026-02-16', '1-day holiday mid-sprint', 'Nebula Checkout Platform');
 
-INSERT INTO sprints (name, start_date, end_date, comment) VALUES
-    ('Nebula Checkout Sprint 0', '2026-02-16', '2026-03-02', NULL);
+INSERT INTO sprints (name, start_date, end_date, comment, project) VALUES
+    ('Nebula Checkout Sprint 0', '2026-02-16', '2026-03-02', NULL, 'Nebula Checkout Platform');
 
 INSERT OR IGNORE INTO holidays (date) VALUES ('2026-02-09');
 
@@ -1086,8 +1086,8 @@ UPDATE subtasks SET type = 'chore' WHERE title = 'add search relevance debug pan
 -- including one subtask left as 'unknown' (type not yet assigned).
 -- ============================================================
 
-INSERT INTO sprints (name, start_date, end_date, comment) VALUES
-    ('Nebula Checkout Sprint 3', '2026-04-21', '2026-05-05', NULL);
+INSERT INTO sprints (name, start_date, end_date, comment, project) VALUES
+    ('Nebula Checkout Sprint 3', '2026-04-21', '2026-05-05', NULL, 'Platform Hardening');
 
 -- NEB-1110: security hardening - subtasks: security + test
 INSERT INTO stories (sprint_id, jira_url, jira_key, description, story_points) VALUES
