@@ -1,6 +1,6 @@
 import React from "react";
 import type { DayActivityMap } from "@shared/types";
-import { monthsBetween } from "../../utils/calendarGrid";
+import { monthsBetween } from "#utils/calendarGrid";
 import { CalendarGridMonth } from "./CalendarGridMonth";
 import { DayActivityChips } from "./DayActivityChips";
 import "./calendar.css";

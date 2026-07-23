@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { render } from "@testing-library/react";
-import type { AdvancedBurndownPoint } from "../../../utils/burndown";
+import type { AdvancedBurndownPoint } from "#utils/burndown";
 import { AdvancedBurndownChart } from "./AdvancedBurndownChart";
 
 const points: AdvancedBurndownPoint[] = [

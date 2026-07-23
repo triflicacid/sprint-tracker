@@ -4,10 +4,10 @@ import userEvent from "@testing-library/user-event";
 import { createRef } from "react";
 import type { ComplexityStats } from "@shared/types";
 import { ComplexitySection, type ComplexitySectionHandle } from "./ComplexitySection";
-import { api } from "../../../api/client";
-import { deferred } from "../../../testUtils/deferred";
+import { api } from "#api/client";
+import { deferred } from "#testUtils/deferred";
 
-vi.mock("../../../api/client", () => ({
+vi.mock("#api/client", () => ({
     api: {
         getComplexityTiming: vi.fn(),
     },

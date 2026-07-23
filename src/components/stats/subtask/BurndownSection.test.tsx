@@ -2,9 +2,9 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createRef, type ComponentProps } from "react";
-import type { BurndownPoint, AdvancedBurndownPoint } from "../../../utils/burndown";
+import type { BurndownPoint, AdvancedBurndownPoint } from "#utils/burndown";
 import { BurndownSection } from "./BurndownSection";
-import { deferred } from "../../../testUtils/deferred";
+import { deferred } from "#testUtils/deferred";
 
 const burndownPoints: BurndownPoint[] = [
     { date: "2026-03-02", actual: 4, ideal: 4 },

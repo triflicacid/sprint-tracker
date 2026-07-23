@@ -1,6 +1,6 @@
 import React, { forwardRef, useState } from "react";
 import type { StatusBreakdownGranularity } from "@shared/types";
-import type { BurndownPoint, AdvancedBurndownPoint } from "../../../utils/burndown";
+import type { BurndownPoint, AdvancedBurndownPoint } from "#utils/burndown";
 import { BurndownChart } from "./BurndownChart";
 import { AdvancedBurndownChart } from "./AdvancedBurndownChart";
 import { ExportButton } from "../../ExportButton";

@@ -3,10 +3,10 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createRef } from "react";
 import { CalendarSection, type CalendarSectionHandle } from "./CalendarSection";
-import { api } from "../../../api/client";
-import { deferred } from "../../../testUtils/deferred";
+import { api } from "#api/client";
+import { deferred } from "#testUtils/deferred";
 
-vi.mock("../../../api/client", () => ({
+vi.mock("#api/client", () => ({
     api: {
         getDayActivity: vi.fn(),
     },

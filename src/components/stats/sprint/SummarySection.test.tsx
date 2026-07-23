@@ -4,8 +4,8 @@ import userEvent from "@testing-library/user-event";
 import { createRef, type ComponentProps } from "react";
 import type { SprintStats, SprintSummary, VelocityPoint } from "@shared/types";
 import { SummarySection, type SummarySectionHandle } from "./SummarySection";
-import { api } from "../../../api/client";
-import { deferred } from "../../../testUtils/deferred";
+import { api } from "#api/client";
+import { deferred } from "#testUtils/deferred";
 
 vi.mock("../../../api/client", () => ({
     api: {

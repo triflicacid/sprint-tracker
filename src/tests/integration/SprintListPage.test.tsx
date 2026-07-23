@@ -2,10 +2,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-import { SprintListPage } from "../../pages/SprintListPage";
-import { api } from "../../api/client";
+import { SprintListPage } from "#pages/SprintListPage";
+import { api } from "#api/client";
 
-vi.mock("../../api/client", () => ({
+vi.mock("#api/client", () => ({
     api: {
         listSprints: vi.fn(),
         listSprintProjects: vi.fn(),

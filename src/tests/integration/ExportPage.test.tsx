@@ -3,19 +3,19 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import type { SprintSummary } from "@shared/types";
-import { ExportPage } from "../../pages/ExportPage";
-import { ToastProvider } from "../../components/Toast";
-import { api } from "../../api/client";
-import { downloadTextFile } from "../../utils/download";
+import { ExportPage } from "#pages/ExportPage";
+import { ToastProvider } from "#components/Toast";
+import { api } from "#api/client";
+import { downloadTextFile } from "#utils/download";
 
-vi.mock("../../api/client", () => ({
+vi.mock("#api/client", () => ({
     api: {
         listSprints: vi.fn(),
         exportMarkdown: vi.fn(),
     },
 }));
 
-vi.mock("../../utils/download", () => ({
+vi.mock("#utils/download", () => ({
     downloadTextFile: vi.fn(),
 }));
 

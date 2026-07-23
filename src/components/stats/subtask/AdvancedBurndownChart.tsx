@@ -1,9 +1,9 @@
 import React from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import type { SubtaskStatus } from "@shared/types";
-import type { AdvancedBurndownPoint } from "../../../utils/burndown";
+import type { AdvancedBurndownPoint } from "#utils/burndown";
 import { STATUS_COLORS, STATUS_LABELS } from "../../StatusBadge";
-import { formatDisplayDate } from "../../../utils/calendarGrid";
+import { formatDisplayDate } from "#utils/calendarGrid";
 
 interface AdvancedBurndownChartProps {
     points: AdvancedBurndownPoint[];

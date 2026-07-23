@@ -3,12 +3,12 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import type { StatusFlowConfig, StoryDetail, Subtask, SubtaskTypeEntry } from "@shared/types";
-import { StoryDetailPage } from "../../pages/StoryDetailPage";
-import { ToastProvider } from "../../components/Toast";
-import { api } from "../../api/client";
-import { exportSectionsAsPdf } from "../../utils/pdfExport";
+import { StoryDetailPage } from "#pages/StoryDetailPage";
+import { ToastProvider } from "#components/Toast";
+import { api } from "#api/client";
+import { exportSectionsAsPdf } from "#utils/pdfExport";
 
-vi.mock("../../api/client", () => ({
+vi.mock("#api/client", () => ({
     api: {
         getStory: vi.fn(),
         getStatusFlow: vi.fn(),
@@ -23,7 +23,7 @@ vi.mock("../../api/client", () => ({
     },
 }));
 
-vi.mock("../../utils/pdfExport", () => ({
+vi.mock("#utils/pdfExport", () => ({
     exportSectionsAsPdf: vi.fn(),
 }));
 

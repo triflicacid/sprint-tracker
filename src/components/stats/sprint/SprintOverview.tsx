@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
 import type { SprintSummary, VelocityPoint, VelocitySelection } from "@shared/types";
-import { api } from "../../../api/client";
+import { api } from "#api/client";
 import { ExportButton } from "../../ExportButton";
 import { CollapsibleSection } from "../../CollapsibleSection";
-import { formatIsoDate } from "../../../utils/calendarGrid";
-import { exportSectionsAsPdf, type PdfSection } from "../../../utils/pdfExport";
+import { formatIsoDate } from "#utils/calendarGrid";
+import { exportSectionsAsPdf, type PdfSection } from "#utils/pdfExport";
 import { VelocityOverview, type VelocityOverviewHandle } from "./VelocityOverview";
 import { ProjectOverview, type ProjectOverviewHandle } from "./ProjectOverview";
 import "../statsShared.css";

@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createRef } from "react";
 import { BugStorySection } from "./BugStorySection";
-import { deferred } from "../../../testUtils/deferred";
+import { deferred } from "#testUtils/deferred";
 
 describe("BugStorySection", () => {
     it("renders a pie chart split between bugs and (non-bug) stories", () => {

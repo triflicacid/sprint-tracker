@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { createRef } from "react";
 import type { SprintStats } from "@shared/types";
 import { RepoDistributionSection } from "./RepoDistributionSection";
-import { deferred } from "../../../testUtils/deferred";
+import { deferred } from "#testUtils/deferred";
 
 const repoCounts: SprintStats["repoCounts"] = [
     { repoName: "checkout-web", count: 3, proportion: 0.75 },

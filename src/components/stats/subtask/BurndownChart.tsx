@@ -1,7 +1,7 @@
 import React from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import type { BurndownPoint } from "../../../utils/burndown";
-import { formatDisplayDate } from "../../../utils/calendarGrid";
+import type { BurndownPoint } from "#utils/burndown";
+import { formatDisplayDate } from "#utils/calendarGrid";
 
 interface BurndownChartProps {
     points: BurndownPoint[];

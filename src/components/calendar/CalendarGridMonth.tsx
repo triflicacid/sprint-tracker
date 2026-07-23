@@ -1,5 +1,5 @@
 import React from "react";
-import { buildMonthGrid, formatIsoDate } from "../../utils/calendarGrid";
+import { buildMonthGrid, formatIsoDate } from "#utils/calendarGrid";
 
 const DAY_HEADERS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 

@@ -2,9 +2,9 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { StatsPage } from "../../pages/StatsPage";
-import { api } from "../../api/client";
-import { exportSectionsAsPdf } from "../../utils/pdfExport";
+import { StatsPage } from "#pages/StatsPage";
+import { api } from "#api/client";
+import { exportSectionsAsPdf } from "#utils/pdfExport";
 
 // StatsPage itself only owns cross-cutting state (which sprint is selected,
 // granularity/burndown-mode, the PDF-export wiring) and fetches data to hand
@@ -14,7 +14,7 @@ import { exportSectionsAsPdf } from "../../utils/pdfExport";
 // this file is for behaviour that only exists once the sections are
 // assembled together on the page.
 
-vi.mock("../../api/client", () => ({
+vi.mock("#api/client", () => ({
     api: {
         listSprints: vi.fn(),
         getSprintStats: vi.fn(),
@@ -26,7 +26,7 @@ vi.mock("../../api/client", () => ({
     },
 }));
 
-vi.mock("../../utils/pdfExport", () => ({
+vi.mock("#utils/pdfExport", () => ({
     exportSectionsAsPdf: vi.fn(),
 }));
 

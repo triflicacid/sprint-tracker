@@ -15,7 +15,13 @@
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
     "paths": {
-      "@shared/*": ["./shared/*"]
+      "@shared/*": ["./shared/*"],
+      "#api/*": ["./src/api/*"],
+      "#components/*": ["./src/components/*"],
+      "#pages/*": ["./src/pages/*"],
+      "#utils/*": ["./src/utils/*"],
+      "#testUtils/*": ["./src/testUtils/*"],
+      "#styles/*": ["./src/styles/*"]
     }
   },
   "include": ["src", "shared"]
