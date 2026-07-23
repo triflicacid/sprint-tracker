@@ -1,7 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import type { SearchResults } from "@shared/types";
 import { api } from "../api/client";
 import { SearchableInput } from "../components/SearchableInput";
+import { SprintResultCard } from "../components/search/SprintResultCard";
+import { StoryResultCard } from "../components/search/StoryResultCard";
+import { SubtaskResultCard } from "../components/search/SubtaskResultCard";
 import "./SearchPage.css";
 
 export function SearchPage(): React.ReactElement {
@@ -11,6 +15,11 @@ export function SearchPage(): React.ReactElement {
     const [appliedProject, setAppliedProject] = useState<string | null>(null);
     const [loadingProjects, setLoadingProjects] = useState<boolean>(true);
     const [projectLoadError, setProjectLoadError] = useState<string | null>(null);
+    const [debouncedQuery, setDebouncedQuery] = useState<string>("");
+    const [searchResults, setSearchResults] = useState<SearchResults | null>(null);
+    const [searchError, setSearchError] = useState<string | null>(null);
+    const [searchLoading, setSearchLoading] = useState<boolean>(false);
+    const latestRequestRef = useRef<number>(0);
 
     useEffect(() => {
         let active = true;
@@ -54,7 +63,51 @@ export function SearchPage(): React.ReactElement {
         setQuery("");
     }
 
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedQuery(query.trim());
+        }, 300);
+        return () => {
+            clearTimeout(timer);
+        };
+    }, [query]);
+
+    useEffect(() => {
+        if (debouncedQuery.length < 2) {
+            setSearchResults(null);
+            setSearchError(null);
+            setSearchLoading(false);
+            return;
+        }
+
+        const requestId = latestRequestRef.current + 1;
+        latestRequestRef.current = requestId;
+        setSearchLoading(true);
+        setSearchError(null);
+
+        api.search({ query: debouncedQuery }).then((results) => {
+            if (latestRequestRef.current !== requestId) {
+                return;
+            }
+            setSearchResults(results);
+        }).catch((error: unknown) => {
+            if (latestRequestRef.current !== requestId) {
+                return;
+            }
+            setSearchResults(null);
+            setSearchError(error instanceof Error ? error.message : "search failed");
+        }).finally(() => {
+            if (latestRequestRef.current === requestId) {
+                setSearchLoading(false);
+            }
+        });
+    }, [debouncedQuery]);
+
     const hasCriteria = query.trim().length >= 2;
+    const sprintCount = searchResults?.sprints.length ?? 0;
+    const storyCount = searchResults?.stories.length ?? 0;
+    const subtaskCount = searchResults?.subtasks.length ?? 0;
+    const totalCount = sprintCount + storyCount + subtaskCount;
 
     return (
         <div className="page search-page">
@@ -86,7 +139,7 @@ export function SearchPage(): React.ReactElement {
                         </button>
                     </div>
                     <p className="search-help-text">
-                        Enter at least 2 characters to search. Tag-only and full result rendering arrive in later phases.
+                        Enter at least 2 characters to search. Tag and advanced filters are added in the next phase.
                     </p>
                 </div>
 
@@ -147,19 +200,52 @@ export function SearchPage(): React.ReactElement {
             </div>
 
             <section className="search-results-shell" aria-live="polite">
-                <h2>Results</h2>
+                <h2>{hasCriteria ? `Results (${totalCount})` : "Results"}</h2>
                 {!hasCriteria && (
                     <div className="search-empty-state">
                         <p>Start typing to search across all sprint history.</p>
                         {appliedProject && <p>Project filter is ready, but a text query or tags will still be required.</p>}
                     </div>
                 )}
-                {hasCriteria && (
-                    <div className="search-results-placeholder">
-                        <p>Search execution and live grouped results are implemented in Phase 5.</p>
-                        <div className="search-group-placeholder">Sprints (0)</div>
-                        <div className="search-group-placeholder">Stories (0)</div>
-                        <div className="search-group-placeholder">Subtasks (0)</div>
+                {hasCriteria && searchLoading && <div className="search-results-placeholder">loading...</div>}
+                {hasCriteria && !searchLoading && searchError && (
+                    <div className="search-results-placeholder search-error-text">{searchError}</div>
+                )}
+                {hasCriteria && !searchLoading && !searchError && searchResults && totalCount === 0 && (
+                    <div className="search-results-placeholder">No results for "{query.trim()}". Try a different query.</div>
+                )}
+                {hasCriteria && !searchLoading && !searchError && searchResults && totalCount > 0 && (
+                    <div className="search-result-groups">
+                        {sprintCount > 0 && (
+                            <section className="search-results-group">
+                                <h3>Sprints ({sprintCount})</h3>
+                                <div className="search-results-list">
+                                    {searchResults.sprints.map((result) => (
+                                        <SprintResultCard key={result.id} result={result} />
+                                    ))}
+                                </div>
+                            </section>
+                        )}
+                        {storyCount > 0 && (
+                            <section className="search-results-group">
+                                <h3>Stories ({storyCount})</h3>
+                                <div className="search-results-list">
+                                    {searchResults.stories.map((result) => (
+                                        <StoryResultCard key={result.id} result={result} />
+                                    ))}
+                                </div>
+                            </section>
+                        )}
+                        {subtaskCount > 0 && (
+                            <section className="search-results-group">
+                                <h3>Subtasks ({subtaskCount})</h3>
+                                <div className="search-results-list">
+                                    {searchResults.subtasks.map((result) => (
+                                        <SubtaskResultCard key={result.id} result={result} />
+                                    ))}
+                                </div>
+                            </section>
+                        )}
                     </div>
                 )}
             </section>

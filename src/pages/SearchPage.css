@@ -97,6 +97,24 @@
     color: var(--text-dim);
 }
 
+.search-result-groups {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.search-results-group h3 {
+    margin: 0 0 10px;
+    color: var(--text-dim);
+    font-size: var(--font-xlarge);
+}
+
+.search-results-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
 .search-group-placeholder {
     margin-top: 8px;
     border: 1px solid var(--border);

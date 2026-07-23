@@ -1,6 +1,6 @@
 # Plan: global search across sprints, stories, and subtasks
 
-Status: **in progress** (phases 1, 2, 3, and 4 complete).
+Status: **in progress** (phases 1, 2, 3, 4, and 5 complete).
 
 Goal: add a global search page with real-time cross-entity search and flexible filtering options to
 restore the searchability that existed when all data was in a single markdown file.
@@ -814,7 +814,7 @@ of the search page.
 **Exit criterion:** users can navigate to `/search`, enter and clear text, and see a stable page shell without
 affecting existing routes.
 
-### Phase 5: Implement search execution and result rendering
+### Phase 5: Implement search execution and result rendering ✅ done
 
 1. Add the 300 ms text debounce. Tag and discrete filter changes may search immediately.
 2. Use `AbortController` or a request-generation guard so stale responses cannot replace newer results.
