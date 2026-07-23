@@ -19,6 +19,8 @@ import type {
     SubtaskTypeEntry,
     VelocityPoint,
     VelocitySelection,
+    SearchParams,
+    SearchResults,
 } from "@shared/types";
 
 const BASE_URL = "/api";
@@ -94,6 +96,28 @@ export const api = {
     getSubtask: (id: number): Promise<Subtask> => request(`/subtasks/${id}`),
 
     getSubtaskHistory: (id: number): Promise<StatusHistoryEntry[]> => request(`/subtasks/${id}/history`),
+
+    search: (params: SearchParams): Promise<SearchResults> => {
+        const queryParams = new URLSearchParams();
+        if (params.query?.trim()) {
+            queryParams.set("q", params.query.trim());
+        }
+        params.tagIds?.forEach((tagId) => queryParams.append("tagId", String(tagId)));
+        if (params.project) {
+            queryParams.set("project", params.project);
+        }
+        if (params.entities && params.entities.length > 0) {
+            queryParams.set("entities", params.entities.join(","));
+        }
+        if (params.storyId !== undefined) {
+            queryParams.set("storyId", String(params.storyId));
+        }
+        if (params.subtaskType) {
+            queryParams.set("subtaskType", params.subtaskType);
+        }
+        const query = queryParams.toString();
+        return request(`/search${query ? `?${query}` : ""}`);
+    },
 
     createSubtask: (storyId: number, input: { title: string; type?: string }): Promise<Subtask> =>
         request(`/stories/${storyId}/subtasks`, { method: "POST", body: JSON.stringify(input) }),

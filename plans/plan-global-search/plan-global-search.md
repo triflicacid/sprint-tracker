@@ -1,6 +1,6 @@
 # Plan: global search across sprints, stories, and subtasks
 
-Status: **in progress** (phases 1 and 2 complete).
+Status: **in progress** (phases 1, 2, and 3 complete).
 
 Goal: add a global search page with real-time cross-entity search and flexible filtering options to
 restore the searchability that existed when all data was in a single markdown file.
@@ -783,7 +783,7 @@ types or unresolved nullability decisions.
 **Exit criterion:** service tests demonstrate correct results for text-only, tags-only, and combined searches
 without exposing a route or UI.
 
-### Phase 3: Add the HTTP route and API client
+### Phase 3: Add the HTTP route and API client ✅ done
 
 1. Create `server/routes/search.ts` and register it at `/api/search` in `server/app.ts`.
 2. Validate and normalize all query parameters before calling the service:

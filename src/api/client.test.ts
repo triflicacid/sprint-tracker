@@ -110,4 +110,24 @@ describe("api method URL/method/body construction", () => {
         await api.getSubtaskHistory(3);
         expect(fetchMock).toHaveBeenCalledWith("/api/subtasks/3/history", expect.anything());
     });
+
+    it("search appends repeated tagId values and optional filters", async () => {
+        await api.search({
+            query: "auth",
+            tagIds: [2, 5],
+            project: "Nebula",
+            entities: ["story", "subtask"],
+            storyId: 11,
+            subtaskType: "feature",
+        });
+        expect(fetchMock).toHaveBeenCalledWith(
+            "/api/search?q=auth&tagId=2&tagId=5&project=Nebula&entities=story%2Csubtask&storyId=11&subtaskType=feature",
+            expect.anything()
+        );
+    });
+
+    it("search omits the query string when no params are supplied", async () => {
+        await api.search({});
+        expect(fetchMock).toHaveBeenCalledWith("/api/search", expect.anything());
+    });
 });

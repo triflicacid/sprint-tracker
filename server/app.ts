@@ -12,6 +12,7 @@ import { statusFlowRouter } from "./routes/statusFlow.js";
 import { subtaskTypesRouter } from "./routes/subtaskTypes.js";
 import { holidaysRouter } from "./routes/holidays.js";
 import { exportRouter } from "./routes/export.js";
+import { searchRouter } from "./routes/search.js";
 import { SprintLockedError } from "../shared/sprintLock.js";
 
 /**
@@ -35,6 +36,7 @@ export function createApp() {
     app.use("/api/subtask-types", subtaskTypesRouter);
     app.use("/api/holidays", holidaysRouter);
     app.use("/api/export", exportRouter);
+    app.use("/api/search", searchRouter);
 
     const clientDist = process.env.CLIENT_DIST_PATH ?? path.join(process.cwd(), "dist", "client");
     app.use(express.static(clientDist));
