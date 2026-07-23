@@ -76,6 +76,21 @@
     gap: 8px;
 }
 
+.search-tag-filter-field {
+    margin-top: 16px;
+}
+
+.search-tag-suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.search-tag-suggestion {
+    padding: 4px 8px;
+    font-size: var(--font-small);
+}
+
 .search-filter-field select {
     width: 100%;
 }

@@ -18,6 +18,7 @@ The favicon was sourced from <a href="https://www.flaticon.com/free-icons/run" t
 - Each subtask follows a clear status workflow from not-started through to released
 - Story progress is worked out automatically from the status of its subtasks
 - Optional Jira integration to pull in an issue's title and labels
+- Global search across sprints, stories and subtasks, with text, project, tag and type filters
 - Full history of every status change, viewable as flow diagrams
 - Calendar views for sprint timelines and day-to-day activity
 - A stats page with charts summarising sprint progress, including cross-sprint velocity trends
