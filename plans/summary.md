@@ -46,13 +46,13 @@ signing and auto-update out of scope for the first pass, and keeps packaged DB l
 **Status: not started**
 
 **Severity: low | Urgency: low | Worth doing: medium-high** - useful for organizing sprints by
-project/initiative without heavyweight project management overhead.
+focus area or project/initiative without heavyweight project management overhead.
 
-Adds optional `project` text field to sprints (e.g., "Quick T-Plan", "market grid") with auto-population
-from the most recent sprint for continuity. Includes a reusable `SearchableInput` component combining
-freeform text entry with filtered suggestions from historical project names. Component always shows
-filtered matches via substring search (not just when input is empty). Backend provides
-`GET /api/sprints/projects` for distinct project list, extends sprint create/update to persist project
-value. Frontend implements keyboard-navigable dropdown with substring filtering, click-outside handling,
-and accessibility support.
+Adds optional `project` text field to sprints representing the sprint's focus (e.g., "Quick T-Plan",
+"market grid"). Auto-populates from the most recent sprint for continuity when maintaining the same
+focus. Includes a reusable `SearchableInput` component combining freeform text entry with filtered
+suggestions from historical project names. Component always shows filtered matches via substring search
+(not just when input is empty). Backend provides `GET /api/sprints/projects` for distinct project list,
+extends sprint create/update to persist project value. Frontend implements keyboard-navigable dropdown
+with substring filtering, click-outside handling, and accessibility support.
 

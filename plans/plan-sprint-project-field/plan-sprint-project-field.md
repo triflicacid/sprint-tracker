@@ -2,11 +2,15 @@
 
 Status: **not started**. Plan only, no code changes yet.
 
-Goal: add an optional 'project' field to sprints that auto-populates from the last sprint and provides an autocomplete dropdown of previous project names.
+Goal: add an optional 'project' field to sprints that represents the sprint's focus (e.g., which project or initiative the sprint is working on). The field auto-populates from the last sprint and provides a searchable dropdown of previous project names.
+
+## Concept
+
+The project field captures what a sprint is focused on - think of it as the sprint's primary initiative, theme, or area of work. Examples: "Quick T-Plan", "market grid", "infrastructure improvements", "customer portal v2". This allows teams to track which efforts sprints are contributing to over time, without requiring heavyweight project management structures. A sprint may continue the same focus across multiple iterations, or switch to a different focus area.
 
 ## Current state
 
-- The `sprints` table in `data/schema.sql` has fields for `name`, `start_date`, `end_date`, `comment`, but no project field.
+- The `sprints` table in `data/schema.sql` has fields for `name`, `start_date`, `end_date`, `comment`, but no field to capture the sprint's focus/project.
 - `SprintSummary` and `SprintDetail` types in `shared/types.d.ts` do not include a project field.
 - Sprint creation form in `src/pages/SprintListPage.tsx` has basic text inputs with no autocomplete functionality.
 - `server/services/sprintService.ts` already auto-closes the previous sprint by setting its `end_date` when creating a new sprint.
@@ -14,7 +18,8 @@ Goal: add an optional 'project' field to sprints that auto-populates from the la
 
 ## Scope
 
-- Add an optional `project` text field to sprints (e.g., "Quick T-Plan", "market grid").
+- Add an optional `project` text field to sprints representing the sprint's focus (e.g., "Quick T-Plan", "market grid").
+- The project field indicates what project or initiative the sprint is focused on.
 - When creating a new sprint, auto-populate the project field from the most recent sprint's project value.
 - Provide a searchable dropdown showing all distinct project names from previous sprints.
 - Build a reusable `SearchableInput` component that combines freeform text entry with filtered suggestion list.
@@ -22,19 +27,20 @@ Goal: add an optional 'project' field to sprints that auto-populates from the la
 
 ## Use cases
 
-1. **Project continuity**: User creates sprint "Sprint 43" for project "market grid" → next sprint auto-fills "market grid" for convenience.
-2. **Project switching**: User starts typing "Quick" and sees "Quick T-Plan" in suggestions → can select it instead of retyping.
-3. **New project**: User types a new project name that doesn't exist in history → allowed, no validation required.
-4. **Empty project**: User can leave project blank → no requirement to fill it.
+1. **Focus continuity**: User creates sprint "Sprint 43" focused on project "market grid" → next sprint auto-fills "market grid" for convenience when continuing the same focus.
+2. **Focus switching**: User starts typing "Quick" and sees "Quick T-Plan" in suggestions → can select it to switch sprint focus.
+3. **New focus area**: User types a new project name that doesn't exist in history → allowed, no validation required.
+4. **Unfocused sprint**: User can leave project blank for sprints without a specific project focus → no requirement to fill it.
 
 ## Data model
 
 - Add `project TEXT` to the `sprints` table in `data/schema.sql`:
   - nullable, no default value
+  - represents the focus/project/initiative of the sprint (freeform text)
   - no foreign key or constraint - just freeform text
   - placed after `comment` field for logical grouping
 - Update migration: existing local databases can be reset/reseeded during development as needed.
-- No separate projects table needed since there's no metadata, just historical values.
+- No separate projects table needed since there's no metadata, just historical focus values.
 
 ## API and backend plan
 
@@ -219,14 +225,14 @@ interface SearchableInputProps {
    - Wire up onClick handler to update project state on selection.
    - Wire up create handler to include project.
 8. **Manual testing**:
-   - Create sprints with different projects.
-   - Verify searchable suggestions update.
-   - Verify new sprint auto-populates previous project.
+   - Create sprints with different project focus areas.
+   - Verify searchable suggestions update with historical focus values.
+   - Verify new sprint auto-populates previous sprint's project/focus.
    - Type partial text and verify filtered suggestions appear.
    - Click a suggestion and verify input updates.
    - Test keyboard navigation and selection.
    - Test creating sprint with new project name.
-   - Test leaving project blank.
+   - Test leaving project blank for unfocused sprints.
 9. **Automated tests**:
    - Add backend unit tests for service functions.
    - Add component test for `SearchableInput`.
@@ -235,20 +241,22 @@ interface SearchableInputProps {
 ## UI/UX considerations
 
 - **Visual consistency**: Searchable dropdown should match existing dropdown styling (e.g., similar to status transition dropdowns if they exist).
-- **Placeholder text**: Use "project (optional)" or "project name" to indicate the field's purpose.
+- **Placeholder text**: Use "project (optional)" or "sprint focus" to indicate the field's purpose.
 - **Loading state**: If fetching suggestions is slow, consider a loading indicator (likely not needed for local DB).
 - **Accessibility**: Include proper ARIA labels (`role="combobox"`, `aria-expanded`, `aria-autocomplete`).
 - **Mobile/tablet**: Ensure dropdown is usable on touch devices (sufficient tap target size).
 - **Always show matches**: Dropdown appears whenever there are matching suggestions, not just on empty input.
+- **Conceptual clarity**: The field represents what the sprint is focused on - help text or labels should convey this.
 
 ## Out of scope (future considerations)
 
-- **Project metadata**: No additional project fields (description, dates, color-coding) in this iteration.
-- **Project management page**: No dedicated page for viewing/managing projects - they're just tags on sprints.
+- **Project metadata**: No additional project fields (description, dates, color-coding, goals) in this iteration - just a simple focus label.
+- **Project management page**: No dedicated page for viewing/managing projects - they're just focus tags on sprints.
 - **Project filtering**: No filtering sprint list by project in this iteration (could be added later).
-- **Project analytics**: No stats aggregation by project in this iteration.
+- **Project analytics**: No stats aggregation by project/focus area in this iteration.
 - **Project validation**: No enforcement of project naming conventions or required format.
 - **Recent projects limit**: Show all distinct projects - no limit in this iteration (can add later if performance becomes an issue).
+- **Project hierarchy**: No parent/child project relationships - flat list only.
 
 ## Verification
 
@@ -260,6 +268,6 @@ interface SearchableInputProps {
 - Selecting a suggestion via Enter key populates the input and closes dropdown.
 - Creating a sprint with a new project name (not in suggestions) works correctly.
 - The project field is visible in sprint detail pages and sprint cards (if applicable).
-- Leaving project blank when creating a sprint is allowed and persists as null.
+- Leaving project blank when creating a sprint is allowed and persists as null (unfocused sprint).
 - SearchableInput component is keyboard-navigable and accessible.
 
