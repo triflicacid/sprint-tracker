@@ -18,6 +18,7 @@ restore the searchability that existed when all data was in a single markdown fi
 - Add a dedicated search page accessible from main navigation.
 - Search across sprints, stories, and subtasks with a single query input.
 - Filter by entity type(s): all, sprints only, stories only, subtasks only.
+- Filter all entity types by their owning sprint's project using the existing `SearchableInput` component.
 - Filter by parent story (search within a specific story's subtasks).
 - Filter by subtask type (feature, bugfix, tech-debt, etc.).
 - Filter by one or more internal story tags using a separate multi-select input with removable lozenges.
@@ -48,6 +49,7 @@ restore the searchability that existed when all data was in a single markdown fi
 │  (if none checked, search all)                             │
 │                                                             │
 │  Advanced filters:                                          │
+│  Project: [search/select project...]                         │
 │  Within story: [dropdown: All stories / Story dropdown]     │
 │  Subtask type: [dropdown: All types / type dropdown]        │
 │                                                             │
@@ -103,10 +105,29 @@ restore the searchability that existed when all data was in a single markdown fi
   query of at least two characters or one selected tag.
 - Keep the text query and selected tags when entity, story, or subtask-type filters change.
 
+### Project filter
+- Use the existing single-select `SearchableInput` from `src/components/SearchableInput.tsx` rather than
+  creating another combobox implementation.
+- Populate its suggestions with `api.listSprintProjects()`, backed by the existing
+  `GET /api/sprints/projects` endpoint. This catalogue already includes distinct projects from sprint
+  history, ordered by most recent use.
+- Keep the input's text separate from the applied project filter. Typing narrows suggestions; selecting a
+  suggestion applies an exact, case-insensitive project match. Do not submit arbitrary or partially typed
+  text as a project filter.
+- Support one selected project at a time. Clearing or editing the input after a selection removes the applied
+  filter; selecting another suggestion applies the new project. No new project is created from the search page.
+- Apply the selected project to all entity groups: directly through `sprints.project` for sprint results,
+  and through the owning sprint for story and subtask results.
+- Project filtering narrows the result set but is not a search criterion by itself: continue to require a
+  valid text query or at least one selected internal tag.
+- Preserve the selected project while any other search criterion changes.
+
 ### Empty states
 - No criteria entered: show placeholder with search tips.
 - No results: show a message that reflects the supplied text and/or tags and suggests adjusting the
   query or filters.
+- A project selected without text or tags remains in the no-criteria state and prompts the user to enter a
+  query or select an internal tag.
 
 ## Data model
 
@@ -116,19 +137,22 @@ No schema changes required. Search operates on existing tables:
 - `subtasks`: `title`, `comment`, `branch_name`, `repo_name`, `release_version`
 - `tags` / `entity_tags`: selected internal tags filter stories and their subtasks separately from the
   free-text query
+- `sprints.project`: selected project filters sprints directly and stories/subtasks through their owning
+  sprint; no schema change is required
 
 ## API design
 
 ### Search endpoint
 
 ```
-GET /api/search?q={query}&tagId={id}&tagId={id}&entities={types}&storyId={id}&subtaskType={type}
+GET /api/search?q={query}&tagId={id}&tagId={id}&project={project}&entities={types}&storyId={id}&subtaskType={type}
 ```
 
 **Query parameters:**
 - `q` (optional when at least one `tagId` is supplied): search query string (min 2 chars); includes partial
   text matching against JIRA labels
 - `tagId` (optional, repeatable): internal story tag ID; multiple tags use AND semantics
+- `project` (optional): one exact, case-insensitive project name from `/api/sprints/projects`
 - `entities` (optional): comma-separated list of `sprint`, `story`, `subtask` (default: all)
 - `storyId` (optional): filter subtasks by parent story ID
 - `subtaskType` (optional): filter subtasks by type (feature, bugfix, etc.)
@@ -136,6 +160,8 @@ GET /api/search?q={query}&tagId={id}&tagId={id}&entities={types}&storyId={id}&su
 Reject requests with no text query and no tag IDs. Validate that every `tagId` is a positive integer and
 refers to an existing internal tag. The frontend obtains available tags from the existing `GET /api/tags`
 endpoint; no search-specific catalogue endpoint is required.
+When `project` is present, trim it and validate it case-insensitively against the existing sprint-project
+catalogue. Reject unknown or empty project values rather than silently returning an accidental partial match.
 
 **Response:**
 ```typescript
@@ -194,6 +220,7 @@ export interface SearchParams {
   query?: string;
   entities?: ("sprint" | "story" | "subtask")[];
   tagIds?: number[];
+  project?: string;
   storyId?: number;
   subtaskType?: string;
 }
@@ -221,9 +248,10 @@ export function search(params: SearchParams): SearchResults
 2. **Sprint search:**
    ```sql
    SELECT * FROM sprints
-   WHERE LOWER(name) LIKE LOWER(?)
+   WHERE (LOWER(name) LIKE LOWER(?)
       OR LOWER(comment) LIKE LOWER(?)
-      OR LOWER(project) LIKE LOWER(?)
+      OR LOWER(project) LIKE LOWER(?))
+   [AND LOWER(project) = LOWER(?) if project filter]
    ```
 
 3. **Story search:**
@@ -231,14 +259,15 @@ export function search(params: SearchParams): SearchResults
    SELECT s.*, sp.name as sprint_name
    FROM stories s
    JOIN sprints sp ON s.sprint_id = sp.id
-   WHERE LOWER(s.description) LIKE LOWER(?)
+    WHERE (LOWER(s.description) LIKE LOWER(?)
       OR LOWER(s.jira_key) LIKE LOWER(?)
       OR LOWER(s.jira_title) LIKE LOWER(?)
        OR EXISTS (
          SELECT 1
          FROM json_each(CASE WHEN json_valid(s.jira_labels) THEN s.jira_labels ELSE '[]' END)
          WHERE LOWER(json_each.value) LIKE LOWER(?)
-       )
+       ))
+    [AND LOWER(sp.project) = LOWER(?) if project filter]
    ```
 
 4. **Subtask search:**
@@ -246,6 +275,7 @@ export function search(params: SearchParams): SearchResults
    SELECT sub.*, s.jira_key as story_jira_key
    FROM subtasks sub
    JOIN stories s ON sub.story_id = s.id
+   JOIN sprints sp ON s.sprint_id = sp.id
    WHERE (LOWER(sub.title) LIKE LOWER(?)
       OR LOWER(sub.comment) LIKE LOWER(?)
       OR LOWER(sub.branch_name) LIKE LOWER(?)
@@ -253,6 +283,7 @@ export function search(params: SearchParams): SearchResults
       OR LOWER(sub.release_version) LIKE LOWER(?))
    [AND sub.story_id = ? if storyId filter]
    [AND sub.type = ? if subtaskType filter]
+   [AND LOWER(sp.project) = LOWER(?) if project filter]
    ```
 
 5. **Internal tag filtering:**
@@ -263,7 +294,14 @@ export function search(params: SearchParams): SearchResults
    - Apply the same parent-story subquery when returning subtasks.
    - Validate selected IDs against `tags`; JIRA labels do not participate in this filter.
 
-6. **Result limits:**
+6. **Project filtering:**
+   - Add an exact, case-insensitive predicate for the selected project to every requested entity query.
+   - Resolve stories and subtasks through their owning sprint rather than copying project data onto those
+     entities.
+   - Reuse `getDistinctProjects()` or equivalent shared project-catalogue logic for route validation; do not
+     add a second project-list endpoint.
+
+7. **Result limits:**
    - Limit to 50 results per entity type to prevent performance issues
    - Can be made configurable later
 
@@ -304,8 +342,16 @@ searchRouter.get("/", (req, res) => {
     ? parseInt(req.query.storyId as string, 10)
     : undefined;
   const subtaskType = req.query.subtaskType as string | undefined;
+  if (req.query.project !== undefined &&
+      (typeof req.query.project !== "string" || !req.query.project.trim())) {
+    res.status(400).json({ error: "project must be one non-empty project name" });
+    return;
+  }
+  const project = req.query.project?.trim();
 
-  const results = search({ query, tagIds, entities, storyId, subtaskType });
+  // Before searching, reject a project absent from the project catalogue and replace a case-insensitive
+  // match with its canonical catalogue value.
+  const results = search({ query, tagIds, project, entities, storyId, subtaskType });
   res.json(results);
 });
 ```
@@ -325,6 +371,7 @@ export interface SearchParams {
   query?: string;
   entities?: ("sprint" | "story" | "subtask")[];
   tagIds?: number[];
+  project?: string;
   storyId?: number;
   subtaskType?: string;
 }
@@ -335,6 +382,9 @@ async function search(params: SearchParams): Promise<SearchResults> {
     queryParams.set("q", params.query.trim());
   }
   params.tagIds?.forEach(tagId => queryParams.append("tagId", tagId.toString()));
+  if (params.project) {
+    queryParams.set("project", params.project);
+  }
   if (params.entities && params.entities.length > 0) {
     queryParams.set("entities", params.entities.join(","));
   }
@@ -359,6 +409,9 @@ const [loading, setLoading] = useState(false);
 const [entityFilters, setEntityFilters] = useState<Set<EntityType>>(new Set());
 const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
 const [availableTags, setAvailableTags] = useState<Tag[]>([]);
+const [projectInput, setProjectInput] = useState("");
+const [projectFilter, setProjectFilter] = useState<string | null>(null);
+const [availableProjects, setAvailableProjects] = useState<string[]>([]);
 const [storyFilter, setStoryFilter] = useState<number | null>(null);
 const [subtaskTypeFilter, setSubtaskTypeFilter] = useState<string | null>(null);
 const [allStories, setAllStories] = useState<StorySummary[]>([]);
@@ -376,6 +429,7 @@ const [allStories, setAllStories] = useState<StorySummary[]>([]);
 - Internal-tag autocomplete/multi-select populated using `api.listTags()`
 - Selected-tag lozenges with accessible remove buttons
 - Checkbox filters for entity types
+- Existing `SearchableInput` configured with `api.listSprintProjects()` for single project selection
 - Dropdown filters for story and subtask type
 - Result count summary
 - Grouped result sections (sprints, stories, subtasks)
@@ -582,7 +636,7 @@ Add search link to main navigation (e.g., in `src/App.tsx` or header component):
 
 ### Frontend optimizations
 - **Debouncing:** Wait 300ms after user stops typing before searching
-- **Request cancellation:** Cancel in-flight requests if the query, tags, or filters change
+- **Request cancellation:** Cancel in-flight requests if the query, tags, project, or other filters change
 - **Virtual scrolling:** If result counts exceed 100, implement pagination or virtual scrolling
 - **Memoization:** Cache search results for identical queries
 
@@ -597,6 +651,8 @@ Add search link to main navigation (e.g., in `src/App.tsx` or header component):
   API.
 - Reuse existing date formatting and status/type catalogues. Do not introduce search-specific hard-coded
   mappings for domain values.
+- Reuse `SearchableInput` for project selection, including its combobox, listbox, keyboard, and suggestion
+  filtering behavior. Do not fork or duplicate that interaction in the search page.
 
 ## Testing strategy
 
@@ -609,6 +665,10 @@ Add search link to main navigation (e.g., in `src/App.tsx` or header component):
 - Tags-only search returns matching stories and subtasks through their parent story, but no sprints
 - Multiple internal tags use AND semantics and do not duplicate results
 - Unknown and malformed tag IDs are rejected consistently
+- Project filter matches sprints directly and stories/subtasks through their owning sprint
+- Project matching is exact and case-insensitive
+- Unknown, empty, and partially typed project values are not accepted as applied filters
+- Project filtering includes projects that occur only in completed or locked sprint history
 - Completed and locked sprint history remains searchable
 - Case-insensitive matching works
 - Entity filter narrows results correctly
@@ -622,6 +682,11 @@ Add search link to main navigation (e.g., in `src/App.tsx` or header component):
 - Selected tags render as removable lozenges
 - Search can run with tags and no text query
 - Combining text and tags narrows story and subtask results correctly
+- Project suggestions load through the existing projects API
+- Selecting a project filters all entity groups; clearing it restores unfiltered results
+- Typing without selecting a project does not apply a partial project filter; editing a selected value removes
+  the previously applied filter
+- `SearchableInput` project keyboard selection works
 - Entity filter checkboxes toggle correctly
 - Story filter dropdown populates and filters
 - Subtask type filter dropdown populates and filters
@@ -634,6 +699,8 @@ Add search link to main navigation (e.g., in `src/App.tsx` or header component):
 - Search for terms that appear in multiple entities
 - Search by one and multiple internal tags, both with and without text
 - Verify JIRA labels match through the ordinary text query
+- Search within a project and combine the project with text, internal tags, and each other filter
+- Verify clearing the project and selecting a historical-only project
 - Verify completed and locked sprint history is included
 - Test filters in various combinations
 - Verify navigation from result cards works
@@ -659,6 +726,7 @@ Add search link to main navigation (e.g., in `src/App.tsx` or header component):
 ✅ Search page is accessible from main navigation
 ✅ Can search across all entities with a single query
 ✅ Can filter results by entity type (sprints/stories/subtasks)
+✅ Can filter all entity types by one exact project using `SearchableInput`
 ✅ Can filter subtasks by parent story
 ✅ Can filter subtasks by type
 ✅ Can filter using one or more known internal tags shown as removable lozenges
@@ -687,6 +755,7 @@ and satisfy its exit criterion before the next phase begins.
    - text queries are trimmed and must contain at least two characters;
    - repeated `tagId` parameters contain positive internal-tag IDs and use AND semantics;
    - JIRA labels participate only in free-text matching;
+   - a selected project is an exact owning-sprint filter and cannot replace the required query/tag criterion;
    - all persisted sprint history is eligible.
 4. Decide and document the stable default ordering and the 50-result limit per entity group.
 
@@ -703,12 +772,13 @@ types or unresolved nullability decisions.
    predicates.
 5. Implement internal story-tag filtering through `entity_tags` using selected tag IDs, grouped
    `COUNT(DISTINCT tag_id)`, and AND semantics. Apply the parent-story filter to subtask results.
-6. Apply entity, parent-story, and subtask-type filters without adding current-sprint, lock, lifecycle, or
-   date restrictions.
+6. Apply project, entity, parent-story, and subtask-type filters without adding current-sprint, lock,
+   lifecycle, or date restrictions.
 7. Map database rows to the shared API types and apply deterministic ordering and per-group limits.
 8. Add `server/services/searchService.test.ts`, covering every searchable field, special `LIKE` characters,
    JIRA-label text, tag-only searches, combined text/tag searches, duplicate tag IDs, multiple-tag AND
-   behavior, filters, limits, ordering, null fields, and completed/locked history.
+   behavior, project inheritance and combinations, filters, limits, ordering, null fields, and
+   completed/locked history.
 
 **Exit criterion:** service tests demonstrate correct results for text-only, tags-only, and combined searches
 without exposing a route or UI.
@@ -718,13 +788,15 @@ without exposing a route or UI.
 1. Create `server/routes/search.ts` and register it at `/api/search` in `server/app.ts`.
 2. Validate and normalize all query parameters before calling the service:
    - reject missing criteria and one-character text queries;
-   - reject unknown entity values, malformed IDs, invalid story IDs, and invalid subtask types;
+   - reject unknown entity values, malformed IDs, invalid story IDs, invalid subtask types, and unknown
+     projects;
    - de-duplicate repeated tag IDs and reject tag IDs not present in `tags`.
 3. Return validation failures through the application's existing error-response conventions.
 4. Add route/integration tests for successful combinations, repeated query parameters, invalid input, empty
    result groups, and service/database failures.
 5. Add the typed `search` method to `src/api/client.ts`. Reuse `api.listTags()` for the internal-tag options;
-   do not create a JIRA-label or search-specific tag catalogue endpoint.
+   reuse `api.listSprintProjects()` for project suggestions; do not create a JIRA-label or search-specific
+   tag/project catalogue endpoint.
 
 **Exit criterion:** the complete search contract is accessible through `/api/search` and verified independently
 of the search page.
@@ -734,8 +806,10 @@ of the search page.
 1. Create `src/pages/SearchPage.tsx` and its styles using the existing page-layout conventions.
 2. Register `/search` in the existing router and add the search entry to the main navigation.
 3. Add the main text input, clear action, result-count area, and placeholders for filters and grouped results.
-4. Implement the initial no-criteria state without issuing an API request.
-5. Ensure the input has a visible or accessible label and works at narrow viewport widths.
+4. Load the historical project suggestions with `api.listSprintProjects()` and prepare `SearchableInput`, but
+   do not apply a project until a suggestion is selected.
+5. Implement the initial no-criteria state without issuing an API request.
+6. Ensure each input has a visible or accessible label and works at narrow viewport widths.
 
 **Exit criterion:** users can navigate to `/search`, enter and clear text, and see a stable page shell without
 affecting existing routes.
@@ -759,16 +833,22 @@ and links to the expected records.
 Implement filters one at a time, adding focused tests after each:
 
 1. Entity-type checkboxes, with no selection meaning all entity types.
-2. Internal-tag multi-select populated by `api.listTags()`:
+2. Single project filter using the existing `SearchableInput`:
+   - use `availableProjects` as suggestions and keep typed text separate from the applied project;
+   - apply the project only from `onClick` selection;
+   - through `onChange`, remove the applied filter whenever the displayed value is cleared or differs from the
+     selected canonical project;
+   - send the canonical selected project name through `project`.
+3. Internal-tag multi-select populated by `api.listTags()`:
    - filter available tags by name in the separate tag input;
    - add selected `Tag` values as accessible removable lozenges;
    - prevent duplicate selections and hide or disable already selected options;
    - submit tag IDs, never tag names;
    - support tags-only search and multiple-tag AND behavior.
-3. Parent-story dropdown for narrowing subtask results.
-4. Subtask-type dropdown populated from the existing type catalogue.
-5. Verify combinations of text, tags, entity types, story, and subtask type. Preserve all criteria while any
-   one filter changes.
+4. Parent-story dropdown for narrowing subtask results.
+5. Subtask-type dropdown populated from the existing type catalogue.
+6. Verify combinations of text, tags, project, entity types, story, and subtask type. Preserve all criteria
+   while any one filter changes.
 
 **Exit criterion:** every supported filter works alone where meaningful and in combination, and internal tags
 remain clearly distinct from free-text JIRA-label matching.
@@ -776,11 +856,12 @@ remain clearly distinct from free-text JIRA-label matching.
 ### Phase 7: Accessibility, resilience, and UX polish
 
 1. Announce loading, errors, and result-count changes using an appropriate polite live region.
-2. Ensure the tag suggestions and lozenge remove controls have complete keyboard behavior, visible focus,
-   and descriptive accessible names.
+2. Ensure project and tag suggestions plus lozenge remove controls have complete keyboard behavior, visible
+   focus, and descriptive accessible names.
 3. Verify Tab order, focus retention after removing a tag, and focus behavior after clearing the query.
 4. Truncate long result text safely while retaining enough context to identify the result.
-5. Confirm that empty and error states reflect both the text query and selected tags.
+5. Confirm that empty and error states reflect the text query, selected tags, and applied project, including
+   the project-without-search-criteria state.
 6. Add the optional `Ctrl+K` / `Cmd+K` shortcut only after the page interaction is complete, and avoid
    intercepting it inside editable controls unless intentionally supported.
 
@@ -790,16 +871,16 @@ to failed or out-of-order requests.
 ### Phase 8: End-to-end verification and rollout
 
 1. Add `e2e/search.spec.ts` with seeded matches in sprint text, story text, JIRA labels, subtask text, internal
-   tags, and completed/locked history.
+   tags, multiple projects, and completed/locked history.
 2. Cover text-only, tags-only, combined, filtered, no-result, error, cancellation, and detail-navigation flows.
 3. Run unit, integration, end-to-end, type-check, lint, and production-build checks.
 4. Measure representative searches against a realistically sized database and verify the typical request is
    below the 500 ms acceptance target. Do not add speculative indexes for leading-wildcard searches; record
    measurements and consider FTS5 only if the measured data justifies it.
-5. Manually verify special characters, long text, all-history results, duplicate tag selections, narrow screens,
-   and keyboard navigation.
-6. Update user-facing documentation with navigation, text search, internal-tag filtering, filter combination,
-   and query-length behavior.
+5. Manually verify special characters, long text, all-history results, historical project selection, project
+   clearing, duplicate tag selections, narrow screens, and keyboard navigation.
+6. Update user-facing documentation with navigation, text search, internal-tag filtering, project filtering,
+   filter combination, and query-length behavior.
 
 **Exit criterion:** all acceptance criteria pass, existing application checks remain green, performance has been
 measured, and the feature is documented for release.
