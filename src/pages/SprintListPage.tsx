@@ -87,13 +87,14 @@ export function SprintListPage(): React.ReactElement {
                         value={name}
                         onChange={(event) => setName(event.target.value)}
                     />
+                    <span>starting</span>
                     <input
                         type="date"
                         value={startDate}
                         onChange={(event) => setStartDate(event.target.value)}
                     />
                     <SearchableInput
-                        initialValue={project}
+                        //initialValue={project}
                         onChange={setProject}
                         onClick={setProject}
                         suggestions={projectSuggestions}

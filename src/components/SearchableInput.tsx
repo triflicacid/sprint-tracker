@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import "./SearchableInput.css";
 
 interface SearchableInputProps {
-    initialValue: string;
+    initialValue?: string;
     onClick: (value: string) => void;
     onChange: (value: string) => void;
     suggestions: string[];
@@ -24,14 +24,14 @@ export function SearchableInput({
     placeholder,
     className,
 }: SearchableInputProps): React.ReactElement {
-    const [value, setValue] = useState<string>(initialValue);
+    const [value, setValue] = useState<string>(initialValue ?? "");
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const [selectedIndex, setSelectedIndex] = useState<number>(-1);
     const containerRef = useRef<HTMLDivElement>(null);
 
     // sync internal value with initialValue prop
     useEffect(() => {
-        setValue(initialValue);
+        initialValue && setValue(initialValue);
     }, [initialValue]);
 
     // filter suggestions based on current value

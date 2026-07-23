@@ -39,12 +39,15 @@
 .searchable-input-option {
     padding: 0.5rem;
     cursor: pointer;
-    transition: background-color 0.1s;
+    background-color: var(--bg);
+    color: var(--text-dim);
+    transition: background-color 0.1s, color 0.1s;
 }
 
 .searchable-input-option:hover,
 .searchable-input-option.selected {
     background-color: #f0f0f0;
+    color: var(--bg);
 }
 
 .searchable-input-option.selected {
