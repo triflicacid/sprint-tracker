@@ -41,17 +41,3 @@ handshake before `loadURL`, and runtime verification from a non-repo launch loca
 signing and auto-update out of scope for the first pass, and keeps packaged DB location
 (`app.getPath("userData")` vs executable-adjacent) as an explicit product decision.
 
-## [global search across sprints, stories, and subtasks](plan-global-search/plan-global-search.md)
-
-**Status: not started**
-
-**Severity: medium | Urgency: medium | Worth doing: high** - restores searchability that existed when
-data was in a single markdown file; critical for finding information quickly across the entire project
-history.
-
-Adds a dedicated search page (`/search`) with real-time cross-entity search. Includes text highlighting
-for matches, result cards linking to detail pages, and flexible filtering (entity type, parent story,
-subtask type). Backend uses SQL `LIKE` queries with snippet extraction and match position tracking.
-Frontend includes debounced input, empty/loading states, and responsive card-based results layout.
-Future-ready for FTS5 upgrade if needed for performance at scale.
-
