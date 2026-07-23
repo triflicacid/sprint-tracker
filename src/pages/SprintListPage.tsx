@@ -72,6 +72,7 @@ export function SprintListPage(): React.ReactElement {
                 <div className="page-header-actions">
                     <Link to="/stats">stats</Link>
                     <Link to="/timesheet">timesheet</Link>
+                    <Link to="/search">search</Link>
                     <Link to="/transitions">transitions</Link>
                     <Link to="/categories">categories</Link>
                     <Link to="/export">export</Link>

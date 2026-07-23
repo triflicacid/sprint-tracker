@@ -1,0 +1,119 @@
+.search-page {
+    max-width: 980px;
+}
+
+.search-shell {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+}
+
+.search-query-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.search-query-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.search-query-input {
+    flex: 1;
+}
+
+.search-label {
+    font-size: var(--font-medium);
+    color: var(--text-dim);
+}
+
+.search-help-text {
+    margin: 0;
+    color: var(--text-dim);
+    font-size: var(--font-small);
+}
+
+.search-error-text {
+    margin: 0;
+    color: #ef4444;
+    font-size: var(--font-small);
+}
+
+.search-filter-group {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin: 16px 0 0;
+    padding: 12px;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.search-filter-group legend {
+    color: var(--text-dim);
+    padding: 0 4px;
+}
+
+.search-filter-group label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.search-advanced-filters {
+    margin-top: 16px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.search-filter-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.search-filter-field select {
+    width: 100%;
+}
+
+.search-project-input .searchable-input-field {
+    width: 100%;
+}
+
+.search-results-shell {
+    margin-top: 20px;
+}
+
+.search-empty-state,
+.search-results-placeholder {
+    background: var(--surface);
+    border: 1px dashed var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    color: var(--text-dim);
+}
+
+.search-group-placeholder {
+    margin-top: 8px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px;
+    background: var(--surface-raised);
+    color: var(--text);
+}
+
+@media (max-width: 900px) {
+    .search-advanced-filters {
+        grid-template-columns: 1fr;
+    }
+
+    .search-query-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+

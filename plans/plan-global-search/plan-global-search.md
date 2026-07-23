@@ -1,6 +1,6 @@
 # Plan: global search across sprints, stories, and subtasks
 
-Status: **in progress** (phases 1, 2, and 3 complete).
+Status: **in progress** (phases 1, 2, 3, and 4 complete).
 
 Goal: add a global search page with real-time cross-entity search and flexible filtering options to
 restore the searchability that existed when all data was in a single markdown file.
@@ -801,7 +801,7 @@ without exposing a route or UI.
 **Exit criterion:** the complete search contract is accessible through `/api/search` and verified independently
 of the search page.
 
-### Phase 4: Build the page shell and navigation
+### Phase 4: Build the page shell and navigation ✅ done
 
 1. Create `src/pages/SearchPage.tsx` and its styles using the existing page-layout conventions.
 2. Register `/search` in the existing router and add the search entry to the main navigation.

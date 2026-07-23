@@ -9,6 +9,7 @@ import { TransitionsInfoPage } from "./pages/TransitionsInfoPage";
 import { CategoriesInfoPage } from "./pages/CategoriesInfoPage";
 import { ExportPage } from "./pages/ExportPage";
 import { TimesheetPage } from "./pages/TimesheetPage";
+import { SearchPage } from "./pages/SearchPage";
 import { ToastProvider } from "./components/Toast";
 
 export function App(): React.ReactElement {
@@ -22,6 +23,7 @@ export function App(): React.ReactElement {
                 <Route path="/stats" element={<StatsPage />} />
                 <Route path="/stats/:sprintId" element={<StatsPage />} />
                 <Route path="/timesheet" element={<TimesheetPage />} />
+                <Route path="/search" element={<SearchPage />} />
                 <Route path="/transitions" element={<TransitionsInfoPage />} />
                 <Route path="/categories" element={<CategoriesInfoPage />} />
                 <Route path="/export" element={<ExportPage />} />
