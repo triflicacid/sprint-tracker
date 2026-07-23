@@ -57,6 +57,64 @@ export type TagType = "repo" | "custom";
 
 export type EntityType = "story" | "subtask";
 
+export type SearchEntityType = "sprint" | "story" | "subtask";
+
+export interface SearchParams {
+  query?: string;
+  entities?: SearchEntityType[];
+  tagIds?: number[];
+  project?: string;
+  storyId?: number;
+  subtaskType?: string;
+}
+
+export interface SearchResultSprint {
+  entityType: "sprint";
+  id: number;
+  name: string;
+  startDate: string;
+  endDate: string | null;
+  comment: string | null;
+  project: string | null;
+}
+
+export interface SearchResultStory {
+  entityType: "story";
+  id: number;
+  sprintId: number;
+  sprintName: string;
+  jiraKey: string | null;
+  jiraUrl: string;
+  description: string;
+  jiraTitle: string | null;
+  jiraLabels: string[];
+  status: StoryStatus;
+  tags: Tag[];
+}
+
+export interface SearchResultSubtask {
+  entityType: "subtask";
+  id: number;
+  storyId: number;
+  storyJiraKey: string | null;
+  title: string;
+  comment: string | null;
+  branchName: string | null;
+  status: SubtaskStatus;
+  type: string;
+  repoName: string | null;
+  complexityRating: number | null;
+  releaseVersion: string | null;
+}
+
+export type SearchResult = SearchResultSprint | SearchResultStory | SearchResultSubtask;
+
+export interface SearchResults {
+  sprints: SearchResultSprint[];
+  stories: SearchResultStory[];
+  subtasks: SearchResultSubtask[];
+}
+
 export interface Tag {
   id: number;
   name: string;

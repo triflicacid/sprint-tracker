@@ -1,6 +1,6 @@
 # Plan: global search across sprints, stories, and subtasks
 
-Status: **not started**.
+Status: **in progress** (phases 1 and 2 complete).
 
 Goal: add a global search page with real-time cross-entity search and flexible filtering options to
 restore the searchability that existed when all data was in a single markdown file.
@@ -745,7 +745,7 @@ Add search link to main navigation (e.g., in `src/App.tsx` or header component):
 Implement the feature in the following order. Each phase should leave the application in a working state
 and satisfy its exit criterion before the next phase begins.
 
-### Phase 1: Freeze the contract and shared types
+### Phase 1: Freeze the contract and shared types ✅ done
 
 1. Define `EntityType`, `SearchParams`, the three discriminated result types, and `SearchResults` in the
    appropriate shared type declarations.
@@ -762,7 +762,7 @@ and satisfy its exit criterion before the next phase begins.
 **Exit criterion:** the backend and frontend can import one agreed contract, with no duplicate local result
 types or unresolved nullability decisions.
 
-### Phase 2: Implement and test the search service
+### Phase 2: Implement and test the search service ✅ done
 
 1. Create `server/services/searchService.ts` and keep query construction parameterized.
 2. Normalize and escape the text query for literal SQL `LIKE` matching, including `%`, `_`, and the escape
