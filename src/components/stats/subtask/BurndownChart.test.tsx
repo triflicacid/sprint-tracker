@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { render } from "@testing-library/react";
-import type { BurndownPoint } from "../../utils/burndown";
+import type { BurndownPoint } from "../../../utils/burndown";
 import { BurndownChart } from "./BurndownChart";
 
 const points: BurndownPoint[] = [

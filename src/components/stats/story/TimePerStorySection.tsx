@@ -1,8 +1,8 @@
 import React, { forwardRef, useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import type { SprintStats } from "@shared/types";
-import { ExportButton } from "../ExportButton";
-import { CollapsibleSection } from "../CollapsibleSection";
+import { ExportButton } from "../../ExportButton";
+import { CollapsibleSection } from "../../CollapsibleSection";
 
 interface TimePerStorySectionProps {
     storyTimeDays: SprintStats["storyTimeDays"];

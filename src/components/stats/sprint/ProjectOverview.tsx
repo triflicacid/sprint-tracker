@@ -1,9 +1,9 @@
 import React, { forwardRef, useState, useImperativeHandle } from "react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import type { SprintSummary, VelocityPoint } from "@shared/types";
-import { ExportButton } from "../ExportButton";
-import { CollapsibleSection } from "../CollapsibleSection";
-import "./statsShared.css";
+import { ExportButton } from "../../ExportButton";
+import { CollapsibleSection } from "../../CollapsibleSection";
+import "../statsShared.css";
 
 // color palette for project pie chart
 const PROJECT_COLORS = [

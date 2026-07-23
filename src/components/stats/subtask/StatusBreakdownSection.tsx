@@ -1,9 +1,9 @@
 import React, { forwardRef, useState } from "react";
 import type { StatusBreakdownPoint, StatusBreakdownGranularity } from "@shared/types";
 import { StatusBreakdownChart } from "./StatusBreakdownChart";
-import { ExportButton } from "../ExportButton";
-import { CollapsibleSection } from "../CollapsibleSection";
-import { SUBTASK_STATUSES, STORY_STATUSES } from "../StatusBadge";
+import { ExportButton } from "../../ExportButton";
+import { CollapsibleSection } from "../../CollapsibleSection";
+import { SUBTASK_STATUSES, STORY_STATUSES } from "../../StatusBadge";
 
 interface StatusBreakdownSectionProps {
     points: StatusBreakdownPoint[];

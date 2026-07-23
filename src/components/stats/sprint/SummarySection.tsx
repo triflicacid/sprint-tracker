@@ -1,11 +1,11 @@
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import type { SprintSummary, SprintStats, VelocityPoint } from "@shared/types";
-import { api } from "../../api/client";
-import { ExportButton } from "../ExportButton";
-import { CollapsibleSection } from "../CollapsibleSection";
-import { formatDisplayDate } from "../../utils/calendarGrid";
-import type { PdfSection } from "../../utils/pdfExport";
-import "./statsShared.css";
+import { api } from "../../../api/client";
+import { ExportButton } from "../../ExportButton";
+import { CollapsibleSection } from "../../CollapsibleSection";
+import { formatDisplayDate } from "../../../utils/calendarGrid";
+import type { PdfSection } from "../../../utils/pdfExport";
+import "../statsShared.css";
 
 export interface SummarySectionHandle {
     getReportSection(): PdfSection;

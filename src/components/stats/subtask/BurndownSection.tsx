@@ -1,12 +1,12 @@
 import React, { forwardRef, useState } from "react";
 import type { StatusBreakdownGranularity } from "@shared/types";
-import type { BurndownPoint, AdvancedBurndownPoint } from "../../utils/burndown";
+import type { BurndownPoint, AdvancedBurndownPoint } from "../../../utils/burndown";
 import { BurndownChart } from "./BurndownChart";
 import { AdvancedBurndownChart } from "./AdvancedBurndownChart";
-import { ExportButton } from "../ExportButton";
-import { CollapsibleSection } from "../CollapsibleSection";
-import { BURNDOWN_MILESTONES } from "../StatusBadge";
-import "./statsShared.css";
+import { ExportButton } from "../../ExportButton";
+import { CollapsibleSection } from "../../CollapsibleSection";
+import { BURNDOWN_MILESTONES } from "../../StatusBadge";
+import "../statsShared.css";
 
 interface BurndownSectionProps {
     granularity: StatusBreakdownGranularity;

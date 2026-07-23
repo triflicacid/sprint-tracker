@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { createRef } from "react";
 import type { StatusBreakdownPoint } from "@shared/types";
 import { StatusBreakdownSection } from "./StatusBreakdownSection";
-import { deferred } from "../../testUtils/deferred";
+import { deferred } from "../../../testUtils/deferred";
 
 const points: StatusBreakdownPoint[] = [{ date: "2026-03-10", counts: { NEW: 1, WIP: 1 } }];
 

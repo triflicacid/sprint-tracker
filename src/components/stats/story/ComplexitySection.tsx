@@ -13,18 +13,18 @@ import {
     Label,
 } from "recharts";
 import type { ComplexityStats, ComplexityTimingPoint } from "@shared/types";
-import { api } from "../../api/client";
-import { ExportButton } from "../ExportButton";
-import { CollapsibleSection } from "../CollapsibleSection";
-import { colorForStory } from "../../utils/storyColor";
+import { api } from "../../../api/client";
+import { ExportButton } from "../../ExportButton";
+import { CollapsibleSection } from "../../CollapsibleSection";
+import { colorForStory } from "../../../utils/storyColor";
 import {
     COMPLEXITY_RATINGS,
     averageRunningTimeByComplexity,
     groupPointsByStory,
     type ComplexityAveragePoint,
-} from "../../utils/complexityStats";
-import type { PdfSection } from "../../utils/pdfExport";
-import "./statsShared.css";
+} from "../../../utils/complexityStats";
+import type { PdfSection } from "../../../utils/pdfExport";
+import "../statsShared.css";
 
 const AVERAGE_POINT_COLOR = "#ffffff";
 

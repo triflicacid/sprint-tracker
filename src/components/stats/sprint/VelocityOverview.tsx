@@ -4,9 +4,9 @@ import {
     Bar, ComposedChart, Line, Cell, LabelList, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from "recharts";
 import type { VelocityPoint } from "@shared/types";
-import { ExportButton } from "../ExportButton";
-import { CollapsibleSection } from "../CollapsibleSection";
-import "./statsShared.css";
+import { ExportButton } from "../../ExportButton";
+import { CollapsibleSection } from "../../CollapsibleSection";
+import "../statsShared.css";
 
 // chart also contains computed average
 interface VelocityChartPoint extends VelocityPoint {

@@ -1,8 +1,8 @@
 import React, { forwardRef, useState } from "react";
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { ExportButton } from "../ExportButton";
-import { CollapsibleSection } from "../CollapsibleSection";
-import { SUBTASK_TYPE_COLORS, formatSubtaskTypeName, renderTypeIconInSvg } from "../subtasks/SubtaskTypeIcon";
+import { ExportButton } from "../../ExportButton";
+import { CollapsibleSection } from "../../CollapsibleSection";
+import { SUBTASK_TYPE_COLORS, formatSubtaskTypeName, renderTypeIconInSvg } from "../../subtasks/SubtaskTypeIcon";
 
 const FALLBACK_COLOR = "#6b7280";
 const ICON_SIZE = 18;

@@ -4,10 +4,10 @@ import userEvent from "@testing-library/user-event";
 import { createRef } from "react";
 import type { StatusBreakdownPoint } from "@shared/types";
 import { StatusHistorySection, type StatusHistorySectionHandle } from "./StatusHistorySection";
-import { api } from "../../api/client";
-import { deferred } from "../../testUtils/deferred";
+import { api } from "../../../api/client";
+import { deferred } from "../../../testUtils/deferred";
 
-vi.mock("../../api/client", () => ({
+vi.mock("../../../api/client", () => ({
     api: {
         getStatusBreakdown: vi.fn(),
     },

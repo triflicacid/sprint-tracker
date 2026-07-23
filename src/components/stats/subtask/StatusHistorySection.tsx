@@ -1,12 +1,12 @@
 import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import type { StatusBreakdownPoint, StatusBreakdownGranularity, StoryStatus, SubtaskStatus } from "@shared/types";
-import { api } from "../../api/client";
+import { api } from "../../../api/client";
 import { BurndownSection } from "./BurndownSection";
 import { StatusBreakdownSection } from "./StatusBreakdownSection";
-import { SUBTASK_STATUSES, STORY_STATUSES, STATUS_LABELS, BURNDOWN_MILESTONES } from "../StatusBadge";
-import { computeBurndownPoints, computeAdvancedBurndownPoints } from "../../utils/burndown";
-import { formatDisplayDate } from "../../utils/calendarGrid";
-import type { PdfSection } from "../../utils/pdfExport";
+import { SUBTASK_STATUSES, STORY_STATUSES, STATUS_LABELS, BURNDOWN_MILESTONES } from "../../StatusBadge";
+import { computeBurndownPoints, computeAdvancedBurndownPoints } from "../../../utils/burndown";
+import { formatDisplayDate } from "../../../utils/calendarGrid";
+import type { PdfSection } from "../../../utils/pdfExport";
 
 // renders one day's status tally as "label: count, label: count", skipping zeros
 function describeStatusCounts(counts: Record<string, number>, statusLabels: StoryStatus[]) {

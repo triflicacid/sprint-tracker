@@ -5,8 +5,8 @@ import { MemoryRouter } from "react-router-dom";
 import type { ComponentProps } from "react";
 import type { SprintSummary, VelocityPoint } from "@shared/types";
 import { SprintOverview } from "./SprintOverview";
-import { api } from "../../api/client";
-import { exportSectionsAsPdf } from "../../utils/pdfExport";
+import { api } from "../../../api/client";
+import { exportSectionsAsPdf } from "../../../utils/pdfExport";
 
 function renderSprintOverview(props: ComponentProps<typeof SprintOverview>) {
     return render(
@@ -16,13 +16,13 @@ function renderSprintOverview(props: ComponentProps<typeof SprintOverview>) {
     );
 }
 
-vi.mock("../../api/client", () => ({
+vi.mock("../../../api/client", () => ({
     api: {
         getVelocityHistory: vi.fn(),
     },
 }));
 
-vi.mock("../../utils/pdfExport", () => ({
+vi.mock("../../../utils/pdfExport", () => ({
     exportSectionsAsPdf: vi.fn(),
 }));
 
