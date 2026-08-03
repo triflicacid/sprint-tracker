@@ -22,6 +22,7 @@ const sprint: SprintSummary = {
     project: null,
     storyCount: 2,
     prCount: 3,
+    locked: false,
 };
 
 const stats: SprintStats = {

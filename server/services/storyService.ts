@@ -82,39 +82,48 @@ function rowToSummary(row: StoryRow) {
 }
 
 /**
- * throws when a sprint is locked.
+ * throws when a sprint has ended or is manually locked.
  *
  * @param sprintId - sprint to validate.
  */
 function assertSprintUnlocked(sprintId: number): void {
-    const sprint = db.prepare("SELECT end_date FROM sprints WHERE id = ?").get(sprintId) as
-        | { end_date: string | null }
+    const sprint = db.prepare("SELECT end_date, locked FROM sprints WHERE id = ?").get(sprintId) as
+        | { end_date: string | null; locked: number }
         | undefined;
-    if (sprint && isSprintLocked({ endDate: sprint.end_date })) {
+    if (!sprint) {
+        return;
+    }
+    if (isSprintLocked({ endDate: sprint.end_date })) {
         throw new SprintLockedError("cannot add a story to a sprint that has ended");
+    }
+    if (sprint.locked) {
+        throw new ManualLockError("cannot add a story to a manually locked sprint");
     }
 }
 
 /**
- * gets a story's sprint end date and its own manual lock flag.
+ * gets a story's sprint end date, the sprint's own manual lock flag (cascades to the story), and
+ * the story's own manual lock flag.
  *
  * @param storyId - story to query.
  * @returns lock state, or `undefined` when the story is missing.
  */
-function getStoryLockState(storyId: number): { endDate: string | null; locked: boolean } | undefined {
+function getStoryLockState(
+    storyId: number
+): { endDate: string | null; sprintLocked: boolean; locked: boolean } | undefined {
     const row = db
         .prepare(
-            `SELECT sprints.end_date AS end_date, stories.locked AS locked
+            `SELECT sprints.end_date AS end_date, sprints.locked AS sprint_locked, stories.locked AS locked
              FROM stories
              JOIN sprints ON sprints.id = stories.sprint_id
              WHERE stories.id = ?`
         )
-        .get(storyId) as { end_date: string | null; locked: number } | undefined;
-    return row ? { endDate: row.end_date, locked: !!row.locked } : undefined;
+        .get(storyId) as { end_date: string | null; sprint_locked: number; locked: number } | undefined;
+    return row ? { endDate: row.end_date, sprintLocked: !!row.sprint_locked, locked: !!row.locked } : undefined;
 }
 
 /**
- * throws when the story's sprint has ended or the story is manually locked.
+ * throws when the story's sprint has ended, the sprint is manually locked, or the story itself is.
  *
  * @param storyId - story to validate.
  */
@@ -125,6 +134,9 @@ function assertStoryMutable(storyId: number): void {
     }
     if (isSprintLocked({ endDate: state.endDate })) {
         throw new SprintLockedError("cannot modify a story in a sprint that has ended");
+    }
+    if (state.sprintLocked) {
+        throw new ManualLockError("cannot modify a story in a manually locked sprint");
     }
     if (state.locked) {
         throw new ManualLockError("cannot modify a manually locked story");
@@ -158,12 +170,13 @@ export function getStoryDetail(storyId: number) {
         return null;
     }
     const summary = rowToSummary(row);
-    const sprint = db.prepare("SELECT end_date FROM sprints WHERE id = ?").get(row.sprint_id) as
-        | { end_date: string | null }
+    const sprint = db.prepare("SELECT end_date, locked FROM sprints WHERE id = ?").get(row.sprint_id) as
+        | { end_date: string | null; locked: number }
         | undefined;
     return {
         ...summary,
         sprintEndDate: sprint?.end_date ?? null,
+        sprintLocked: !!sprint?.locked,
         subtasks: getSubtasksForStory(storyId),
     } as StoryDetail;
 }

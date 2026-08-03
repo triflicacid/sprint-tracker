@@ -30,7 +30,7 @@ function renderPage() {
 describe("sprint list page", () => {
     it("lists sprints returned by the api", async () => {
         vi.mocked(api.listSprints).mockResolvedValue([
-            { id: 1, name: "Sprint 1", startDate: "2026-01-01", endDate: null, comment: null, project: null, storyCount: 2, prCount: 3 },
+            { id: 1, name: "Sprint 1", startDate: "2026-01-01", endDate: null, comment: null, project: null, storyCount: 2, prCount: 3, locked: false },
         ]);
         vi.mocked(api.listSprintProjects).mockResolvedValue([]);
         renderPage();
@@ -58,6 +58,7 @@ describe("sprint list page", () => {
             project: null,
             storyCount: 0,
             prCount: 0,
+            locked: false,
         });
         renderPage();
 

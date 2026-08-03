@@ -48,6 +48,21 @@ function insertManuallyLockedStory(): number {
     return Number(result.lastInsertRowid);
 }
 
+function insertManuallyLockedSprint(): number {
+    const result = db
+        .prepare("INSERT INTO sprints (name, start_date, locked) VALUES ('Sprint 1', '2026-01-01', 1)")
+        .run();
+    return Number(result.lastInsertRowid);
+}
+
+function insertStoryInManuallyLockedSprint(): number {
+    const sprintId = insertManuallyLockedSprint();
+    const result = db
+        .prepare("INSERT INTO stories (sprint_id, jira_url, description) VALUES (?, 'https://x', 'story')")
+        .run(sprintId);
+    return Number(result.lastInsertRowid);
+}
+
 describe("compute story status", () => {
     it("is jira only when there are no subtasks yet", () => {
         expect(computeStoryStatus([], false)).toBe("JIRA_ONLY");
@@ -128,6 +143,14 @@ describe("create story / get story detail", () => {
         expect(getStoryDetail(storyId)?.sprintEndDate).toBe("2020-01-10");
     });
 
+    it("includes the parent sprint's manual lock flag", () => {
+        const story = createStory(sprintId, { jiraUrl: "https://x/browse/NEB-1", description: "d" });
+        expect(getStoryDetail(story.id)?.sprintLocked).toBe(false);
+
+        const lockedStoryId = insertStoryInManuallyLockedSprint();
+        expect(getStoryDetail(lockedStoryId)?.sprintLocked).toBe(true);
+    });
+
     it("returns null for a missing story", () => {
         expect(getStoryDetail(999999)).toBeNull();
     });
@@ -136,6 +159,13 @@ describe("create story / get story detail", () => {
         const lockedSprintId = insertLockedSprint();
         expect(() => createStory(lockedSprintId, { jiraUrl: "https://x/browse/NEB-1", description: "d" })).toThrow(
             SprintLockedError
+        );
+    });
+
+    it("throws manual lock error when the sprint is manually locked", () => {
+        const lockedSprintId = insertManuallyLockedSprint();
+        expect(() => createStory(lockedSprintId, { jiraUrl: "https://x/browse/NEB-1", description: "d" })).toThrow(
+            ManualLockError
         );
     });
 });
@@ -261,6 +291,11 @@ describe("manual story lock - mutation enforcement", () => {
         const storyId = insertManuallyLockedStory();
         expect(() => updateStoryPoints(storyId, 3)).toThrow(ManualLockError);
         expect(getStoryDetail(storyId)?.storyPoints).toBeNull();
+    });
+
+    it("throws manual lock error when the parent sprint is manually locked (cascade)", () => {
+        const storyId = insertStoryInManuallyLockedSprint();
+        expect(() => updateStoryPoints(storyId, 3)).toThrow(ManualLockError);
     });
 });
 

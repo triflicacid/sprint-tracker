@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import type { Subtask, StatusFlowConfig, StatusHistoryEntry, StoryDetail } from "@shared/types";
-import { isSprintLocked, isSubtaskEffectivelyLocked } from "@shared/sprintLock";
+import { isSprintEffectivelyLocked, isSubtaskEffectivelyLocked } from "@shared/sprintLock";
 import { api } from "../api/client";
 import { LockIcon } from "../components/LockIcon";
 import { SubtaskRow } from "../components/subtasks/SubtaskRow";
@@ -90,9 +90,13 @@ export function SubtaskDetailPage(): React.ReactElement {
         return <div className="page">loading...</div>;
     }
 
-    const sprintLocked = story ? isSprintLocked({ endDate: story.sprintEndDate }) : false;
+    const sprintLocked = story
+        ? isSprintEffectivelyLocked({ endDate: story.sprintEndDate, locked: story.sprintLocked })
+        : false;
     const storyLocked = story?.locked ?? false;
-    const locked = story ? isSubtaskEffectivelyLocked({ endDate: story.sprintEndDate }, story, subtask) : false;
+    const locked = story
+        ? isSubtaskEffectivelyLocked({ endDate: story.sprintEndDate, locked: story.sprintLocked }, story, subtask)
+        : false;
 
     return (
         <div className="page">

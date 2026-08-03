@@ -15,6 +15,7 @@ describe("SprintCard", () => {
                         endDate: null,
                         comment: null,
                         project: null,
+                        locked: false,
                         storyCount: 2,
                         prCount: 4,
                     }}
@@ -39,6 +40,7 @@ describe("SprintCard", () => {
                         endDate: "2026-01-15",
                         comment: null,
                         project: null,
+                        locked: false,
                         storyCount: 0,
                         prCount: 0,
                     }}
@@ -59,6 +61,7 @@ describe("SprintCard", () => {
                         endDate: null,
                         comment: "1-day holiday",
                         project: null,
+                        locked: false,
                         storyCount: 0,
                         prCount: 0,
                     }}
@@ -77,6 +80,7 @@ describe("SprintCard", () => {
                         endDate: null,
                         comment: null,
                         project: null,
+                        locked: false,
                         storyCount: 0,
                         prCount: 0,
                     }}
@@ -97,6 +101,7 @@ describe("SprintCard", () => {
                         endDate: null,
                         comment: null,
                         project: "Nebula Checkout Platform",
+                        locked: false,
                         storyCount: 3,
                         prCount: 1,
                     }}
@@ -118,6 +123,7 @@ describe("SprintCard", () => {
                         endDate: null,
                         comment: null,
                         project: null,
+                        locked: false,
                         storyCount: 1,
                         prCount: 0,
                     }}

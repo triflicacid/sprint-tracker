@@ -42,25 +42,31 @@ interface UpdateSubtaskInput {
 export class SubtaskUpdateError extends Error {}
 
 /**
- * gets a story's sprint end date and its own manual lock flag.
+ * gets a story's sprint end date, the sprint's own manual lock flag (cascades to the subtask), and
+ * the story's own manual lock flag (also cascades to the subtask).
  *
  * @param storyId - story to query.
  * @returns lock state, or `undefined` when the story is missing.
  */
-function getStoryLockStateForSubtask(storyId: number): { endDate: string | null; storyLocked: boolean } | undefined {
+function getStoryLockStateForSubtask(
+    storyId: number
+): { endDate: string | null; sprintLocked: boolean; storyLocked: boolean } | undefined {
     const row = db
         .prepare(
-            `SELECT sprints.end_date AS end_date, stories.locked AS story_locked
+            `SELECT sprints.end_date AS end_date, sprints.locked AS sprint_locked, stories.locked AS story_locked
              FROM stories
              JOIN sprints ON sprints.id = stories.sprint_id
              WHERE stories.id = ?`
         )
-        .get(storyId) as { end_date: string | null; story_locked: number } | undefined;
-    return row ? { endDate: row.end_date, storyLocked: !!row.story_locked } : undefined;
+        .get(storyId) as { end_date: string | null; sprint_locked: number; story_locked: number } | undefined;
+    return row
+        ? { endDate: row.end_date, sprintLocked: !!row.sprint_locked, storyLocked: !!row.story_locked }
+        : undefined;
 }
 
 /**
- * throws when the parent sprint has ended or the parent story is manually locked.
+ * throws when the parent sprint has ended, the parent sprint is manually locked, or the parent
+ * story is manually locked.
  *
  * @param storyId - story to validate.
  */
@@ -72,14 +78,17 @@ function assertStoryUnlockedForSubtaskCreation(storyId: number): void {
     if (isSprintLocked({ endDate: state.endDate })) {
         throw new SprintLockedError("cannot add a subtask to a story in a sprint that has ended");
     }
+    if (state.sprintLocked) {
+        throw new ManualLockError("cannot add a subtask to a story in a manually locked sprint");
+    }
     if (state.storyLocked) {
         throw new ManualLockError("cannot add a subtask to a manually locked story");
     }
 }
 
 /**
- * throws when the parent sprint has ended, the parent story is manually locked, or the subtask
- * itself is manually locked.
+ * throws when the parent sprint has ended, the parent sprint is manually locked, the parent story
+ * is manually locked, or the subtask itself is manually locked.
  *
  * @param subtaskRow - subtask to validate.
  */
@@ -90,6 +99,9 @@ function assertSubtaskMutable(subtaskRow: SubtaskRow): void {
     }
     if (isSprintLocked({ endDate: state.endDate })) {
         throw new SprintLockedError("cannot modify a subtask in a sprint that has ended");
+    }
+    if (state.sprintLocked) {
+        throw new ManualLockError("cannot modify a subtask in a manually locked sprint");
     }
     if (state.storyLocked) {
         throw new ManualLockError("cannot modify a subtask whose story is manually locked");

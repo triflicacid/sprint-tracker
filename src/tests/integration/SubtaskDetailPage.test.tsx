@@ -52,6 +52,7 @@ const story: StoryDetail = {
     id: 1,
     sprintId: 9,
     sprintEndDate: null,
+    sprintLocked: false,
     jiraUrl: "https://nebula.atlassian.net/browse/NEB-1",
     jiraKey: "NEB-1",
     description: "support saved cards",

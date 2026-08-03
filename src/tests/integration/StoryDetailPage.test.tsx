@@ -38,6 +38,7 @@ const story: StoryDetail = {
     id: 1,
     sprintId: 9,
     sprintEndDate: null,
+    sprintLocked: false,
     jiraUrl: "https://nebula.atlassian.net/browse/NEB-1",
     jiraKey: "NEB-1",
     description: "support saved cards",
@@ -147,6 +148,20 @@ describe("story detail page", () => {
         expect(screen.queryByText("add subtask")).not.toBeInTheDocument();
         expect(screen.queryByText("refresh from jira")).not.toBeInTheDocument();
         expect(screen.getByText(/story points: -/)).toBeInTheDocument();
+    });
+
+    it("removes story-level mutating controls once the parent sprint is manually locked (cascade)", async () => {
+        vi.mocked(api.getStory).mockResolvedValue({ ...story, sprintLocked: true });
+        renderPage();
+        await screen.findByText("support saved cards");
+
+        expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
+        expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
+        expect(screen.queryByPlaceholderText("add tag")).not.toBeInTheDocument();
+        expect(screen.queryByPlaceholderText("subtask title")).not.toBeInTheDocument();
+        // the story's own lock toggle also disappears - toggling it wouldn't have a visible effect
+        // while the parent sprint is already locked
+        expect(screen.queryByRole("button", { name: /lock story|unlock story/ })).not.toBeInTheDocument();
     });
 
     it("leaves story-level controls in place while the parent sprint is still open", async () => {

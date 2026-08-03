@@ -15,6 +15,7 @@ vi.mock("#api/client", () => ({
         removeHoliday: vi.fn(),
         createStory: vi.fn(),
         updateSprint: vi.fn(),
+        setSprintLocked: vi.fn(),
         exportMarkdown: vi.fn(),
     },
 }));
@@ -39,6 +40,7 @@ const sprint = {
     project: null,
     storyCount: 1,
     prCount: 0,
+    locked: false,
     stories: [
         {
             id: 1,
@@ -154,6 +156,40 @@ describe("sprint detail page", () => {
         renderPage();
         const heading = await screen.findByRole("heading", { name: /Sprint 9/ });
         expect(heading.querySelector("svg.lock-icon")).toBeNull();
+    });
+
+    it("shows a manual lock toggle while the sprint is open", async () => {
+        renderPage();
+        await screen.findByText("a story");
+        expect(screen.getByRole("button", { name: "lock sprint" })).toBeInTheDocument();
+    });
+
+    it("hides the manual lock toggle once the sprint has ended", async () => {
+        vi.mocked(api.getSprint).mockResolvedValue(lockedSprint);
+        renderPage();
+        await screen.findByText("a story");
+        expect(screen.queryByRole("button", { name: /lock sprint|unlock sprint/ })).not.toBeInTheDocument();
+    });
+
+    it("locks the sprint via the toggle and reloads it", async () => {
+        vi.mocked(api.setSprintLocked).mockResolvedValue({ ...sprint, locked: true });
+        renderPage();
+        await screen.findByText("a story");
+
+        await userEvent.click(screen.getByRole("button", { name: "lock sprint" }));
+        expect(api.setSprintLocked).toHaveBeenCalledWith(9, true);
+        expect(api.getSprint).toHaveBeenCalledTimes(2);
+    });
+
+    it("removes mutating controls once the sprint is manually locked", async () => {
+        vi.mocked(api.getSprint).mockResolvedValue({ ...sprint, locked: true });
+        renderPage();
+        await screen.findByText("a story");
+
+        expect(screen.queryByText("new story")).not.toBeInTheDocument();
+        expect(screen.queryByText("add comment")).not.toBeInTheDocument();
+        // the toggle itself stays visible and interactive so the sprint can be unlocked again
+        expect(screen.getByRole("button", { name: "unlock sprint" })).toBeInTheDocument();
     });
 
     it("removes the new-story button and empty comment editor once the sprint has ended", async () => {

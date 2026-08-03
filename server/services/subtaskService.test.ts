@@ -50,6 +50,22 @@ function insertManuallyLockedStory(): number {
     return Number(story.lastInsertRowid);
 }
 
+function insertStoryInManuallyLockedSprint(): number {
+    const sprint = db.prepare("INSERT INTO sprints (name, start_date, locked) VALUES ('S', '2026-01-01', 1)").run();
+    const story = db
+        .prepare("INSERT INTO stories (sprint_id, jira_url, jira_key, description) VALUES (?, 'https://x', 'NEB-4', 'story')")
+        .run(Number(sprint.lastInsertRowid));
+    return Number(story.lastInsertRowid);
+}
+
+function insertSubtaskInManuallyLockedSprint(): number {
+    const storyId = insertStoryInManuallyLockedSprint();
+    const subtask = db
+        .prepare("INSERT INTO subtasks (story_id, title, status) VALUES (?, 'x', 'NEW')")
+        .run(storyId);
+    return Number(subtask.lastInsertRowid);
+}
+
 function insertSubtaskUnderLockedStory(): number {
     const lockedStoryId = insertManuallyLockedStory();
     const subtask = db
@@ -115,6 +131,11 @@ describe("create subtask", () => {
 
     it("throws manual lock error when the parent story is manually locked", () => {
         const lockedStoryId = insertManuallyLockedStory();
+        expect(() => createSubtask(lockedStoryId, { title: "too late" })).toThrow(ManualLockError);
+    });
+
+    it("throws manual lock error when the parent sprint is manually locked (cascade)", () => {
+        const lockedStoryId = insertStoryInManuallyLockedSprint();
         expect(() => createSubtask(lockedStoryId, { title: "too late" })).toThrow(ManualLockError);
     });
 });
@@ -198,6 +219,11 @@ describe("update subtask - plain field updates", () => {
 
     it("throws manual lock error when the subtask itself is manually locked", () => {
         const subtaskId = insertManuallyLockedSubtask();
+        expect(() => updateSubtask(subtaskId, { title: "too late" })).toThrow(ManualLockError);
+    });
+
+    it("throws manual lock error when the parent sprint is manually locked (cascade)", () => {
+        const subtaskId = insertSubtaskInManuallyLockedSprint();
         expect(() => updateSubtask(subtaskId, { title: "too late" })).toThrow(ManualLockError);
     });
 

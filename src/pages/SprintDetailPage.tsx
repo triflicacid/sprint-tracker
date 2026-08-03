@@ -6,7 +6,7 @@ import { StoryCard } from "../components/stories/StoryCard";
 import { StoryTypeSelect } from "../components/stories/StoryTypeSelect";
 import { HolidayPickerPopover } from "../components/calendar/HolidayPickerPopover";
 import { formatDisplayDate, formatIsoDate, groupConsecutiveDates } from "../utils/calendarGrid";
-import { isSprintLocked } from "@shared/sprintLock";
+import { isSprintLocked, isSprintEffectivelyLocked } from "@shared/sprintLock";
 import { LockIcon } from "../components/LockIcon";
 import { loadExportFields } from "../utils/exportFields";
 import { downloadTextFile } from "../utils/download";
@@ -78,6 +78,14 @@ export function SprintDetailPage(): React.ReactElement {
         loadHolidays(sprint.startDate, sprint.endDate);
     }
 
+    async function handleToggleLock() {
+        if (!sprint) {
+            return;
+        }
+        await api.setSprintLocked(sprintId, !sprint.locked);
+        loadSprint();
+    }
+
     async function handleQuickExport() {
         setExporting(true);
         try {
@@ -117,7 +125,8 @@ export function SprintDetailPage(): React.ReactElement {
         return <div className="page">loading...</div>;
     }
 
-    const locked = isSprintLocked(sprint);
+    const dateLocked = isSprintLocked(sprint);
+    const locked = isSprintEffectivelyLocked(sprint);
 
     return (
         <div className="page">
@@ -127,7 +136,7 @@ export function SprintDetailPage(): React.ReactElement {
                         back to sprints
                     </Link>
                     <h1>
-                        {locked && <LockIcon />}
+                        {dateLocked && <LockIcon />}
                         {sprint.name}
                     </h1>
                     <MetaRow>
@@ -151,6 +160,13 @@ export function SprintDetailPage(): React.ReactElement {
                 <div className="page-header-actions">
                     <Link to={`/stats/${sprint.id}`}>stats</Link>
                     <ExportButton onClick={handleQuickExport} loading={exporting} label="export" />
+                    {!dateLocked && (
+                        <LockIcon
+                            open={!sprint.locked}
+                            onClick={handleToggleLock}
+                            title={sprint.locked ? "unlock sprint" : "lock sprint"}
+                        />
+                    )}
                     {!locked && <button onClick={() => setShowForm(!showForm)}>new story</button>}
                 </div>
             </div>

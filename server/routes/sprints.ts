@@ -1,5 +1,12 @@
 import { Router, Request, Response } from "express";
-import { listSprintSummaries, createSprint, getSprintDetail, updateSprint, getDistinctProjects } from "../services/sprintService.js";
+import {
+    listSprintSummaries,
+    createSprint,
+    getSprintDetail,
+    updateSprint,
+    setSprintLocked,
+    getDistinctProjects,
+} from "../services/sprintService.js";
 import { createStory } from "../services/storyService.js";
 
 export const sprintsRouter: Router = Router();
@@ -36,6 +43,17 @@ sprintsRouter.patch("/:id", (req: Request, res: Response) => {
     updateSprint(sprintId, req.body);
     const sprint = getSprintDetail(sprintId);
     res.json(sprint);
+});
+
+sprintsRouter.patch("/:id/lock", (req: Request, res: Response) => {
+    const sprintId = Number(req.params.id);
+    const { locked } = req.body;
+    const updated = setSprintLocked(sprintId, !!locked);
+    if (!updated) {
+        res.status(404).json({ error: "sprint not found" });
+        return;
+    }
+    res.json(updated);
 });
 
 // create stories through the parent sprint route

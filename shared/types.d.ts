@@ -176,8 +176,9 @@ export interface StorySummary {
 
 export interface StoryDetail extends StorySummary {
   subtasks: Subtask[];
-  // parent sprint end date used to derive lock state without another fetch
+  // parent sprint end date and manual lock flag, used to derive lock state without another fetch
   sprintEndDate: string | null;
+  sprintLocked: boolean;
 }
 
 export interface SprintSummary {
@@ -189,6 +190,7 @@ export interface SprintSummary {
   project: string | null;
   storyCount: number;
   prCount: number;
+  locked: boolean;
 }
 
 export interface SprintDetail extends SprintSummary {

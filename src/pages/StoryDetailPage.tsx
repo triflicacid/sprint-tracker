@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 import type { StoryDetail, StatusFlowConfig, StatusHistoryEntry, SubtaskTypeEntry } from "@shared/types";
-import { isSprintLocked, isStoryEffectivelyLocked } from "@shared/sprintLock";
+import { isSprintEffectivelyLocked, isStoryEffectivelyLocked } from "@shared/sprintLock";
 import { api } from "../api/client";
 import { LockIcon } from "../components/LockIcon";
 import { StoryTypeIcon } from "../components/stories/StoryTypeIcon";
@@ -206,8 +206,8 @@ export function StoryDetailPage(): React.ReactElement {
         return <div className="page">loading...</div>;
     }
 
-    const sprintLocked = isSprintLocked({ endDate: story.sprintEndDate });
-    const locked = isStoryEffectivelyLocked({ endDate: story.sprintEndDate }, story);
+    const sprintLocked = isSprintEffectivelyLocked({ endDate: story.sprintEndDate, locked: story.sprintLocked });
+    const locked = isStoryEffectivelyLocked({ endDate: story.sprintEndDate, locked: story.sprintLocked }, story);
 
     return (
         <div className="page">

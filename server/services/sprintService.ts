@@ -1,7 +1,7 @@
 import { db } from "../db/connection.js";
 import type { SprintSummary, SprintDetail } from "../../shared/types.js";
 import { getStorySummariesForSprint } from "./storyService.js";
-import { isSprintLocked, SprintLockedError } from "../../shared/sprintLock.js";
+import { isSprintLocked, SprintLockedError, ManualLockError } from "../../shared/sprintLock.js";
 
 interface SprintRow {
     id: number;
@@ -10,6 +10,7 @@ interface SprintRow {
     end_date: string | null;
     comment: string | null;
     project: string | null;
+    locked: number;
 }
 
 interface CreateSprintInput {
@@ -46,6 +47,7 @@ function rowToSummary(row: SprintRow) {
         project: row.project,
         storyCount: counts.story_count,
         prCount: counts.pr_count,
+        locked: !!row.locked,
     } as SprintSummary;
 }
 
@@ -127,6 +129,9 @@ export function updateSprint(sprintId: number, input: Partial<CreateSprintInput>
     if (isSprintLocked({ endDate: existing.end_date })) {
         throw new SprintLockedError("cannot edit a sprint that has ended");
     }
+    if (existing.locked) {
+        throw new ManualLockError("cannot edit a manually locked sprint");
+    }
     db.prepare(
         "UPDATE sprints SET name = ?, start_date = ?, end_date = ?, comment = ?, project = ? WHERE id = ?"
     ).run(
@@ -137,6 +142,31 @@ export function updateSprint(sprintId: number, input: Partial<CreateSprintInput>
         input.project === undefined ? existing.project : input.project,
         sprintId
     );
+}
+
+/**
+ * sets a sprint's manual lock flag.
+ *
+ * locking on is rejected once the sprint has ended; unlocking is always allowed, though it has no
+ * visible effect once the sprint-end lock already applies.
+ *
+ * @param sprintId - sprint to update.
+ * @param locked - new manual lock value.
+ * @returns the updated sprint summary or `null` when the sprint is missing.
+ */
+export function setSprintLocked(sprintId: number, locked: boolean) {
+    const existing = db
+        .prepare("SELECT * FROM sprints WHERE id = ?")
+        .get(sprintId) as SprintRow | undefined;
+    if (!existing) {
+        return null;
+    }
+    if (locked && isSprintLocked({ endDate: existing.end_date })) {
+        throw new SprintLockedError("cannot lock a sprint that has ended");
+    }
+    db.prepare("UPDATE sprints SET locked = ? WHERE id = ?").run(locked ? 1 : 0, sprintId);
+    const row = db.prepare("SELECT * FROM sprints WHERE id = ?").get(sprintId) as SprintRow | undefined;
+    return row ? rowToSummary(row) : null;
 }
 
 /**

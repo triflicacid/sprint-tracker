@@ -205,6 +205,9 @@ export const api = {
     updateSprint: (id: number, input: { comment?: string; project?: string }): Promise<SprintDetail> =>
         request(`/sprints/${id}`, { method: "PATCH", body: JSON.stringify(input) }),
 
+    setSprintLocked: (id: number, locked: boolean): Promise<SprintSummary> =>
+        request(`/sprints/${id}/lock`, { method: "PATCH", body: JSON.stringify({ locked }) }),
+
     exportMarkdown: (sprintIds: number[], fields: MarkdownExportFields): Promise<string> =>
         requestText("/export/markdown", { method: "POST", body: JSON.stringify({ sprintIds, fields }) }),
 };

@@ -1,6 +1,14 @@
 import { describe, it, expect } from "vitest";
-import { listSprintSummaries, createSprint, getSprintDetail, updateSprint } from "./sprintService.js";
-import { SprintLockedError } from "../../shared/sprintLock.js";
+import { db } from "../db/connection.js";
+import { listSprintSummaries, createSprint, getSprintDetail, updateSprint, setSprintLocked } from "./sprintService.js";
+import { SprintLockedError, ManualLockError } from "../../shared/sprintLock.js";
+
+function insertManuallyLockedSprint(): number {
+    const result = db
+        .prepare("INSERT INTO sprints (name, start_date, locked) VALUES ('Sprint 1', '2026-01-01', 1)")
+        .run();
+    return Number(result.lastInsertRowid);
+}
 
 describe("create sprint", () => {
     it("creates a sprint with the given fields", () => {
@@ -81,5 +89,43 @@ describe("update sprint", () => {
         expect(() => updateSprint(sprint.id, { comment: "too late" })).toThrow(SprintLockedError);
         const reloaded = getSprintDetail(sprint.id);
         expect(reloaded?.comment).toBe("original");
+    });
+
+    it("throws manual lock error when the sprint is manually locked", () => {
+        const sprintId = insertManuallyLockedSprint();
+        expect(() => updateSprint(sprintId, { comment: "too late" })).toThrow(ManualLockError);
+    });
+
+    it("does not persist the update when the sprint is manually locked", () => {
+        const sprintId = insertManuallyLockedSprint();
+        expect(() => updateSprint(sprintId, { comment: "too late" })).toThrow(ManualLockError);
+        expect(getSprintDetail(sprintId)?.comment).toBeNull();
+    });
+});
+
+describe("set sprint locked", () => {
+    it("locks and unlocks a sprint while it is open", () => {
+        const sprint = createSprint({ name: "Sprint 1", startDate: "2026-01-01" });
+        expect(sprint.locked).toBe(false);
+
+        const locked = setSprintLocked(sprint.id, true);
+        expect(locked?.locked).toBe(true);
+
+        const unlocked = setSprintLocked(sprint.id, false);
+        expect(unlocked?.locked).toBe(false);
+    });
+
+    it("returns null for a missing sprint", () => {
+        expect(setSprintLocked(999999, true)).toBeNull();
+    });
+
+    it("rejects locking on once the sprint has ended", () => {
+        const sprint = createSprint({ name: "Sprint 1", startDate: "2020-01-01", endDate: "2020-01-10" });
+        expect(() => setSprintLocked(sprint.id, true)).toThrow(SprintLockedError);
+    });
+
+    it("allows unlocking as a no-op once the sprint has ended", () => {
+        const sprint = createSprint({ name: "Sprint 1", startDate: "2020-01-01", endDate: "2020-01-10" });
+        expect(() => setSprintLocked(sprint.id, false)).not.toThrow();
     });
 });
