@@ -15,6 +15,7 @@ vi.mock("../../api/client", () => ({
         getStatusFlow: vi.fn(),
         updateSubtask: vi.fn(),
         getStory: vi.fn(),
+        setSubtaskLocked: vi.fn(),
     },
 }));
 
@@ -43,6 +44,7 @@ const subtask: Subtask = {
     complexityRating: null,
     releaseVersion: null,
     type: "unknown",
+    locked: false,
     createdAt: "2026-01-01",
 };
 
@@ -59,6 +61,7 @@ const story: StoryDetail = {
     awaitingMoreSubtasks: false,
     storyPoints: null,
     isBug: false,
+    locked: false,
     tags: [],
     prCount: 1,
     subtasks: [
@@ -113,6 +116,44 @@ describe("subtask detail page", () => {
         const heading = await screen.findByRole("heading", { name: /add saved card list endpoint/ });
         await vi.waitFor(() => expect(api.getStory).toHaveBeenCalled());
         expect(heading.querySelector("svg.lock-icon")).toBeNull();
+    });
+
+    it("shows a manual lock toggle for the subtask while the sprint is open", async () => {
+        vi.mocked(api.getSubtask).mockResolvedValue(subtask);
+        renderPage();
+        await screen.findByRole("heading", { name: "add saved card list endpoint" });
+        expect(await screen.findByRole("button", { name: "lock subtask" })).toBeInTheDocument();
+    });
+
+    it("hides the manual lock toggle once the parent sprint has ended", async () => {
+        vi.mocked(api.getSubtask).mockResolvedValue(subtask);
+        vi.mocked(api.getStory).mockResolvedValue({ ...story, sprintEndDate: "2020-01-10" });
+        renderPage();
+        await screen.findByRole("heading", { name: "add saved card list endpoint" });
+        await vi.waitFor(() =>
+            expect(screen.queryByRole("button", { name: /lock subtask|unlock subtask/ })).not.toBeInTheDocument()
+        );
+    });
+
+    it("hides the manual lock toggle once the parent story is manually locked", async () => {
+        vi.mocked(api.getSubtask).mockResolvedValue(subtask);
+        vi.mocked(api.getStory).mockResolvedValue({ ...story, locked: true });
+        renderPage();
+        await screen.findByRole("heading", { name: "add saved card list endpoint" });
+        await vi.waitFor(() =>
+            expect(screen.queryByRole("button", { name: /lock subtask|unlock subtask/ })).not.toBeInTheDocument()
+        );
+    });
+
+    it("locks the subtask via the toggle and reloads it", async () => {
+        vi.mocked(api.getSubtask).mockResolvedValue(subtask);
+        vi.mocked(api.setSubtaskLocked).mockResolvedValue({ ...subtask, locked: true });
+        renderPage();
+        await screen.findByRole("heading", { name: "add saved card list endpoint" });
+
+        await userEvent.click(await screen.findByRole("button", { name: "lock subtask" }));
+        expect(api.setSubtaskLocked).toHaveBeenCalledWith(5, true);
+        expect(api.getSubtask).toHaveBeenCalledTimes(2);
     });
 
     it("removes the empty comment editor and the complexity select once the parent sprint has ended", async () => {

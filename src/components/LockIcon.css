@@ -3,3 +3,16 @@
     height: 20px;
     flex-shrink: 0;
 }
+
+.lock-icon-toggle {
+    display: inline-flex;
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+}
+
+.lock-icon-toggle:hover .lock-icon {
+    opacity: 0.75;
+}

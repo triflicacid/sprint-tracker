@@ -4,6 +4,7 @@ import type { Subtask, SubtaskStatus, StatusFlowConfig, FlowField } from "@share
 import { StatusBadge } from "../StatusBadge";
 import { RatingSelect } from "../RatingSelect";
 import { SubtaskTypeIcon } from "./SubtaskTypeIcon";
+import { LockIcon } from "../LockIcon";
 import { api } from "../../api/client";
 import { useToast } from "../Toast";
 import { generateBranchName } from "../../utils/branchName";
@@ -17,6 +18,7 @@ interface SubtaskRowProps {
     onChanged: () => void;
     disableNavigation?: boolean;
     sprintLocked?: boolean;
+    storyLocked?: boolean;
 }
 
 // e.g. https://github.com/org/repo/pull/123 -> .../tree/<branch>
@@ -40,8 +42,16 @@ function branchUrl(subtask: Subtask) {
  * @param onChanged callback when subtask is updated
  * @param disableNavigation if true, prevents click navigation to detail page
  * @param sprintLocked if true, disables all editing controls
+ * @param storyLocked if true, the parent story is manually locked, cascading to this subtask
  */
-export function SubtaskRow({ subtask, flow, onChanged, disableNavigation, sprintLocked }: SubtaskRowProps): React.ReactElement {
+export function SubtaskRow({
+    subtask,
+    flow,
+    onChanged,
+    disableNavigation,
+    sprintLocked,
+    storyLocked,
+}: SubtaskRowProps): React.ReactElement {
     const [pendingStatus, setPendingStatus] = useState<SubtaskStatus | null>(null);
     const [pendingFieldValues, setPendingFieldValues] = useState<Record<string, string>>({});
     const { showError } = useToast();
@@ -88,6 +98,15 @@ export function SubtaskRow({ subtask, flow, onChanged, disableNavigation, sprint
         }
     }
 
+    async function handleToggleLock() {
+        try {
+            await api.setSubtaskLocked(subtask.id, !subtask.locked);
+            onChanged();
+        } catch (error) {
+            showError(error instanceof Error ? error.message : "failed to update subtask");
+        }
+    }
+
     const allowedNextStates = flow.transitions
         .filter((transition) => transition.from === subtask.status)
         .flatMap((transition) => transition.to);
@@ -96,6 +115,10 @@ export function SubtaskRow({ subtask, flow, onChanged, disableNavigation, sprint
     const complexityLocked = flow.states.find((state) => state.id === subtask.status)?.locksComplexity ?? false;
     // branch display is suppressed for states where no branch exists yet
     const branchApplicable = !(flow.states.find((state) => state.id === subtask.status)?.noBranch ?? false);
+    const effectiveLocked = !!sprintLocked || !!storyLocked || subtask.locked;
+    // toggling the subtask's own lock only has a visible effect once neither the sprint nor the
+    // parent story already forces the row locked
+    const lockToggleable = !sprintLocked && !storyLocked;
 
     return (
         <div
@@ -138,10 +161,10 @@ export function SubtaskRow({ subtask, flow, onChanged, disableNavigation, sprint
                 </div>
                 <div className="status-flow" onClick={(event) => event.stopPropagation()}>
                     <StatusBadge status={subtask.status} />
-                    {!sprintLocked && allowedNextStates.length > 0 && (
+                    {!effectiveLocked && allowedNextStates.length > 0 && (
                         <span className="status-flow-arrow">&rarr;</span>
                     )}
-                    {!sprintLocked &&
+                    {!effectiveLocked &&
                         allowedNextStates.map((nextStatus) => (
                             <StatusBadge
                                 key={nextStatus}
@@ -150,6 +173,13 @@ export function SubtaskRow({ subtask, flow, onChanged, disableNavigation, sprint
                                 onClick={() => startTransition(nextStatus)}
                             />
                         ))}
+                    {lockToggleable && (
+                        <LockIcon
+                            open={!subtask.locked}
+                            onClick={handleToggleLock}
+                            title={subtask.locked ? "unlock subtask" : "lock subtask"}
+                        />
+                    )}
                 </div>
             </div>
             {pendingStatus && (
@@ -185,7 +215,7 @@ export function SubtaskRow({ subtask, flow, onChanged, disableNavigation, sprint
                             disabled={complexityLocked}
                             title={complexityLocked ? "complexity is locked once a subtask has passed cut release" : undefined}
                             selectClassName="complexity-select"
-                            readOnly={sprintLocked}
+                            readOnly={effectiveLocked}
                         />
                         {subtask.releaseVersion && <span className="release-version">{subtask.releaseVersion}</span>}
                     </div>

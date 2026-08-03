@@ -29,6 +29,7 @@ function subtask(overrides: Partial<Subtask> = {}): Subtask {
         complexityRating: null,
         releaseVersion: null,
         type: "unknown",
+        locked: false,
         createdAt: "2026-01-01",
         ...overrides,
     };

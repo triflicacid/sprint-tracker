@@ -11,8 +11,9 @@ import {
     updateStoryPoints,
     addTagToStory,
     removeTagFromStory,
+    setStoryLocked,
 } from "./storyService.js";
-import { SprintLockedError } from "../../shared/sprintLock.js";
+import { SprintLockedError, ManualLockError } from "../../shared/sprintLock.js";
 
 function insertSprint(): number {
     const result = db
@@ -35,6 +36,14 @@ function insertStoryInLockedSprint(): number {
     const sprintId = insertLockedSprint();
     const result = db
         .prepare("INSERT INTO stories (sprint_id, jira_url, description) VALUES (?, 'https://x', 'story')")
+        .run(sprintId);
+    return Number(result.lastInsertRowid);
+}
+
+function insertManuallyLockedStory(): number {
+    const sprintId = insertSprint();
+    const result = db
+        .prepare("INSERT INTO stories (sprint_id, jira_url, description, locked) VALUES (?, 'https://x', 'story', 1)")
         .run(sprintId);
     return Number(result.lastInsertRowid);
 }
@@ -224,5 +233,61 @@ describe("add tag to story / remove tag from story", () => {
     it("throws sprint locked error when removing a tag from a story in an ended sprint", () => {
         const storyId = insertStoryInLockedSprint();
         expect(() => removeTagFromStory(storyId, 1)).toThrow(SprintLockedError);
+    });
+});
+
+describe("manual story lock - mutation enforcement", () => {
+    it("throws manual lock error when updating awaiting more subtasks on a locked story", () => {
+        const storyId = insertManuallyLockedStory();
+        expect(() => updateStoryAwaitingMoreSubtasks(storyId, true)).toThrow(ManualLockError);
+    });
+
+    it("throws manual lock error when updating story points on a locked story", () => {
+        const storyId = insertManuallyLockedStory();
+        expect(() => updateStoryPoints(storyId, 3)).toThrow(ManualLockError);
+    });
+
+    it("throws manual lock error when adding a tag to a locked story", () => {
+        const storyId = insertManuallyLockedStory();
+        expect(() => addTagToStory(storyId, "urgent", "custom")).toThrow(ManualLockError);
+    });
+
+    it("throws manual lock error when removing a tag from a locked story", () => {
+        const storyId = insertManuallyLockedStory();
+        expect(() => removeTagFromStory(storyId, 1)).toThrow(ManualLockError);
+    });
+
+    it("does not persist the update when the story is manually locked", () => {
+        const storyId = insertManuallyLockedStory();
+        expect(() => updateStoryPoints(storyId, 3)).toThrow(ManualLockError);
+        expect(getStoryDetail(storyId)?.storyPoints).toBeNull();
+    });
+});
+
+describe("set story locked", () => {
+    it("locks and unlocks a story while its sprint is open", () => {
+        const sprintId = insertSprint();
+        const story = createStory(sprintId, { jiraUrl: "https://x/browse/NEB-1", description: "d" });
+        expect(story.locked).toBe(false);
+
+        const locked = setStoryLocked(story.id, true);
+        expect(locked?.locked).toBe(true);
+
+        const unlocked = setStoryLocked(story.id, false);
+        expect(unlocked?.locked).toBe(false);
+    });
+
+    it("returns null for a missing story", () => {
+        expect(setStoryLocked(999999, true)).toBeNull();
+    });
+
+    it("rejects locking on once the sprint has ended", () => {
+        const storyId = insertStoryInLockedSprint();
+        expect(() => setStoryLocked(storyId, true)).toThrow(SprintLockedError);
+    });
+
+    it("allows unlocking as a no-op once the sprint has ended", () => {
+        const storyId = insertStoryInLockedSprint();
+        expect(() => setStoryLocked(storyId, false)).not.toThrow();
     });
 });

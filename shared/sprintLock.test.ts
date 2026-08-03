@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { isSprintLocked } from "./sprintLock.js";
+import { isSprintLocked, isStoryEffectivelyLocked, isSubtaskEffectivelyLocked } from "./sprintLock.js";
 
 function offsetFromToday(days: number): string {
     const date = new Date();
@@ -22,5 +22,45 @@ describe("is sprint locked", () => {
 
     it("is not locked when end date is in the future", () => {
         expect(isSprintLocked({ endDate: offsetFromToday(1) })).toBe(false);
+    });
+});
+
+describe("is story effectively locked", () => {
+    it("is locked when the sprint has ended, regardless of the manual flag", () => {
+        expect(isStoryEffectivelyLocked({ endDate: offsetFromToday(-1) }, { locked: false })).toBe(true);
+    });
+
+    it("is locked when manually locked even while the sprint is still open", () => {
+        expect(isStoryEffectivelyLocked({ endDate: offsetFromToday(1) }, { locked: true })).toBe(true);
+    });
+
+    it("is unlocked when the sprint is open and the manual flag is off", () => {
+        expect(isStoryEffectivelyLocked({ endDate: offsetFromToday(1) }, { locked: false })).toBe(false);
+    });
+});
+
+describe("is subtask effectively locked", () => {
+    it("is locked when the sprint has ended", () => {
+        expect(
+            isSubtaskEffectivelyLocked({ endDate: offsetFromToday(-1) }, { locked: false }, { locked: false })
+        ).toBe(true);
+    });
+
+    it("is locked when the parent story is manually locked", () => {
+        expect(
+            isSubtaskEffectivelyLocked({ endDate: offsetFromToday(1) }, { locked: true }, { locked: false })
+        ).toBe(true);
+    });
+
+    it("is locked when the subtask itself is manually locked", () => {
+        expect(
+            isSubtaskEffectivelyLocked({ endDate: offsetFromToday(1) }, { locked: false }, { locked: true })
+        ).toBe(true);
+    });
+
+    it("is unlocked when the sprint is open and neither the story nor the subtask is manually locked", () => {
+        expect(
+            isSubtaskEffectivelyLocked({ endDate: offsetFromToday(1) }, { locked: false }, { locked: false })
+        ).toBe(false);
     });
 });

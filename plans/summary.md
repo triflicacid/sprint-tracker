@@ -15,18 +15,6 @@ so ESLint stylistic rules do not conflict with formatting. Adds `format` and `fo
 plus `pnpm lint` and `pnpm format:check` in `scripts/run-checks.ps1`. Recommends one dedicated
 format-only commit for the first full-tree run.
 
-## [manual lock toggle for stories and subtasks](plan-manual-lock-toggle/plan-manual-lock-toggle.md)
-
-**Status: not started**
-
-**Severity: low | Urgency: low | Worth doing: medium** - useful workflow control for freezing work
-before sprint end, with clear separation from date-based sprint locks.
-
-Adds reversible manual lock flags for `stories` and `subtasks`, with story-to-subtask cascade at
-runtime. Keeps sprint-end lock behavior unchanged and absolute. Includes dedicated lock endpoints
-(`PATCH /api/stories/:id/lock`, `PATCH /api/subtasks/:id/lock`), shared lock/error helpers,
-service-level enforcement with `409` responses, and UI lock toggles via `LockIcon`.
-
 ## [bundle installer / single exe for Electron](plan-electron-installer/plan-electron-installer.md)
 
 **Status: not started**

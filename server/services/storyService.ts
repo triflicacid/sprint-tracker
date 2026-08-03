@@ -4,7 +4,7 @@ import { extractJiraKey } from "../utils/githubUrl.js";
 import { attachTag, findOrCreateTag, getTagsForEntity, removeTag } from "./tagService.js";
 import { getSubtasksForStory } from "./subtaskService.js";
 import { rankOf } from "./statusFlowService.js";
-import { isSprintLocked, SprintLockedError } from "../../shared/sprintLock.js";
+import { isSprintLocked, SprintLockedError, ManualLockError } from "../../shared/sprintLock.js";
 
 interface StoryRow {
     id: number;
@@ -17,6 +17,7 @@ interface StoryRow {
     awaiting_more_subtasks: number;
     story_points: number | null;
     is_bug: number;
+    locked: number;
     created_at: string;
 }
 
@@ -74,27 +75,10 @@ function rowToSummary(row: StoryRow) {
         awaitingMoreSubtasks: !!row.awaiting_more_subtasks,
         storyPoints: row.story_points,
         isBug: !!row.is_bug,
+        locked: !!row.locked,
         tags: getTagsForEntity("story", row.id),
         prCount,
     } as StorySummary;
-}
-
-/**
- * gets the end date of a story's parent sprint.
- *
- * @param storyId - story to query.
- * @returns sprint end date, or `undefined` when the story is missing.
- */
-function getSprintEndDateForStory(storyId: number) {
-    const row = db
-        .prepare(
-            `SELECT sprints.end_date AS end_date
-             FROM stories
-             JOIN sprints ON sprints.id = stories.sprint_id
-             WHERE stories.id = ?`
-        )
-        .get(storyId) as { end_date: string | null } | undefined;
-    return row?.end_date;
 }
 
 /**
@@ -112,14 +96,38 @@ function assertSprintUnlocked(sprintId: number): void {
 }
 
 /**
- * throws when the story's sprint is locked.
+ * gets a story's sprint end date and its own manual lock flag.
+ *
+ * @param storyId - story to query.
+ * @returns lock state, or `undefined` when the story is missing.
+ */
+function getStoryLockState(storyId: number): { endDate: string | null; locked: boolean } | undefined {
+    const row = db
+        .prepare(
+            `SELECT sprints.end_date AS end_date, stories.locked AS locked
+             FROM stories
+             JOIN sprints ON sprints.id = stories.sprint_id
+             WHERE stories.id = ?`
+        )
+        .get(storyId) as { end_date: string | null; locked: number } | undefined;
+    return row ? { endDate: row.end_date, locked: !!row.locked } : undefined;
+}
+
+/**
+ * throws when the story's sprint has ended or the story is manually locked.
  *
  * @param storyId - story to validate.
  */
-function assertStorySprintUnlocked(storyId: number): void {
-    const endDate = getSprintEndDateForStory(storyId);
-    if (endDate !== undefined && isSprintLocked({ endDate })) {
+function assertStoryMutable(storyId: number): void {
+    const state = getStoryLockState(storyId);
+    if (!state) {
+        return;
+    }
+    if (isSprintLocked({ endDate: state.endDate })) {
         throw new SprintLockedError("cannot modify a story in a sprint that has ended");
+    }
+    if (state.locked) {
+        throw new ManualLockError("cannot modify a manually locked story");
     }
 }
 
@@ -205,7 +213,7 @@ export function updateStoryJiraInfo(storyId: number, title: string, labels: stri
  * @returns the updated story summary or `null` when the story is missing.
  */
 export function updateStoryAwaitingMoreSubtasks(storyId: number, awaitingMoreSubtasks: boolean) {
-    assertStorySprintUnlocked(storyId);
+    assertStoryMutable(storyId);
     db.prepare("UPDATE stories SET awaiting_more_subtasks = ? WHERE id = ?").run(awaitingMoreSubtasks ? 1 : 0, storyId);
     const row = db
         .prepare("SELECT * FROM stories WHERE id = ?")
@@ -221,7 +229,7 @@ export function updateStoryAwaitingMoreSubtasks(storyId: number, awaitingMoreSub
  * @returns the updated story summary or `null` when the story is missing.
  */
 export function updateStoryPoints(storyId: number, storyPoints: number | null) {
-    assertStorySprintUnlocked(storyId);
+    assertStoryMutable(storyId);
     db.prepare("UPDATE stories SET story_points = ? WHERE id = ?").run(storyPoints, storyId);
     const row = db
         .prepare("SELECT * FROM stories WHERE id = ?")
@@ -238,7 +246,7 @@ export function updateStoryPoints(storyId: number, storyPoints: number | null) {
  * @returns the attached tag.
  */
 export function addTagToStory(storyId: number, name: string, tagType: TagType): Tag {
-    assertStorySprintUnlocked(storyId);
+    assertStoryMutable(storyId);
     const tag = findOrCreateTag(name, tagType);
     attachTag("story", storyId, tag.id);
     return tag;
@@ -251,6 +259,31 @@ export function addTagToStory(storyId: number, name: string, tagType: TagType): 
  * @param tagId - tag to detach.
  */
 export function removeTagFromStory(storyId: number, tagId: number): void {
-    assertStorySprintUnlocked(storyId);
+    assertStoryMutable(storyId);
     removeTag("story", storyId, tagId);
+}
+
+/**
+ * sets a story's manual lock flag.
+ *
+ * locking on is rejected once the sprint has ended; unlocking is always allowed, though it has no
+ * visible effect once the sprint-end lock already applies.
+ *
+ * @param storyId - story to update.
+ * @param locked - new manual lock value.
+ * @returns the updated story summary or `null` when the story is missing.
+ */
+export function setStoryLocked(storyId: number, locked: boolean) {
+    const state = getStoryLockState(storyId);
+    if (!state) {
+        return null;
+    }
+    if (locked && isSprintLocked({ endDate: state.endDate })) {
+        throw new SprintLockedError("cannot lock a story in a sprint that has ended");
+    }
+    db.prepare("UPDATE stories SET locked = ? WHERE id = ?").run(locked ? 1 : 0, storyId);
+    const row = db
+        .prepare("SELECT * FROM stories WHERE id = ?")
+        .get(storyId) as StoryRow | undefined;
+    return row ? rowToSummary(row) : null;
 }

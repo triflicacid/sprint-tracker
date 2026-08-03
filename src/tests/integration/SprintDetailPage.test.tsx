@@ -52,6 +52,7 @@ const sprint = {
             awaitingMoreSubtasks: false,
             storyPoints: null,
             isBug: false,
+            locked: false,
             tags: [],
             prCount: 0,
         },

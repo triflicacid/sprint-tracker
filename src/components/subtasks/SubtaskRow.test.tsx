@@ -11,6 +11,7 @@ import { api } from "../../api/client";
 vi.mock("../../api/client", () => ({
     api: {
         updateSubtask: vi.fn(),
+        setSubtaskLocked: vi.fn(),
     },
 }));
 
@@ -42,10 +43,11 @@ const baseSubtask: Subtask = {
     complexityRating: null,
     releaseVersion: null,
     type: "unknown",
+    locked: false,
     createdAt: "2026-01-01",
 };
 
-function renderRow(subtask: Subtask, disableNavigation = false, sprintLocked = false) {
+function renderRow(subtask: Subtask, disableNavigation = false, sprintLocked = false, storyLocked = false) {
     const onChanged = vi.fn();
     render(
         <MemoryRouter initialEntries={["/stories/10"]}>
@@ -60,6 +62,7 @@ function renderRow(subtask: Subtask, disableNavigation = false, sprintLocked = f
                                 onChanged={onChanged}
                                 disableNavigation={disableNavigation}
                                 sprintLocked={sprintLocked}
+                                storyLocked={storyLocked}
                             />
                         }
                     />
@@ -73,6 +76,7 @@ function renderRow(subtask: Subtask, disableNavigation = false, sprintLocked = f
 
 beforeEach(() => {
     vi.mocked(api.updateSubtask).mockReset();
+    vi.mocked(api.setSubtaskLocked).mockReset();
 });
 
 afterEach(() => {
@@ -231,6 +235,44 @@ describe("SubtaskRow - sprint locked", () => {
         );
         expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
         expect(screen.getByText(/complexity: 3/)).toBeInTheDocument();
+    });
+});
+
+describe("SubtaskRow - story locked (cascade)", () => {
+    it("disables editing controls when the parent story is manually locked, even though the sprint is open", () => {
+        renderRow(baseSubtask, false, false, true);
+        expect(screen.queryByText("wip")).not.toBeInTheDocument();
+    });
+});
+
+describe("SubtaskRow - manual lock toggle", () => {
+    it("shows the toggle when neither the sprint nor the parent story is locked", () => {
+        renderRow(baseSubtask);
+        expect(screen.getByRole("button", { name: "lock subtask" })).toBeInTheDocument();
+    });
+
+    it("hides the toggle once the sprint has ended", () => {
+        renderRow(baseSubtask, false, true);
+        expect(screen.queryByRole("button", { name: /lock subtask|unlock subtask/ })).not.toBeInTheDocument();
+    });
+
+    it("hides the toggle once the parent story is manually locked", () => {
+        renderRow(baseSubtask, false, false, true);
+        expect(screen.queryByRole("button", { name: /lock subtask|unlock subtask/ })).not.toBeInTheDocument();
+    });
+
+    it("locks the subtask when the toggle is clicked", async () => {
+        vi.mocked(api.setSubtaskLocked).mockResolvedValue({ ...baseSubtask, locked: true });
+        const { onChanged } = renderRow(baseSubtask);
+
+        await userEvent.click(screen.getByRole("button", { name: "lock subtask" }));
+        expect(api.setSubtaskLocked).toHaveBeenCalledWith(1, true);
+        expect(onChanged).toHaveBeenCalledOnce();
+    });
+
+    it("shows unlock as the toggle label once the subtask is manually locked", () => {
+        renderRow({ ...baseSubtask, locked: true });
+        expect(screen.getByRole("button", { name: "unlock subtask" })).toBeInTheDocument();
     });
 });
 

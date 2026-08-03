@@ -20,6 +20,8 @@ vi.mock("#api/client", () => ({
         removeStoryTag: vi.fn(),
         getJiraInfo: vi.fn(),
         getSubtaskHistory: vi.fn(),
+        setStoryLocked: vi.fn(),
+        setSubtaskLocked: vi.fn(),
     },
 }));
 
@@ -45,6 +47,7 @@ const story: StoryDetail = {
     awaitingMoreSubtasks: false,
     storyPoints: null,
     isBug: false,
+    locked: false,
     tags: [{ id: 1, name: "payments", tagType: "custom" }],
     prCount: 0,
     subtasks: [],
@@ -76,6 +79,7 @@ function subtask(overrides: Partial<Subtask> & { id: number; title: string }): S
         complexityRating: null,
         releaseVersion: null,
         type: "unknown",
+        locked: false,
         createdAt: "2026-01-01",
         ...overrides,
     };
@@ -159,26 +163,48 @@ describe("story detail page", () => {
         expect(screen.getByText("refresh from jira")).toBeEnabled();
     });
 
+    it("shows a manual lock toggle while the sprint is open", async () => {
+        vi.mocked(api.getStory).mockResolvedValue(story);
+        renderPage();
+        await screen.findByText("support saved cards");
+        expect(screen.getByRole("button", { name: "lock story" })).toBeInTheDocument();
+    });
+
+    it("hides the manual lock toggle once the parent sprint has ended", async () => {
+        vi.mocked(api.getStory).mockResolvedValue({ ...story, sprintEndDate: "2020-01-10" });
+        renderPage();
+        await screen.findByText("support saved cards");
+        expect(screen.queryByRole("button", { name: /lock story|unlock story/ })).not.toBeInTheDocument();
+    });
+
+    it("locks the story via the toggle and reloads it", async () => {
+        vi.mocked(api.getStory).mockResolvedValue(story);
+        vi.mocked(api.setStoryLocked).mockResolvedValue({ ...story, locked: true });
+        renderPage();
+        await screen.findByText("support saved cards");
+
+        await userEvent.click(screen.getByRole("button", { name: "lock story" }));
+        expect(api.setStoryLocked).toHaveBeenCalledWith(1, true);
+        expect(api.getStory).toHaveBeenCalledTimes(2);
+    });
+
+    it("removes story-level mutating controls once the story is manually locked", async () => {
+        vi.mocked(api.getStory).mockResolvedValue({ ...story, locked: true });
+        renderPage();
+        await screen.findByText("support saved cards");
+
+        expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
+        expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
+        expect(screen.queryByPlaceholderText("add tag")).not.toBeInTheDocument();
+        expect(screen.queryByPlaceholderText("subtask title")).not.toBeInTheDocument();
+        // the toggle itself stays visible and interactive so the story can be unlocked again
+        expect(screen.getByRole("button", { name: "unlock story" })).toBeInTheDocument();
+    });
+
     it("renders every subtask via SubtaskRow", async () => {
         vi.mocked(api.getStory).mockResolvedValue({
             ...story,
-            subtasks: [
-                {
-                    id: 5,
-                    storyId: 1,
-                    storyJiraKey: "NEB-1",
-                    title: "add endpoint",
-                    comment: null,
-                    branchName: null,
-                    status: "NEW",
-                    url: null,
-                    repoName: null,
-                    complexityRating: null,
-                    releaseVersion: null,
-                    type: "feature",
-                    createdAt: "2026-01-01",
-                },
-            ],
+            subtasks: [subtask({ id: 5, title: "add endpoint", type: "feature" })],
         });
         renderPage();
         expect(await screen.findByText("add endpoint")).toBeInTheDocument();
@@ -186,21 +212,7 @@ describe("story detail page", () => {
 
     it("adds a subtask through the form and reloads the story", async () => {
         vi.mocked(api.getStory).mockResolvedValue(story);
-        vi.mocked(api.createSubtask).mockResolvedValue({
-            id: 1,
-            storyId: 1,
-            storyJiraKey: "NEB-1",
-            title: "new subtask",
-            comment: null,
-            branchName: null,
-            status: "NEW",
-            url: null,
-            repoName: null,
-            complexityRating: null,
-            releaseVersion: null,
-            type: "feature",
-            createdAt: "2026-01-01",
-        });
+        vi.mocked(api.createSubtask).mockResolvedValue(subtask({ id: 1, title: "new subtask", type: "feature" }));
         renderPage();
         await screen.findByText("support saved cards");
 

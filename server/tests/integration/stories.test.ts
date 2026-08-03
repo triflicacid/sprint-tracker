@@ -77,6 +77,51 @@ describe("POST /api/stories/:id/subtasks", () => {
     });
 });
 
+describe("PATCH /api/stories/:id/lock", () => {
+    it("locks and unlocks a story", async () => {
+        const story = await createStory();
+        const locked = await request(app).patch(`/api/stories/${story.id}/lock`).send({ locked: true });
+        expect(locked.status).toBe(200);
+        expect(locked.body.locked).toBe(true);
+
+        const unlocked = await request(app).patch(`/api/stories/${story.id}/lock`).send({ locked: false });
+        expect(unlocked.status).toBe(200);
+        expect(unlocked.body.locked).toBe(false);
+    });
+
+    it("blocks further mutation while a story is manually locked", async () => {
+        const story = await createStory();
+        await request(app).patch(`/api/stories/${story.id}/lock`).send({ locked: true });
+
+        const response = await request(app).patch(`/api/stories/${story.id}`).send({ storyPoints: 5 });
+        expect(response.status).toBe(409);
+        expect(response.body.error).toBeTruthy();
+    });
+
+    it("404s for a missing story", async () => {
+        const response = await request(app).patch("/api/stories/999999/lock").send({ locked: true });
+        expect(response.status).toBe(404);
+    });
+
+    it("rejects locking on a story once its sprint has ended, but still allows unlocking", async () => {
+        // build the fixture while the sprint is still open, then lock it - a story cannot be
+        // created directly under an already-ended sprint
+        const openSprint = await request(app)
+            .post("/api/sprints")
+            .send({ name: "Sprint", startDate: "2026-01-01", endDate: "2099-01-01" });
+        const story = await request(app)
+            .post(`/api/sprints/${openSprint.body.id}/stories`)
+            .send({ jiraUrl: "https://x/browse/NEB-9", description: "old story" });
+        await request(app).patch(`/api/sprints/${openSprint.body.id}`).send({ endDate: "2020-01-10" });
+
+        const lockOn = await request(app).patch(`/api/stories/${story.body.id}/lock`).send({ locked: true });
+        expect(lockOn.status).toBe(409);
+
+        const unlock = await request(app).patch(`/api/stories/${story.body.id}/lock`).send({ locked: false });
+        expect(unlock.status).toBe(200);
+    });
+});
+
 describe("story tags", () => {
     it("adds and lists a custom tag", async () => {
         const story = await createStory();

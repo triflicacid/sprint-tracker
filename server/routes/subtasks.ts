@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { getSubtaskById, updateSubtask, SubtaskUpdateError } from "../services/subtaskService.js";
+import { getSubtaskById, setSubtaskLocked, updateSubtask, SubtaskUpdateError } from "../services/subtaskService.js";
 import { getHistoryForEntity } from "../services/statusHistoryService.js";
 
 export const subtasksRouter: Router = Router();
@@ -17,6 +17,17 @@ subtasksRouter.get("/:id", (req: Request, res: Response) => {
 subtasksRouter.get("/:id/history", (req: Request, res: Response) => {
     const subtaskId = Number(req.params.id);
     res.json(getHistoryForEntity("subtask", subtaskId));
+});
+
+subtasksRouter.patch("/:id/lock", (req: Request, res: Response) => {
+    const subtaskId = Number(req.params.id);
+    const { locked } = req.body;
+    const updated = setSubtaskLocked(subtaskId, !!locked);
+    if (!updated) {
+        res.status(404).json({ error: "subtask not found" });
+        return;
+    }
+    res.json(updated);
 });
 
 subtasksRouter.patch("/:id", (req: Request, res: Response) => {

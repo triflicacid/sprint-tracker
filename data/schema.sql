@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS stories (
     awaiting_more_subtasks INTEGER NOT NULL DEFAULT 0,
     story_points INTEGER,
     is_bug INTEGER NOT NULL DEFAULT 0,
+    locked INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
@@ -38,6 +39,7 @@ CREATE TABLE IF NOT EXISTS subtasks (
     complexity_rating INTEGER,
     release_version TEXT,
     type TEXT NOT NULL DEFAULT 'unknown',
+    locked INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 

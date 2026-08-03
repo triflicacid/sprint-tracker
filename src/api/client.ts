@@ -196,6 +196,12 @@ export const api = {
     updateStory: (id: number, input: { awaitingMoreSubtasks?: boolean; storyPoints?: number | null }): Promise<StorySummary> =>
         request(`/stories/${id}`, { method: "PATCH", body: JSON.stringify(input) }),
 
+    setStoryLocked: (id: number, locked: boolean): Promise<StorySummary> =>
+        request(`/stories/${id}/lock`, { method: "PATCH", body: JSON.stringify({ locked }) }),
+
+    setSubtaskLocked: (id: number, locked: boolean): Promise<Subtask> =>
+        request(`/subtasks/${id}/lock`, { method: "PATCH", body: JSON.stringify({ locked }) }),
+
     updateSprint: (id: number, input: { comment?: string; project?: string }): Promise<SprintDetail> =>
         request(`/sprints/${id}`, { method: "PATCH", body: JSON.stringify(input) }),
 

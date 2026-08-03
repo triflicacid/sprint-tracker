@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import type { Subtask, StatusFlowConfig, StatusHistoryEntry, StoryDetail } from "@shared/types";
-import { isSprintLocked } from "@shared/sprintLock";
+import { isSprintLocked, isSubtaskEffectivelyLocked } from "@shared/sprintLock";
 import { api } from "../api/client";
 import { LockIcon } from "../components/LockIcon";
 import { SubtaskRow } from "../components/subtasks/SubtaskRow";
@@ -90,7 +90,9 @@ export function SubtaskDetailPage(): React.ReactElement {
         return <div className="page">loading...</div>;
     }
 
-    const locked = story ? isSprintLocked({ endDate: story.sprintEndDate }) : false;
+    const sprintLocked = story ? isSprintLocked({ endDate: story.sprintEndDate }) : false;
+    const storyLocked = story?.locked ?? false;
+    const locked = story ? isSubtaskEffectivelyLocked({ endDate: story.sprintEndDate }, story, subtask) : false;
 
     return (
         <div className="page">
@@ -100,7 +102,7 @@ export function SubtaskDetailPage(): React.ReactElement {
                         back to story
                     </Link>
                     <h1>
-                        {locked && <LockIcon />}
+                        {sprintLocked && <LockIcon />}
                         {subtask.title}
                     </h1>
                 </div>
@@ -109,7 +111,14 @@ export function SubtaskDetailPage(): React.ReactElement {
                 </div>
             </div>
 
-            <SubtaskRow subtask={subtask} flow={flow} onChanged={loadSubtask} disableNavigation sprintLocked={locked} />
+            <SubtaskRow
+                subtask={subtask}
+                flow={flow}
+                onChanged={loadSubtask}
+                disableNavigation
+                sprintLocked={sprintLocked}
+                storyLocked={storyLocked}
+            />
 
             <CommentEditor
                 comment={subtask.comment}

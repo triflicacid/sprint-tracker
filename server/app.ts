@@ -13,7 +13,7 @@ import { subtaskTypesRouter } from "./routes/subtaskTypes.js";
 import { holidaysRouter } from "./routes/holidays.js";
 import { exportRouter } from "./routes/export.js";
 import { searchRouter } from "./routes/search.js";
-import { SprintLockedError } from "../shared/sprintLock.js";
+import { SprintLockedError, ManualLockError } from "../shared/sprintLock.js";
 
 /**
  * creates the express application.
@@ -55,7 +55,7 @@ export function createApp() {
     // express only treats four-arg handlers as error middleware
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     app.use((error: Error, _req: Request, res: Response, _next: NextFunction) => {
-        if (error instanceof SprintLockedError) {
+        if (error instanceof SprintLockedError || error instanceof ManualLockError) {
             res.status(409).json({ error: error.message });
             return;
         }

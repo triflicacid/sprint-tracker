@@ -3,6 +3,7 @@ import {
     addTagToStory,
     getStoryDetail,
     removeTagFromStory,
+    setStoryLocked,
     updateStoryAwaitingMoreSubtasks,
     updateStoryPoints,
 } from "../services/storyService.js";
@@ -35,6 +36,17 @@ storiesRouter.patch("/:id", (req: Request, res: Response) => {
     if (!updated) {
         updated = getStoryDetail(storyId);
     }
+    if (!updated) {
+        res.status(404).json({ error: "story not found" });
+        return;
+    }
+    res.json(updated);
+});
+
+storiesRouter.patch("/:id/lock", (req: Request, res: Response) => {
+    const storyId = Number(req.params.id);
+    const { locked } = req.body;
+    const updated = setStoryLocked(storyId, !!locked);
     if (!updated) {
         res.status(404).json({ error: "story not found" });
         return;

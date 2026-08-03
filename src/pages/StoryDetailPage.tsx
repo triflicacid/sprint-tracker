@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 import type { StoryDetail, StatusFlowConfig, StatusHistoryEntry, SubtaskTypeEntry } from "@shared/types";
-import { isSprintLocked } from "@shared/sprintLock";
+import { isSprintLocked, isStoryEffectivelyLocked } from "@shared/sprintLock";
 import { api } from "../api/client";
 import { LockIcon } from "../components/LockIcon";
 import { StoryTypeIcon } from "../components/stories/StoryTypeIcon";
@@ -75,6 +75,14 @@ export function StoryDetailPage(): React.ReactElement {
 
     async function handleStoryPointsChange(value: string) {
         await api.updateStory(storyId, { storyPoints: value === "" ? null : Number(value) });
+        loadStory();
+    }
+
+    async function handleToggleLock() {
+        if (!story) {
+            return;
+        }
+        await api.setStoryLocked(storyId, !story.locked);
         loadStory();
     }
 
@@ -198,7 +206,8 @@ export function StoryDetailPage(): React.ReactElement {
         return <div className="page">loading...</div>;
     }
 
-    const locked = isSprintLocked({ endDate: story.sprintEndDate });
+    const sprintLocked = isSprintLocked({ endDate: story.sprintEndDate });
+    const locked = isStoryEffectivelyLocked({ endDate: story.sprintEndDate }, story);
 
     return (
         <div className="page">
@@ -208,7 +217,7 @@ export function StoryDetailPage(): React.ReactElement {
                         back to sprint
                     </Link>
                     <h1>
-                        {locked && <LockIcon />}
+                        {sprintLocked && <LockIcon />}
                         <span ref={titleIconRef} className="story-type-icon-wrap">
                             <StoryTypeIcon isBug={story.isBug} />
                         </span>
@@ -241,6 +250,13 @@ export function StoryDetailPage(): React.ReactElement {
                             <button onClick={handleFetchJiraInfo} disabled={jiraLoading}>
                                 {jiraLoading ? "fetching..." : "refresh from jira"}
                             </button>
+                        )}
+                        {!sprintLocked && (
+                            <LockIcon
+                                open={!story.locked}
+                                onClick={handleToggleLock}
+                                title={story.locked ? "unlock story" : "lock story"}
+                            />
                         )}
                         <ExportButton onClick={handleExportPdf} loading={exporting} />
                     </div>
@@ -283,7 +299,8 @@ export function StoryDetailPage(): React.ReactElement {
                         subtask={subtask}
                         flow={flow}
                         onChanged={loadStory}
-                        sprintLocked={locked}
+                        sprintLocked={sprintLocked}
+                        storyLocked={story.locked}
                     />
                 ))}
             </div>

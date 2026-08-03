@@ -153,6 +153,7 @@ export interface Subtask {
   complexityRating: number | null;
   releaseVersion: string | null;
   type: string;
+  locked: boolean;
   createdAt: string;
 }
 
@@ -168,6 +169,7 @@ export interface StorySummary {
   awaitingMoreSubtasks: boolean;
   storyPoints: number | null;
   isBug: boolean;
+  locked: boolean;
   tags: Tag[];
   prCount: number;
 }

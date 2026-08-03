@@ -4,7 +4,7 @@ import { recordStatusChange } from "./statusHistoryService.js";
 import { isTransitionAllowed, getRequiredFields, locksComplexityRating } from "./statusFlowService.js";
 import { extractRepoName } from "../utils/githubUrl.js";
 import { tagStoryWithRepo } from "./tagService.js";
-import { isSprintLocked, SprintLockedError } from "../../shared/sprintLock.js";
+import { isSprintLocked, SprintLockedError, ManualLockError } from "../../shared/sprintLock.js";
 import { isValidSubtaskType } from "./subtaskTypeService.js";
 
 interface SubtaskRow {
@@ -20,6 +20,7 @@ interface SubtaskRow {
     complexity_rating: number | null;
     release_version: string | null;
     type: string;
+    locked: number;
     created_at: string;
 }
 
@@ -41,32 +42,60 @@ interface UpdateSubtaskInput {
 export class SubtaskUpdateError extends Error {}
 
 /**
- * gets the end date of a story's parent sprint.
+ * gets a story's sprint end date and its own manual lock flag.
  *
  * @param storyId - story to query.
- * @returns sprint end date, or `undefined` when the story is missing.
+ * @returns lock state, or `undefined` when the story is missing.
  */
-function getSprintEndDateForStory(storyId: number): string | null | undefined {
+function getStoryLockStateForSubtask(storyId: number): { endDate: string | null; storyLocked: boolean } | undefined {
     const row = db
         .prepare(
-            `SELECT sprints.end_date AS end_date
+            `SELECT sprints.end_date AS end_date, stories.locked AS story_locked
              FROM stories
              JOIN sprints ON sprints.id = stories.sprint_id
              WHERE stories.id = ?`
         )
-        .get(storyId) as { end_date: string | null } | undefined;
-    return row?.end_date;
+        .get(storyId) as { end_date: string | null; story_locked: number } | undefined;
+    return row ? { endDate: row.end_date, storyLocked: !!row.story_locked } : undefined;
 }
 
 /**
- * throws when the parent sprint is locked.
+ * throws when the parent sprint has ended or the parent story is manually locked.
  *
  * @param storyId - story to validate.
  */
-function assertStorySprintUnlocked(storyId: number): void {
-    const endDate = getSprintEndDateForStory(storyId);
-    if (endDate !== undefined && isSprintLocked({ endDate })) {
+function assertStoryUnlockedForSubtaskCreation(storyId: number): void {
+    const state = getStoryLockStateForSubtask(storyId);
+    if (!state) {
+        return;
+    }
+    if (isSprintLocked({ endDate: state.endDate })) {
+        throw new SprintLockedError("cannot add a subtask to a story in a sprint that has ended");
+    }
+    if (state.storyLocked) {
+        throw new ManualLockError("cannot add a subtask to a manually locked story");
+    }
+}
+
+/**
+ * throws when the parent sprint has ended, the parent story is manually locked, or the subtask
+ * itself is manually locked.
+ *
+ * @param subtaskRow - subtask to validate.
+ */
+function assertSubtaskMutable(subtaskRow: SubtaskRow): void {
+    const state = getStoryLockStateForSubtask(subtaskRow.story_id);
+    if (!state) {
+        return;
+    }
+    if (isSprintLocked({ endDate: state.endDate })) {
         throw new SprintLockedError("cannot modify a subtask in a sprint that has ended");
+    }
+    if (state.storyLocked) {
+        throw new ManualLockError("cannot modify a subtask whose story is manually locked");
+    }
+    if (subtaskRow.locked) {
+        throw new ManualLockError("cannot modify a manually locked subtask");
     }
 }
 
@@ -90,6 +119,7 @@ function rowToSubtask(row: SubtaskRow): Subtask {
         complexityRating: row.complexity_rating,
         releaseVersion: row.release_version,
         type: row.type,
+        locked: !!row.locked,
         createdAt: row.created_at,
     };
     return subtask;
@@ -140,7 +170,7 @@ export function getSubtaskById(id: number): Subtask | undefined {
  * @returns the created subtask.
  */
 export function createSubtask(storyId: number, input: CreateSubtaskInput): Subtask {
-    assertStorySprintUnlocked(storyId);
+    assertStoryUnlockedForSubtaskCreation(storyId);
     if (input.type !== undefined && !isValidSubtaskType(input.type)) {
         throw new SubtaskUpdateError(`invalid subtask type: ${input.type}`);
     }
@@ -167,7 +197,7 @@ export function updateSubtask(subtaskId: number, input: UpdateSubtaskInput): Sub
     if (!existing) {
         throw new SubtaskUpdateError("subtask not found");
     }
-    assertStorySprintUnlocked(existing.story_id);
+    assertSubtaskMutable(existing);
 
     const nextStatus: SubtaskStatus = input.status ?? existing.status;
     const statusChanging: boolean = input.status !== undefined && input.status !== existing.status;
@@ -216,4 +246,30 @@ export function updateSubtask(subtaskId: number, input: UpdateSubtaskInput): Sub
     }
 
     return getSubtaskById(subtaskId) as Subtask;
+}
+
+/**
+ * sets a subtask's manual lock flag.
+ *
+ * a subtask can be locked independently of its parent story. locking on is rejected once the
+ * sprint has ended; unlocking is always allowed, though it has no visible effect once the
+ * sprint-end lock (or a locked parent story) already applies.
+ *
+ * @param subtaskId - subtask to update.
+ * @param locked - new manual lock value.
+ * @returns the updated subtask, or `null` when it is missing.
+ */
+export function setSubtaskLocked(subtaskId: number, locked: boolean): Subtask | null {
+    const existing = db.prepare("SELECT * FROM subtasks WHERE id = ?").get(subtaskId) as SubtaskRow | undefined;
+    if (!existing) {
+        return null;
+    }
+    if (locked) {
+        const state = getStoryLockStateForSubtask(existing.story_id);
+        if (state && isSprintLocked({ endDate: state.endDate })) {
+            throw new SprintLockedError("cannot lock a subtask in a sprint that has ended");
+        }
+    }
+    db.prepare("UPDATE subtasks SET locked = ? WHERE id = ?").run(locked ? 1 : 0, subtaskId);
+    return getSubtaskById(subtaskId) ?? null;
 }

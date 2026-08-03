@@ -1,9 +1,16 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { db } from "../db/connection.js";
-import { createSubtask, updateSubtask, getSubtaskById, getSubtasksForStory, SubtaskUpdateError } from "./subtaskService.js";
+import {
+    createSubtask,
+    updateSubtask,
+    getSubtaskById,
+    getSubtasksForStory,
+    setSubtaskLocked,
+    SubtaskUpdateError,
+} from "./subtaskService.js";
 import { getHistoryForEntity } from "./statusHistoryService.js";
 import { getTagsForEntity } from "./tagService.js";
-import { SprintLockedError } from "../../shared/sprintLock.js";
+import { SprintLockedError, ManualLockError } from "../../shared/sprintLock.js";
 
 let storyId: number;
 
@@ -30,6 +37,31 @@ function insertSubtaskInLockedSprint(): number {
     const subtask = db
         .prepare("INSERT INTO subtasks (story_id, title, status) VALUES (?, 'x', 'NEW')")
         .run(lockedStoryId);
+    return Number(subtask.lastInsertRowid);
+}
+
+function insertManuallyLockedStory(): number {
+    const sprint = db.prepare("INSERT INTO sprints (name, start_date) VALUES ('S', '2026-01-01')").run();
+    const story = db
+        .prepare(
+            "INSERT INTO stories (sprint_id, jira_url, jira_key, description, locked) VALUES (?, 'https://x', 'NEB-3', 'story', 1)"
+        )
+        .run(Number(sprint.lastInsertRowid));
+    return Number(story.lastInsertRowid);
+}
+
+function insertSubtaskUnderLockedStory(): number {
+    const lockedStoryId = insertManuallyLockedStory();
+    const subtask = db
+        .prepare("INSERT INTO subtasks (story_id, title, status) VALUES (?, 'x', 'NEW')")
+        .run(lockedStoryId);
+    return Number(subtask.lastInsertRowid);
+}
+
+function insertManuallyLockedSubtask(): number {
+    const subtask = db
+        .prepare("INSERT INTO subtasks (story_id, title, status, locked) VALUES (?, 'x', 'NEW', 1)")
+        .run(storyId);
     return Number(subtask.lastInsertRowid);
 }
 
@@ -79,6 +111,11 @@ describe("create subtask", () => {
     it("throws sprint locked error when the story's sprint has ended", () => {
         const lockedStoryId = insertStoryInLockedSprint();
         expect(() => createSubtask(lockedStoryId, { title: "too late" })).toThrow(SprintLockedError);
+    });
+
+    it("throws manual lock error when the parent story is manually locked", () => {
+        const lockedStoryId = insertManuallyLockedStory();
+        expect(() => createSubtask(lockedStoryId, { title: "too late" })).toThrow(ManualLockError);
     });
 });
 
@@ -151,6 +188,22 @@ describe("update subtask - plain field updates", () => {
     it("does not persist the update when the sprint is locked", () => {
         const subtaskId = insertSubtaskInLockedSprint();
         expect(() => updateSubtask(subtaskId, { title: "too late" })).toThrow(SprintLockedError);
+        expect(getSubtaskById(subtaskId)?.title).toBe("x");
+    });
+
+    it("throws manual lock error when the parent story is manually locked (cascade)", () => {
+        const subtaskId = insertSubtaskUnderLockedStory();
+        expect(() => updateSubtask(subtaskId, { title: "too late" })).toThrow(ManualLockError);
+    });
+
+    it("throws manual lock error when the subtask itself is manually locked", () => {
+        const subtaskId = insertManuallyLockedSubtask();
+        expect(() => updateSubtask(subtaskId, { title: "too late" })).toThrow(ManualLockError);
+    });
+
+    it("does not persist the update when the subtask is manually locked", () => {
+        const subtaskId = insertManuallyLockedSubtask();
+        expect(() => updateSubtask(subtaskId, { title: "too late" })).toThrow(ManualLockError);
         expect(getSubtaskById(subtaskId)?.title).toBe("x");
     });
 });
@@ -268,5 +321,37 @@ describe("update subtask - complexity locking", () => {
         const subtaskId = moveToCutRelease();
         const updated = updateSubtask(subtaskId, { title: "renamed" });
         expect(updated.title).toBe("renamed");
+    });
+});
+
+describe("set subtask locked", () => {
+    it("locks and unlocks a subtask independently of its story", () => {
+        const subtask = createSubtask(storyId, { title: "x" });
+        expect(subtask.locked).toBe(false);
+
+        const locked = setSubtaskLocked(subtask.id, true);
+        expect(locked?.locked).toBe(true);
+
+        const unlocked = setSubtaskLocked(subtask.id, false);
+        expect(unlocked?.locked).toBe(false);
+    });
+
+    it("returns null for a missing subtask", () => {
+        expect(setSubtaskLocked(999999, true)).toBeNull();
+    });
+
+    it("rejects locking on once the sprint has ended", () => {
+        const subtaskId = insertSubtaskInLockedSprint();
+        expect(() => setSubtaskLocked(subtaskId, true)).toThrow(SprintLockedError);
+    });
+
+    it("allows unlocking as a no-op once the sprint has ended", () => {
+        const subtaskId = insertSubtaskInLockedSprint();
+        expect(() => setSubtaskLocked(subtaskId, false)).not.toThrow();
+    });
+
+    it("allows locking a subtask even while its story is unlocked", () => {
+        const subtask = createSubtask(storyId, { title: "x" });
+        expect(() => setSubtaskLocked(subtask.id, true)).not.toThrow();
     });
 });

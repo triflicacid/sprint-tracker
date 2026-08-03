@@ -15,6 +15,7 @@ const baseStory = {
     awaitingMoreSubtasks: false,
     storyPoints: null,
     isBug: false,
+    locked: false,
     tags: [{ id: 1, name: "payments", tagType: "custom" as const }],
     prCount: 2,
 };
